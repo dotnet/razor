@@ -1,10 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 
 /// <summary>
 /// Downloads and installs VS Code to a local directory for isolated E2E testing.

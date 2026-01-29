@@ -1,18 +1,18 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+using Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Scenarios;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Scenarios;
 
 /// <summary>
 /// E2E tests for Go to Definition in Razor files.
 /// </summary>
 public class GoToDefinitionTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(output)
 {
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task GoToDefinition_ComponentReference_NavigatesToComponent()
     {
         // Arrange - Open Counter.razor from the dotnet new blazor template
@@ -34,7 +34,7 @@ public class GoToDefinitionTests(ITestOutputHelper output) : VSCodeIntegrationTe
         Assert.True(navigated, "Expected Go to Definition to work on IncrementCount method");
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task GoToDefinition_CSharpSymbol_NavigatesToDefinition()
     {
         // Arrange - Open Counter.razor

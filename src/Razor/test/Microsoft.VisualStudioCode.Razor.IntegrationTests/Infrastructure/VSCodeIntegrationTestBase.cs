@@ -1,11 +1,11 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.Playwright;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 
 /// <summary>
 /// Base class for VS Code integration tests.

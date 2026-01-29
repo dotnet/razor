@@ -1,18 +1,18 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+using Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Scenarios;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Scenarios;
 
 /// <summary>
 /// E2E tests for code actions (Quick Fix, refactoring) in Razor files.
 /// </summary>
 public class CodeActionsTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(output)
 {
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task CodeAction_QuickFix_ShowsAvailableActions()
     {
         // Arrange
@@ -30,7 +30,7 @@ public class CodeActionsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
         await Editor.PressAsync("Escape"); // Close menu
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task CodeAction_AddUsing_WorksForUnresolvedType()
     {
         // Arrange

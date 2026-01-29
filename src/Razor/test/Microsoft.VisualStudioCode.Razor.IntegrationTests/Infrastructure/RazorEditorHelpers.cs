@@ -1,10 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.Playwright;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 
 /// <summary>
 /// Helper methods specific to Razor editing scenarios.
@@ -167,17 +167,35 @@ public class RazorEditorHelpers(IPage page, TestSettings settings, ITestOutputHe
     }
 
     /// <summary>
-    /// Triggers hover and returns the hover content text.
+    /// Triggers hover and waits for the hover content text to appear.
+    /// Waits for actual content to appear (not "Loading...").
     /// </summary>
     /// <returns>The hover content text, or null if hover failed to appear.</returns>
-    public async Task<string?> GetHoverContentAsync()
+    public async Task<string?> WaitForHoverContentAsync(TimeSpan? timeout = null)
     {
+        timeout ??= TimeSpan.FromSeconds(10);
+
         var hasHover = await _editor.TriggerHoverAsync();
         if (!hasHover)
         {
             return null;
         }
 
+        // Wait for actual content, not "Loading..."
+        // The LSP may take time to respond, so we poll until we get real content.
+        var deadline = DateTime.UtcNow + timeout.Value;
+        while (DateTime.UtcNow < deadline)
+        {
+            var content = await _editor.GetHoverContentAsync();
+            if (!string.IsNullOrEmpty(content) && !content.Equals("Loading...", StringComparison.OrdinalIgnoreCase))
+            {
+                return content;
+            }
+
+            await Task.Delay(100);
+        }
+
+        // Return whatever we have, even if it's still "Loading..."
         return await _editor.GetHoverContentAsync();
     }
 

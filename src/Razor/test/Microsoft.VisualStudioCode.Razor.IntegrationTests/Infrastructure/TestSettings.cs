@@ -1,7 +1,7 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 
 /// <summary>
 /// Configuration settings for E2E tests.

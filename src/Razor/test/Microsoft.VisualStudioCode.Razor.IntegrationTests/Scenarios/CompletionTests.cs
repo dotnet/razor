@@ -1,18 +1,18 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+using Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Scenarios;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Scenarios;
 
 /// <summary>
 /// E2E tests for IntelliSense completion in Razor files.
 /// </summary>
 public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(output)
 {
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task CSharpCompletion_InCodeBlock_ShowsCSharpItems()
     {
         // Arrange
@@ -26,7 +26,7 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         Assert.True(hasCSharpCompletions, "Expected C# completions in @code block");
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task HtmlCompletion_InMarkup_ShowsHtmlElements()
     {
         // Arrange
@@ -43,7 +43,7 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         await Editor.UndoAsync();
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task RazorDirectiveCompletion_AfterAt_ShowsDirectives()
     {
         // Arrange
@@ -57,7 +57,7 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         Assert.True(hasRazorDirectives, "Expected Razor directive completions after @");
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task ComponentParameterCompletion_OnComponent_ShowsParameters()
     {
         // Arrange

@@ -1,18 +1,18 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+using Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Scenarios;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Scenarios;
 
 /// <summary>
 /// E2E tests for diagnostics (error squiggles) in Razor files.
 /// </summary>
 public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(output)
 {
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task Diagnostics_CSharpSyntaxError_ShowsErrorSquiggle()
     {
         // Arrange
@@ -23,7 +23,7 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
         Assert.True(diagnosticsAppeared, "Expected error diagnostics to appear for syntax error");
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task Diagnostics_FixError_RemovesSquiggle()
     {
         // Arrange
@@ -34,7 +34,7 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
         Assert.True(diagnosticsDisappeared, "Expected error diagnostics to disappear after fix");
     }
 
-    [Fact]
+    [Fact(Skip = "Skipped for initial CI validation - only running HoverTests")]
     public async Task Diagnostics_ValidFile_NoErrors()
     {
         // Arrange

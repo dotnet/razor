@@ -1,12 +1,12 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.VisualStudioCode.Razor.E2ETests.Infrastructure;
+using Microsoft.VisualStudioCode.Razor.IntegrationTests.Infrastructure;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudioCode.Razor.E2ETests.Scenarios;
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Scenarios;
 
 /// <summary>
 /// E2E tests for hover (Quick Info) in Razor files.
@@ -25,7 +25,7 @@ public class HoverTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(ou
         await Editor.GoToLineAsync(13, 17);
 
         // Act
-        var hoverContent = await Razor.GetHoverContentAsync();
+        var hoverContent = await Razor.WaitForHoverContentAsync();
 
         // Assert
         Assert.NotNull(hoverContent);
@@ -46,7 +46,7 @@ public class HoverTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(ou
         await Editor.GoToLineAsync(15, 18);
 
         // Act
-        var hoverContent = await Razor.GetHoverContentAsync();
+        var hoverContent = await Razor.WaitForHoverContentAsync();
 
         // Assert
         Assert.NotNull(hoverContent);
@@ -67,7 +67,7 @@ public class HoverTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(ou
         await Editor.GoToLineAsync(13, 13);
 
         // Act
-        var hoverContent = await Razor.GetHoverContentAsync();
+        var hoverContent = await Razor.WaitForHoverContentAsync();
 
         // Assert
         Assert.NotNull(hoverContent);
