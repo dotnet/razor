@@ -50,6 +50,12 @@ public abstract class VSCodeIntegrationTestBase(ITestOutputHelper output) : IAsy
     {
         _fixture = await VSCodeFixture.CreateAsync(TestOutput);
         _razor = new RazorEditorHelpers(_fixture.Page, _fixture.Settings, TestOutput);
+
+        // Wait for LSP and Razor to be ready before any test runs.
+        // This prevents race conditions where file operations (like Quick Open)
+        // happen before the language services are initialized.
+        await _fixture.WaitForLspReadyAsync();
+        await _razor.WaitForRazorReadyAsync();
     }
 
     public virtual async Task DisposeAsync()
@@ -58,12 +64,11 @@ public abstract class VSCodeIntegrationTestBase(ITestOutputHelper output) : IAsy
     }
 
     /// <summary>
-    /// Opens a file and waits for the LSP and Razor to be ready.
+    /// Opens a file in the editor.
+    /// LSP and Razor are already ready from InitializeAsync, so no additional waiting is needed.
     /// </summary>
-    protected async Task OpenFileAndWaitForReadyAsync(string relativePath)
+    protected async Task OpenFileAsync(string relativePath)
     {
         await Fixture.OpenFileAsync(relativePath);
-        await Fixture.WaitForLspReadyAsync();
-        await Razor.WaitForRazorReadyAsync();
     }
 }

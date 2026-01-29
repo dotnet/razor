@@ -17,7 +17,7 @@ public class HoverTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(ou
     public async Task Hover_CSharpField_ShowsFieldInfo()
     {
         // Arrange - Open Counter.razor from the dotnet new blazor template
-        await OpenFileAndWaitForReadyAsync("Components/Pages/Counter.razor");
+        await OpenFileAsync("Components/Pages/Counter.razor");
 
         // Navigate to "currentCount" field in the @code block
         // Line 13: "    private int currentCount = 0;"
@@ -38,7 +38,7 @@ public class HoverTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(ou
     public async Task Hover_Method_ShowsMethodSignature()
     {
         // Arrange - Open Counter.razor
-        await OpenFileAndWaitForReadyAsync("Components/Pages/Counter.razor");
+        await OpenFileAsync("Components/Pages/Counter.razor");
 
         // Navigate to "IncrementCount" method in the @code block
         // Line 15: "    private void IncrementCount()"
@@ -59,7 +59,7 @@ public class HoverTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(ou
     public async Task Hover_CSharpKeyword_ShowsTypeInfo()
     {
         // Arrange - Open Counter.razor
-        await OpenFileAndWaitForReadyAsync("Components/Pages/Counter.razor");
+        await OpenFileAsync("Components/Pages/Counter.razor");
 
         // Navigate to "int" keyword in the @code block
         // Line 13: "    private int currentCount = 0;"

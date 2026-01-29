@@ -16,7 +16,7 @@ public class CodeActionsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
     public async Task CodeAction_QuickFix_ShowsAvailableActions()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Navigate to a location with potential code actions
         await Editor.GoToLineAsync(20);
@@ -34,7 +34,7 @@ public class CodeActionsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
     public async Task CodeAction_AddUsing_WorksForUnresolvedType()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Type an unresolved type to trigger "Add using" code action
         await Editor.GoToLineAsync(20);

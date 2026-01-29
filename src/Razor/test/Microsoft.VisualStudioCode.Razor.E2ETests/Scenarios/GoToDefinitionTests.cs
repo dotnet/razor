@@ -17,7 +17,7 @@ public class GoToDefinitionTests(ITestOutputHelper output) : VSCodeIntegrationTe
     {
         // Arrange - Open Counter.razor from the dotnet new blazor template
         // Counter.razor has @onclick="IncrementCount" which we can use for Go to Definition
-        await OpenFileAndWaitForReadyAsync("Components/Pages/Counter.razor");
+        await OpenFileAsync("Components/Pages/Counter.razor");
 
         // Navigate to the IncrementCount method reference in @onclick
         // Line 11 in the template: <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
@@ -38,7 +38,7 @@ public class GoToDefinitionTests(ITestOutputHelper output) : VSCodeIntegrationTe
     public async Task GoToDefinition_CSharpSymbol_NavigatesToDefinition()
     {
         // Arrange - Open Counter.razor
-        await OpenFileAndWaitForReadyAsync("Components/Pages/Counter.razor");
+        await OpenFileAsync("Components/Pages/Counter.razor");
 
         // Navigate to currentCount usage in the IncrementCount method
         // Line 17: "        currentCount++;"

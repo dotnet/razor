@@ -16,7 +16,7 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
     public async Task Diagnostics_CSharpSyntaxError_ShowsErrorSquiggle()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Act & Assert
         var diagnosticsAppeared = await Razor.VerifyDiagnosticsAppearAsync();
@@ -27,7 +27,7 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
     public async Task Diagnostics_FixError_RemovesSquiggle()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Act & Assert
         var diagnosticsDisappeared = await Razor.VerifyDiagnosticsDisappearAsync();
@@ -38,7 +38,7 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
     public async Task Diagnostics_ValidFile_NoErrors()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Counter.razor");
+        await OpenFileAsync("BlazorApp/Components/Counter.razor");
 
         // Wait for diagnostics to settle (expect no errors)
         try

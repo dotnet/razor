@@ -16,7 +16,7 @@ public class FindReferencesTests(ITestOutputHelper output) : VSCodeIntegrationTe
     public async Task FindReferences_Component_ShowsUsages()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Counter.razor");
+        await OpenFileAsync("BlazorApp/Components/Counter.razor");
 
         // Navigate to the component class (implicit class name)
         await Editor.GoToLineAsync(1);
@@ -35,7 +35,7 @@ public class FindReferencesTests(ITestOutputHelper output) : VSCodeIntegrationTe
     public async Task FindReferences_CSharpMethod_ShowsCallSites()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Counter.razor");
+        await OpenFileAsync("BlazorApp/Components/Counter.razor");
 
         // Navigate to the IncrementCount method
         await Editor.GoToLineAsync(23); // private async Task IncrementCount()

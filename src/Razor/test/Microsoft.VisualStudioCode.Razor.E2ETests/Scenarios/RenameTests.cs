@@ -16,7 +16,7 @@ public class RenameTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(o
     public async Task Rename_LocalVariable_RenamesAllOccurrences()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Navigate to the 'message' variable
         await Editor.GoToLineAsync(19); // private string message = "Test message";
@@ -40,7 +40,7 @@ public class RenameTests(ITestOutputHelper output) : VSCodeIntegrationTestBase(o
     public async Task Rename_ComponentParameter_UpdatesUsages()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Counter.razor");
+        await OpenFileAsync("BlazorApp/Components/Counter.razor");
 
         // Navigate to the IncrementAmount parameter
         await Editor.GoToLineAsync(16); // public int IncrementAmount { get; set; }

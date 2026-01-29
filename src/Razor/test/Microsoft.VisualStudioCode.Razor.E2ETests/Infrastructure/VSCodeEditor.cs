@@ -25,25 +25,93 @@ public class VSCodeEditor(IPage page, TestSettings settings, ITestOutputHelper? 
     }
 
     /// <summary>
-    /// Normalizes text by replacing non-breaking spaces and other special whitespace with regular spaces.
-    /// VS Code's Monaco editor often uses non-breaking spaces (U+00A0) in its text content.
+    /// Checks if <paramref name="text"/> contains <paramref name="substring"/> while ignoring whitespace in both strings.
     /// </summary>
-    private static string NormalizeText(string text)
+    /// <remarks>
+    /// When extracting text from the VS Code DOM, whitespace can be unpredictable:
+    /// <list type="bullet">
+    ///   <item>Monaco editor uses non-breaking spaces (U+00A0) instead of regular spaces</item>
+    ///   <item>Text may wrap across multiple DOM elements, causing line breaks mid-word</item>
+    ///   <item>Joining wrapped lines introduces extra spaces at wrap points</item>
+    ///   <item>Various Unicode whitespace characters may appear (figure space, narrow no-break space, etc.)</item>
+    /// </list>
+    /// This method efficiently scans through both strings, skipping whitespace characters,
+    /// and attempts to match without allocating new strings.
+    /// </remarks>
+    private static bool ContainsIgnoringWhitespace(string text, string substring)
     {
-        if (string.IsNullOrEmpty(text))
+        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(substring))
         {
-            return text;
+            return false;
         }
 
-        // Replace non-breaking space (U+00A0) with regular space
-        // Also handle other common whitespace variants
-        return text
-            .Replace('\r', ' ')
-            .Replace('\n', ' ')
-            .Replace('\u00A0', ' ')  // Non-breaking space
-            .Replace('\u2007', ' ')  // Figure space
-            .Replace('\u202F', ' ')  // Narrow no-break space
-            .Replace('\u2060', ' '); // Word joiner
+        var textIndex = 0;
+
+        while (textIndex < text.Length)
+        {
+            // Try to match starting from this position
+            if (MatchesAtPositionIgnoringWhitespace(text, textIndex, substring))
+            {
+                return true;
+            }
+
+            textIndex++;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the substring matches starting at the given position in text, ignoring whitespace in both.
+    /// </summary>
+    private static bool MatchesAtPositionIgnoringWhitespace(string text, int startIndex, string substring)
+    {
+        var textIndex = startIndex;
+        var subIndex = 0;
+
+        while (subIndex < substring.Length)
+        {
+            // Skip whitespace in the substring
+            if (IsWhitespaceOrSpecial(substring[subIndex]))
+            {
+                subIndex++;
+                continue;
+            }
+
+            // Skip whitespace in the input text
+            while (textIndex < text.Length && IsWhitespaceOrSpecial(text[textIndex]))
+            {
+                textIndex++;
+            }
+
+            // If we've run out of text, no match
+            if (textIndex >= text.Length)
+            {
+                return false;
+            }
+
+            // Compare characters (case-insensitive)
+            if (char.ToLowerInvariant(text[textIndex]) != char.ToLowerInvariant(substring[subIndex]))
+            {
+                return false;
+            }
+
+            textIndex++;
+            subIndex++;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if a character is whitespace or a special zero-width/formatting character.
+    /// </summary>
+    private static bool IsWhitespaceOrSpecial(char c)
+    {
+        return char.IsWhiteSpace(c)
+            || c == '\u2060'  // Word joiner (zero-width)
+            || c == '\u200B'  // Zero-width space
+            || c == '\uFEFF'; // Byte order mark (zero-width no-break space)
     }
 
     /// <summary>
@@ -827,10 +895,9 @@ public class VSCodeEditor(IPage page, TestSettings settings, ITestOutputHelper? 
 
         if (!string.IsNullOrEmpty(jsResult))
         {
-            var normalized = NormalizeText(jsResult);
-            Log($"Got output content via JS ({normalized.Length} chars)");
-            Log($"Output content: {normalized}");
-            return normalized;
+            Log($"Got output content via JS ({jsResult.Length} chars)");
+            Log($"Output content: {jsResult}");
+            return jsResult;
         }
 
         Log("JS evaluation returned empty, trying DOM selectors...");
@@ -853,7 +920,7 @@ public class VSCodeEditor(IPage page, TestSettings settings, ITestOutputHelper? 
                 Log($"Selector '{selector}' found, text length: {text?.Length ?? 0}");
                 if (!string.IsNullOrEmpty(text))
                 {
-                    return NormalizeText(text);
+                    return text;
                 }
             }
             else
@@ -889,13 +956,13 @@ public class VSCodeEditor(IPage page, TestSettings settings, ITestOutputHelper? 
     }
 
     /// <summary>
-    /// Checks if the output panel contains specific text.
+    /// Checks if the output panel contains specific text, ignoring whitespace differences.
     /// </summary>
     /// <param name="text">The text to search for.</param>
     public async Task<bool> OutputContainsAsync(string text)
     {
         var content = await GetOutputContentAsync();
-        var contains = content.Contains(text, StringComparison.OrdinalIgnoreCase);
+        var contains = ContainsIgnoringWhitespace(content, text);
         Log($"Output contains '{text}': {contains}");
         return contains;
     }

@@ -16,7 +16,7 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
     public async Task CSharpCompletion_InCodeBlock_ShowsCSharpItems()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Navigate to the @code block
         await Editor.GoToLineAsync(20); // Inside the @code block
@@ -30,7 +30,7 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
     public async Task HtmlCompletion_InMarkup_ShowsHtmlElements()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Navigate to the HTML section
         await Editor.GoToLineAsync(10); // In the HTML markup area
@@ -47,7 +47,7 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
     public async Task RazorDirectiveCompletion_AfterAt_ShowsDirectives()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Navigate to a good position for directives
         await Editor.GoToLineAsync(5);
@@ -61,7 +61,7 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
     public async Task ComponentParameterCompletion_OnComponent_ShowsParameters()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Navigate to a good position for adding a component
         await Editor.GoToLineAsync(12);

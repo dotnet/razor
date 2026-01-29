@@ -16,7 +16,7 @@ public class FormattingTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
     public async Task FormatDocument_RazorFile_FormatsSuccessfully()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Act
         var formattingWorked = await Razor.VerifyFormattingAsync();
@@ -29,7 +29,7 @@ public class FormattingTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
     public async Task FormatDocument_CshtmlFile_FormatsSuccessfully()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("RazorPagesApp/Pages/Index.cshtml");
+        await OpenFileAsync("RazorPagesApp/Pages/Index.cshtml");
 
         // Act
         var formattingWorked = await Razor.VerifyFormattingAsync();
@@ -42,7 +42,7 @@ public class FormattingTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
     public async Task FormatDocument_MalformedHtml_HandlesGracefully()
     {
         // Arrange
-        await OpenFileAndWaitForReadyAsync("BlazorApp/Components/Pages/Home.razor");
+        await OpenFileAsync("BlazorApp/Components/Pages/Home.razor");
 
         // Add some malformed HTML
         await Editor.GoToLineAsync(10);
