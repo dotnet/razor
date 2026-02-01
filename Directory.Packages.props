@@ -115,6 +115,9 @@
     <PackageVersion Include="xunit.runner.utility" Version="2.4.1" />
     <PackageVersion Include="Xunit.StaFact" Version="1.2.46-alpha" />
 
+    <!-- E2E Testing packages -->
+    <PackageVersion Include="Microsoft.Playwright" Version="1.49.0" />
+
     <!--
       These package references exist solely to fix component governance issues. Referencing them here
       at the appropriate version, in combination with using CentralPackageTransitivePinningEnabled, will
