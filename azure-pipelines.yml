@@ -279,3 +279,212 @@ stages:
           artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Results
           condition: always()
+
+  # VS Code Integration Tests - runs Playwright E2E tests against VS Code on all platforms
+  - template: /eng/common/templates/jobs/jobs.yml
+    parameters:
+      enablePublishBuildArtifacts: false
+      enablePublishTestResults: true
+      enableTelemetry: true
+      helixRepo: dotnet/razor
+      helixType: build.product/
+      jobs:
+      - job: VSCode_Integration_Windows
+        displayName: VS Code Integration Tests (Windows)
+        timeoutInMinutes: 60
+        pool:
+          name: $(DncEngPublicBuildPool)
+          demands: ImageOverride -equals windows.vs2022preview.amd64.open
+        variables:
+        - _BuildConfig: Release
+        steps:
+        - script: eng\cibuild.cmd
+            -configuration $(_BuildConfig)
+            -prepareMachine
+            -restore
+            -build
+          displayName: Restore and Build
+
+        - pwsh: |
+            $env:RAZOR_TEST_CONFIGURATION = "$(_BuildConfig)"
+            dotnet test src/Razor/test/Microsoft.VisualStudioCode.Razor.IntegrationTests/Microsoft.VisualStudioCode.Razor.IntegrationTests.csproj --configuration $(_BuildConfig) --logger trx --results-directory $(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)
+          displayName: Run VS Code Integration Tests
+
+        - publish: artifacts/log/$(_BuildConfig)
+          artifact: VSCode_Windows Attempt $(System.JobAttempt) Logs
+          displayName: Publish Logs
+          condition: always()
+
+        - publish: artifacts/TestResults/$(_BuildConfig)
+          artifact: VSCode_Windows Attempt $(System.JobAttempt) TestResults
+          displayName: Publish Test Results
+          condition: always()
+
+        - powershell: |
+            if (-not (Test-Path '.vscode-test/screenshots')) {
+              New-Item -ItemType Directory -Path '.vscode-test/screenshots' -Force
+              Write-Host "Created empty screenshots directory"
+            }
+          displayName: Ensure Screenshots Directory Exists
+          condition: always()
+
+        - publish: .vscode-test/screenshots
+          artifact: VSCode_Windows Attempt $(System.JobAttempt) Screenshots
+          displayName: Publish Screenshots
+          condition: always()
+          continueOnError: true
+
+        - powershell: |
+            if (-not (Test-Path '.vscode-test/failure-logs')) {
+              New-Item -ItemType Directory -Path '.vscode-test/failure-logs' -Force
+              Write-Host "Created empty failure-logs directory"
+            } else {
+              Write-Host "Failure logs collected:"
+              Get-ChildItem -Path '.vscode-test/failure-logs' -Recurse -Directory | ForEach-Object {
+                Write-Host "  $($_.Name)"
+              }
+            }
+          displayName: Ensure Failure Logs Directory Exists
+          condition: always()
+
+        - publish: .vscode-test/failure-logs
+          artifact: VSCode_Windows Attempt $(System.JobAttempt) FailureLogs
+          displayName: Publish Failure Logs
+          condition: always()
+          continueOnError: true
+
+      - job: VSCode_Integration_macOS
+        displayName: VS Code Integration Tests (macOS)
+        timeoutInMinutes: 60
+        pool:
+          vmImage: macOS-14
+        variables:
+        - _BuildConfig: Release
+        steps:
+        - script: eng/cibuild.sh
+            --configuration $(_BuildConfig)
+            --prepareMachine
+            --restore
+            --build
+          displayName: Restore and Build
+
+        - bash: |
+            export RAZOR_TEST_CONFIGURATION="$(_BuildConfig)"
+            dotnet test src/Razor/test/Microsoft.VisualStudioCode.Razor.IntegrationTests/Microsoft.VisualStudioCode.Razor.IntegrationTests.csproj --configuration $(_BuildConfig) --logger trx --results-directory $(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)
+          displayName: Run VS Code Integration Tests
+
+        - publish: artifacts/log/$(_BuildConfig)
+          artifact: VSCode_macOS Attempt $(System.JobAttempt) Logs
+          displayName: Publish Logs
+          condition: always()
+
+        - publish: artifacts/TestResults/$(_BuildConfig)
+          artifact: VSCode_macOS Attempt $(System.JobAttempt) TestResults
+          displayName: Publish Test Results
+          condition: always()
+
+        - bash: |
+            mkdir -p .vscode-test/screenshots
+            echo "Ensured screenshots directory exists"
+          displayName: Ensure Screenshots Directory Exists
+          condition: always()
+
+        - publish: .vscode-test/screenshots
+          artifact: VSCode_macOS Attempt $(System.JobAttempt) Screenshots
+          displayName: Publish Screenshots
+          condition: always()
+          continueOnError: true
+
+        - bash: |
+            if [ ! -d ".vscode-test/failure-logs" ]; then
+              mkdir -p .vscode-test/failure-logs
+              echo "Created empty failure-logs directory"
+            else
+              echo "Failure logs collected:"
+              find .vscode-test/failure-logs -type d -mindepth 1 -maxdepth 1 -exec basename {} \;
+            fi
+          displayName: Ensure Failure Logs Directory Exists
+          condition: always()
+
+        - publish: .vscode-test/failure-logs
+          artifact: VSCode_macOS Attempt $(System.JobAttempt) FailureLogs
+          displayName: Publish Failure Logs
+          condition: always()
+          continueOnError: true
+
+      - job: VSCode_Integration_Linux
+        displayName: VS Code Integration Tests (Linux)
+        timeoutInMinutes: 60
+        pool:
+          name: NetCore-Public
+          demands: ImageOverride -equals Build.Ubuntu.2204.Amd64.Open
+        variables:
+        - _BuildConfig: Release
+        steps:
+        - script: eng/cibuild.sh
+            --configuration $(_BuildConfig)
+            --prepareMachine
+            --restore
+            --build
+          displayName: Restore and Build
+
+        - bash: |
+            sudo apt-get update
+            sudo apt-get install -y xvfb libgbm1 libasound2
+          displayName: Install VS Code dependencies
+
+        - bash: |
+            export RAZOR_TEST_CONFIGURATION="$(_BuildConfig)"
+            export DISPLAY=:99
+            # Start Xvfb with proper screen configuration for VS Code
+            echo "Starting Xvfb..."
+            Xvfb :99 -screen 0 1920x1080x24 &
+            sleep 3
+            echo "Xvfb started, DISPLAY=$DISPLAY"
+            # Verify Xvfb is running
+            if ! pgrep -x Xvfb > /dev/null; then
+              echo "ERROR: Xvfb failed to start"
+              exit 1
+            fi
+            echo "Running tests..."
+            dotnet test src/Razor/test/Microsoft.VisualStudioCode.Razor.IntegrationTests/Microsoft.VisualStudioCode.Razor.IntegrationTests.csproj --configuration $(_BuildConfig) --logger trx --results-directory $(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)
+          displayName: Run VS Code Integration Tests
+
+        - publish: artifacts/log/$(_BuildConfig)
+          artifact: VSCode_Linux Attempt $(System.JobAttempt) Logs
+          displayName: Publish Logs
+          condition: always()
+
+        - publish: artifacts/TestResults/$(_BuildConfig)
+          artifact: VSCode_Linux Attempt $(System.JobAttempt) TestResults
+          displayName: Publish Test Results
+          condition: always()
+
+        - bash: |
+            mkdir -p .vscode-test/screenshots
+            echo "Ensured screenshots directory exists"
+          displayName: Ensure Screenshots Directory Exists
+          condition: always()
+
+        - publish: .vscode-test/screenshots
+          artifact: VSCode_Linux Attempt $(System.JobAttempt) Screenshots
+          displayName: Publish Screenshots
+          condition: always()
+          continueOnError: true
+
+        - bash: |
+            if [ ! -d ".vscode-test/failure-logs" ]; then
+              mkdir -p .vscode-test/failure-logs
+              echo "Created empty failure-logs directory"
+            else
+              echo "Failure logs collected:"
+              find .vscode-test/failure-logs -type d -mindepth 1 -maxdepth 1 -exec basename {} \;
+            fi
+          displayName: Ensure Failure Logs Directory Exists
+          condition: always()
+
+        - publish: .vscode-test/failure-logs
+          artifact: VSCode_Linux Attempt $(System.JobAttempt) FailureLogs
+          displayName: Publish Failure Logs
+          condition: always()
+          continueOnError: true

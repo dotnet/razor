@@ -1,0 +1,137 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using Microsoft.Playwright;
+
+namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
+
+/// <summary>
+/// Services for diagnostics (error squiggles) operations in integration tests.
+/// </summary>
+public class DiagnosticsServices(IntegrationTestServices testServices)
+{
+    /// <summary>
+    /// Checks if there are any error diagnostics visible (squiggles in the editor).
+    /// </summary>
+    public async Task<bool> HasErrorsAsync()
+    {
+        var errorSquiggles = await testServices.Playwright.Page.QuerySelectorAllAsync(".squiggly-error");
+        return errorSquiggles.Count > 0;
+    }
+
+    /// <summary>
+    /// Checks if there are any warning diagnostics visible (squiggles in the editor).
+    /// </summary>
+    public async Task<bool> HasWarningsAsync()
+    {
+        var warningSquiggles = await testServices.Playwright.Page.QuerySelectorAllAsync(".squiggly-warning");
+        return warningSquiggles.Count > 0;
+    }
+
+    /// <summary>
+    /// Waits for diagnostics to appear or disappear using smart polling.
+    /// </summary>
+    public async Task WaitForDiagnosticsAsync(bool expectErrors = true, TimeSpan? timeout = null)
+    {
+        timeout ??= testServices.Settings.LspTimeout;
+
+        await EditorService.WaitForConditionAsync(
+            HasErrorsAsync,
+            hasErrors => hasErrors == expectErrors,
+            timeout.Value);
+    }
+
+    /// <summary>
+    /// Opens the Problems panel.
+    /// </summary>
+    public async Task OpenProblemsPanelAsync()
+    {
+        await testServices.Editor.ExecuteCommandAsync("View: Toggle Problems");
+        await Task.Delay(300); // Wait for panel to open
+    }
+
+    /// <summary>
+    /// Gets all problems (errors and warnings) from the Problems panel.
+    /// </summary>
+    /// <returns>List of problem messages.</returns>
+    public async Task<List<string>> GetProblemsAsync()
+    {
+        var problems = new List<string>();
+
+        // The problems panel shows items in a tree structure with markers
+        var problemItems = await testServices.Playwright.Page.EvaluateAsync<string[]>(@"
+            (() => {
+                const items = [];
+                
+                // Look for marker rows in the problems panel
+                // Each problem is in a .monaco-list-row containing the marker message
+                const rows = document.querySelectorAll('.markers-panel .monaco-list-row, [id=""workbench.panel.markers""] .monaco-list-row');
+                
+                for (const row of rows) {
+                    // Get all text content from the row
+                    const text = row.textContent || '';
+                    if (text.trim()) {
+                        items.push(text.trim());
+                    }
+                }
+                
+                // If we didn't find any, try the tree items directly
+                if (items.length === 0) {
+                    const treeItems = document.querySelectorAll('.markers-panel .monaco-tl-row, .panel .markers-panel-container .monaco-list-row');
+                    for (const item of treeItems) {
+                        const text = item.textContent || '';
+                        if (text.trim()) {
+                            items.push(text.trim());
+                        }
+                    }
+                }
+                
+                return items;
+            })()
+        ") ?? [];
+
+        problems.AddRange(problemItems.Where(p => !string.IsNullOrWhiteSpace(p)));
+
+        testServices.Logger.Log($"Found {problems.Count} problems: {string.Join("; ", problems.Take(5))}");
+        return problems;
+    }
+
+    /// <summary>
+    /// Waits for a specific problem code to appear in the Problems panel.
+    /// </summary>
+    /// <param name="problemCode">The diagnostic code to wait for (e.g., "CS1002", "RZ9980").</param>
+    /// <param name="timeout">Timeout for waiting.</param>
+    public async Task WaitForProblemAsync(string problemCode, TimeSpan? timeout = null)
+    {
+        timeout ??= testServices.Settings.LspTimeout;
+
+        await EditorService.WaitForConditionAsync(
+            async () =>
+            {
+                var problems = await GetProblemsAsync();
+                return problems.Any(p => p.Contains(problemCode, StringComparison.OrdinalIgnoreCase));
+            },
+            timeout.Value);
+    }
+
+    /// <summary>
+    /// Waits for the problems panel to show no problems (or a specific count).
+    /// </summary>
+    /// <param name="expectedCount">Expected number of problems (default 0).</param>
+    /// <param name="timeout">Timeout for waiting.</param>
+    public async Task WaitForNoProblemAsync(int expectedCount = 0, TimeSpan? timeout = null)
+    {
+        timeout ??= testServices.Settings.LspTimeout;
+
+        await EditorService.WaitForConditionAsync(
+            async () =>
+            {
+                var problems = await GetProblemsAsync();
+                // Filter out file/folder headers (they don't contain error codes)
+                var actualProblems = problems.Where(p =>
+                    p.Contains("CS") || p.Contains("RZ") || p.Contains("error") || p.Contains("warning")).ToList();
+                return actualProblems.Count == expectedCount;
+            },
+            timeout.Value);
+    }
+}
