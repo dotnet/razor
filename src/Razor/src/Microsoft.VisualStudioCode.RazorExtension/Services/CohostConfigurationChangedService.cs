@@ -51,7 +51,9 @@ internal sealed class CohostConfigurationChangedService(
                 new ConfigurationItem { Section = "razor.format.code_block_brace_on_next_line" },
                 new ConfigurationItem { Section = "razor.format.attribute_indent_style" },
                 new ConfigurationItem { Section = "razor.completion.commit_elements_with_space" },
-                new ConfigurationItem { Section = "html.autoClosingTags" },
+                // Note: VS Code settings use snake_case, so this is "auto_closing_tags" not "autoClosingTags"
+                // TypeScript code in the VS Code extension converts between camelCase and snake_case
+                new ConfigurationItem { Section = "html.auto_closing_tags" },
             ]
         };
 
