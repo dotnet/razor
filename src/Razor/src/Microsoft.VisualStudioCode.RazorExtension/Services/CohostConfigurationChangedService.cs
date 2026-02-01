@@ -51,6 +51,7 @@ internal sealed class CohostConfigurationChangedService(
                 new ConfigurationItem { Section = "razor.format.code_block_brace_on_next_line" },
                 new ConfigurationItem { Section = "razor.format.attribute_indent_style" },
                 new ConfigurationItem { Section = "razor.completion.commit_elements_with_space" },
+                new ConfigurationItem { Section = "html.autoClosingTags" },
             ]
         };
 
@@ -69,10 +70,21 @@ internal sealed class CohostConfigurationChangedService(
     {
         return settings with
         {
-            CodeBlockBraceOnNextLine = GetBooleanOptionValue(jsonArray[0], settings.CodeBlockBraceOnNextLine),
-            AttributeIndentStyle = GetEnumOptionValue(jsonArray[1], settings.AttributeIndentStyle),
-            CommitElementsWithSpace = GetBooleanOptionValue(jsonArray[2], settings.CommitElementsWithSpace),
+            CodeBlockBraceOnNextLine = GetBooleanOptionValue(TryGetElement(jsonArray, 0), settings.CodeBlockBraceOnNextLine),
+            AttributeIndentStyle = GetEnumOptionValue(TryGetElement(jsonArray, 1), settings.AttributeIndentStyle),
+            CommitElementsWithSpace = GetBooleanOptionValue(TryGetElement(jsonArray, 2), settings.CommitElementsWithSpace),
+            AutoClosingTags = GetBooleanOptionValue(TryGetElement(jsonArray, 3), settings.AutoClosingTags),
         };
+    }
+
+    private static JsonNode? TryGetElement(JsonArray jsonArray, int index)
+    {
+        if (index < jsonArray.Count)
+        {
+            return jsonArray[index];
+        }
+
+        return null;
     }
 
     private static bool GetBooleanOptionValue(JsonNode? jsonNode, bool defaultValue)
