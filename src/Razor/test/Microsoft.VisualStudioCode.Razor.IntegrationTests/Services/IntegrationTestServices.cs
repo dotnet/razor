@@ -18,6 +18,9 @@ public class IntegrationTestServices
         Playwright = new PlaywrightService(this);
         Workspace = new WorkspaceService(this);
         VSCode = new VSCodeService(this);
+        Editor = new EditorService(this);
+        Input = new InputService(this);
+        Formatting = new FormattingServices(this);
         Razor = new RazorService(this);
     }
 
@@ -45,6 +48,21 @@ public class IntegrationTestServices
     /// Gets the VS Code service for lifecycle and file operations.
     /// </summary>
     public VSCodeService VSCode { get; }
+
+    /// <summary>
+    /// Gets the VS Code editor helper for editor operations.
+    /// </summary>
+    public EditorService Editor { get; }
+
+    /// <summary>
+    /// Gets the input service for keyboard and mouse input.
+    /// </summary>
+    public InputService Input { get; }
+
+    /// <summary>
+    /// Gets formatting services.
+    /// </summary>
+    public FormattingServices Formatting { get; }
 
     /// <summary>
     /// Gets Razor language server services.
