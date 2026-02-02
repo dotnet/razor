@@ -20,6 +20,7 @@ public class IntegrationTestServices
         VSCode = new VSCodeService(this);
         Editor = new EditorService(this);
         Input = new InputService(this);
+        Completion = new CompletionServices(this);
         Diagnostics = new DiagnosticsServices(this);
         Navigation = new NavigationServices(this);
         Formatting = new FormattingServices(this);
@@ -60,6 +61,11 @@ public class IntegrationTestServices
     /// Gets the input service for keyboard and mouse input.
     /// </summary>
     public InputService Input { get; }
+
+    /// <summary>
+    /// Gets completion (IntelliSense) services.
+    /// </summary>
+    public CompletionServices Completion { get; }
 
     /// <summary>
     /// Gets diagnostics (error squiggles) services.
