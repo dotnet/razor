@@ -20,6 +20,7 @@ public class IntegrationTestServices
         VSCode = new VSCodeService(this);
         Editor = new EditorService(this);
         Input = new InputService(this);
+        CodeAction = new CodeActionService(this);
         Hover = new HoverServices(this);
         Completion = new CompletionServices(this);
         Diagnostics = new DiagnosticsServices(this);
@@ -62,6 +63,11 @@ public class IntegrationTestServices
     /// Gets the input service for keyboard and mouse input.
     /// </summary>
     public InputService Input { get; }
+
+    /// <summary>
+    /// Gets the code action (Quick Fix, refactoring) service.
+    /// </summary>
+    public CodeActionService CodeAction { get; }
 
     /// <summary>
     /// Gets hover (Quick Info) services.
