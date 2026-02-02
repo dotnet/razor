@@ -20,6 +20,7 @@ public class IntegrationTestServices
         VSCode = new VSCodeService(this);
         Editor = new EditorService(this);
         Input = new InputService(this);
+        Navigation = new NavigationServices(this);
         Formatting = new FormattingServices(this);
         Razor = new RazorService(this);
     }
@@ -58,6 +59,11 @@ public class IntegrationTestServices
     /// Gets the input service for keyboard and mouse input.
     /// </summary>
     public InputService Input { get; }
+
+    /// <summary>
+    /// Gets navigation (Go to Definition, Find References) services.
+    /// </summary>
+    public NavigationServices Navigation { get; }
 
     /// <summary>
     /// Gets formatting services.
