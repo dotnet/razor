@@ -36,8 +36,8 @@ public class CodeActionsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
         // Select the first code action (Add using)
         await TestServices.Input.PressAsync("Enter");
 
-        // Wait for the code action to be applied
-        await Task.Delay(500);
+        // Wait for the code action to be applied by checking for editor dirty state then save
+        await TestServices.Editor.WaitForEditorDirtyAsync();
 
         // Assert - verify the using directive was added
         var text = await TestServices.Editor.WaitForEditorTextChangeAsync();
@@ -68,13 +68,31 @@ public class CodeActionsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
         if (hasCodeActions)
         {
             await TestServices.Input.TypeAsync("Extract");
-            await Task.Delay(300);
+            // Wait for the quick-input list to filter
+            await EditorService.WaitForConditionAsync(
+                async () =>
+                {
+                    var itemCount = await TestServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row, .action-widget .monaco-list-row").CountAsync();
+                    return itemCount > 0;
+                },
+                TimeSpan.FromSeconds(5));
             await TestServices.Input.PressAsync("Enter");
-            await Task.Delay(500);
+            
+            // Wait for rename input or editor change
+            await EditorService.WaitForConditionAsync(
+                async () =>
+                {
+                    // Check for rename widget or quick-input
+                    var renameWidget = await TestServices.Playwright.Page.Locator(".rename-box, .quick-input-widget").CountAsync();
+                    return renameWidget > 0;
+                },
+                TimeSpan.FromSeconds(5));
 
             // Accept the default method name
             await TestServices.Input.PressAsync("Enter");
-            await Task.Delay(500);
+            
+            // Wait for editor to become dirty (code was modified)
+            await TestServices.Editor.WaitForEditorDirtyAsync();
         }
 
         // Assert - verify a new method was created

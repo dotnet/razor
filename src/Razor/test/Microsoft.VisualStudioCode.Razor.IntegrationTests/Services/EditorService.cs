@@ -592,8 +592,14 @@ public class EditorService(IntegrationTestServices testServices)
 
         await testServices.Input.TypeAsync(relativePath);
 
-        // Wait briefly for the file list to populate
-        await Task.Delay(200);
+        // Wait for the file list to populate by checking for list items
+        await WaitForConditionAsync(
+            async () =>
+            {
+                var listItemCount = await testServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row").CountAsync();
+                return listItemCount > 0;
+            },
+            TimeSpan.FromSeconds(5));
 
         await testServices.Input.PressAsync("Enter");
 

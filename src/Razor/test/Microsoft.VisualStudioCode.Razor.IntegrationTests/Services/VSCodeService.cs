@@ -110,9 +110,43 @@ public partial class VSCodeService(IntegrationTestServices testServices)
         process.Start();
         _vsCodeProcess = process;
 
-        // Give VS Code time to start and open the debugging port
-        testServices.Logger.Log("Waiting for VS Code to start...");
-        await Task.Delay(5000);
+        // Poll for the CDP endpoint to become available instead of fixed delay
+        testServices.Logger.Log("Waiting for VS Code debugging port to open...");
+        var cdpUrl = $"http://127.0.0.1:{testServices.Settings.RemoteDebuggingPort}";
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(30);
+        var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+
+        while (DateTime.UtcNow < deadline)
+        {
+            try
+            {
+                // Check if the CDP endpoint is responding
+                var response = await httpClient.GetAsync($"{cdpUrl}/json/version");
+                if (response.IsSuccessStatusCode)
+                {
+                    testServices.Logger.Log("VS Code debugging port is ready");
+                    break;
+                }
+            }
+            catch (Exception)
+            {
+                // Not ready yet, continue polling
+            }
+
+            // Check if process exited with an error
+            if (_vsCodeProcess?.HasExited == true && _vsCodeProcess.ExitCode != 0)
+            {
+                var stdout = await process.StandardOutput.ReadToEndAsync();
+                var stderr = await process.StandardError.ReadToEndAsync();
+                throw new InvalidOperationException(
+                    $"VS Code CLI exited with error code {_vsCodeProcess.ExitCode}. " +
+                    $"stdout: {stdout}, stderr: {stderr}");
+            }
+
+            await Task.Delay(500);
+        }
+
+        httpClient.Dispose();
 
         // Check if process exited with an error
         // Note: On Windows, code.cmd is a wrapper that spawns Electron and exits immediately with code 0.

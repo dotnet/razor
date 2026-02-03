@@ -73,7 +73,7 @@ public class CompletionServices(IntegrationTestServices testServices)
         var results = new List<string>();
 
         // Wait a moment for completion items to populate
-        await Task.Delay(500);
+        await WaitForListAsync();
 
         // Try to get items using JavaScript which can access more of the DOM
         var itemTexts = await testServices.Playwright.Page.EvaluateAsync<string[]>(@"

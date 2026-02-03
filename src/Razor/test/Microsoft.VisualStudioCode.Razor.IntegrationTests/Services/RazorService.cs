@@ -30,9 +30,6 @@ public class RazorService(IntegrationTestServices testServices)
                 // Open Home.razor which contains <PageTitle> component
                 await testServices.Editor.OpenFileAsync("Components/Pages/Home.razor");
 
-                // Wait a moment for the file to be processed
-                await Task.Delay(500);
-
                 // Navigate to PageTitle - it's typically on line 3
                 // Home.razor usually has: @page "/" then <PageTitle>Home</PageTitle>
                 await testServices.Editor.GoToWordAsync("PageTitle", selectWord: false);
@@ -40,19 +37,40 @@ public class RazorService(IntegrationTestServices testServices)
                 // Run "Developer: Inspect Editor Tokens and Scopes" command
                 await testServices.Editor.ExecuteCommandAsync("Developer: Inspect Editor Tokens and Scopes");
 
-                // Wait for the token inspector popup to appear
-                await Task.Delay(500);
-
-                // Check if the popup contains "razorComponentElement"
-                var hasRazorToken = await CheckForRazorTokenAsync();
+                // Wait for the token inspector popup to appear and contain razorComponentElement
+                var hasRazorToken = false;
+                try
+                {
+                    await EditorService.WaitForConditionAsync(
+                        async () =>
+                        {
+                            var found = await CheckForRazorTokenAsync();
+                            if (found)
+                            {
+                                hasRazorToken = true;
+                            }
+                            return found;
+                        },
+                        TimeSpan.FromSeconds(3));
+                }
+                catch (TimeoutException)
+                {
+                    // Token not found within timeout
+                    testServices.Logger.Log("Token inspector did not show razorComponentElement");
+                }
 
                 // Close the token inspector by pressing Escape
                 await testServices.Input.PressAsync("Escape");
-                await Task.Delay(100);
 
-                // Close the file
+                // Close the file and wait for tab to close
                 await testServices.Input.PressWithPrimaryModifierAsync("w");
-                await Task.Delay(200);
+                await EditorService.WaitForConditionAsync(
+                    async () =>
+                    {
+                        var fileName = await testServices.Editor.GetCurrentFileNameAsync();
+                        return fileName == null || !fileName.Contains("Home.razor", StringComparison.OrdinalIgnoreCase);
+                    },
+                    TimeSpan.FromSeconds(2));
 
                 if (hasRazorToken)
                 {

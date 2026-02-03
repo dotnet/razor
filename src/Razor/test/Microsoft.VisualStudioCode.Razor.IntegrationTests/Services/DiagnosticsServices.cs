@@ -47,7 +47,15 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
     public async Task OpenProblemsPanelAsync()
     {
         await testServices.Editor.ExecuteCommandAsync("View: Toggle Problems");
-        await Task.Delay(300); // Wait for panel to open
+        
+        // Wait for panel to be visible
+        await EditorService.WaitForConditionAsync(
+            async () =>
+            {
+                var panelCount = await testServices.Playwright.Page.Locator(".markers-panel, .problems-panel, [aria-label*='Problems']").CountAsync();
+                return panelCount > 0;
+            },
+            TimeSpan.FromSeconds(5));
     }
 
     /// <summary>

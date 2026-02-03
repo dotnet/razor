@@ -27,11 +27,13 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         // Type a partial identifier - this naturally triggers completions
         await TestServices.Input.TypeAsync("current");
 
-        // Wait for completion to appear
-        await Task.Delay(500);
-
-        // Trigger to make sure it's visible
-        var hasCompletions = await TestServices.Completion.TriggerAsync();
+        // Wait for completion list to appear
+        var hasCompletions = await TestServices.Completion.WaitForListAsync();
+        if (!hasCompletions)
+        {
+            // If not visible yet, trigger explicitly
+            hasCompletions = await TestServices.Completion.TriggerAsync();
+        }
         Assert.True(hasCompletions, "Expected completion list to appear");
 
         // Assert - look for currentCount in completions
@@ -55,11 +57,13 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         // Type a partial HTML tag - VS Code should show completions
         await TestServices.Input.TypeAsync("<di");
 
-        // Wait for completions to appear
-        await Task.Delay(500);
-
-        // Trigger to make sure the widget is visible
-        await TestServices.Completion.TriggerAsync();
+        // Wait for completion list to appear
+        var hasCompletions = await TestServices.Completion.WaitForListAsync();
+        if (!hasCompletions)
+        {
+            // If not visible yet, trigger explicitly
+            await TestServices.Completion.TriggerAsync();
+        }
 
         // Get completion items
         var items = await TestServices.Completion.GetItemsAsync();
@@ -84,11 +88,13 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         // Type @ to trigger Razor completions
         await TestServices.Input.TypeAsync("@in"); // Partial "@inject"
 
-        // Wait for completions to appear
-        await Task.Delay(500);
-
-        // Trigger to make sure the widget is visible
-        await TestServices.Completion.TriggerAsync();
+        // Wait for completion list to appear
+        var hasCompletions = await TestServices.Completion.WaitForListAsync();
+        if (!hasCompletions)
+        {
+            // If not visible yet, trigger explicitly
+            await TestServices.Completion.TriggerAsync();
+        }
 
         // Get completion items
         var items = await TestServices.Completion.GetItemsAsync();

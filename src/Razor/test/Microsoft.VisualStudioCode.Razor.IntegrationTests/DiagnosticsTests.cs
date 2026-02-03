@@ -61,8 +61,8 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
         await TestServices.Editor.OpenFileAsync("Components/Pages/Counter.razor");
         await TestServices.Diagnostics.OpenProblemsPanelAsync();
 
-        // Wait for diagnostics to settle
-        await Task.Delay(1000);
+        // Wait for diagnostics to settle - expect no errors on a valid file
+        await TestServices.Diagnostics.WaitForDiagnosticsAsync(expectErrors: false, timeout: TimeSpan.FromSeconds(10));
 
         // Act
         var hasErrors = await TestServices.Diagnostics.HasErrorsAsync();
