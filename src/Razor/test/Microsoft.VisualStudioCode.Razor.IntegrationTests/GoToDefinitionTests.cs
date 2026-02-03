@@ -65,7 +65,7 @@ public class GoToDefinitionTests(ITestOutputHelper output) : VSCodeIntegrationTe
         await TestServices.Editor.OpenFileAsync("Components/Pages/Home.razor");
 
         // Go to end of file and add a Counter component
-        await TestServices.Input.PressWithPrimaryModifierAsync("End");
+        await TestServices.Input.PressWithPrimaryModifierAsync(SpecialKey.End);
         await TestServices.Input.TypeAsync("\n<Counter />");
         await TestServices.Editor.SaveAsync();
 

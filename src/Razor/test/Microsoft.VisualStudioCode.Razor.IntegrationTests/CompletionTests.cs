@@ -21,8 +21,8 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         // Navigate to inside the IncrementCount method (line 17: currentCount++;)
         // and add a new line to type code
         await TestServices.Editor.GoToLineAsync(17);
-        await TestServices.Input.PressEndOfLineAsync(); // Go to end of line
-        await TestServices.Input.PressAsync("Enter"); // New line
+        await TestServices.Input.PressAsync(SpecialKey.End); // Go to end of line
+        await TestServices.Input.PressAsync(SpecialKey.Enter); // New line
 
         // Type a partial identifier - this naturally triggers completions
         await TestServices.Input.TypeAsync("current");
@@ -51,8 +51,8 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
 
         // Navigate to the end of the h1 tag line (line 5: <h1>Counter</h1>)
         await TestServices.Editor.GoToLineAsync(5);
-        await TestServices.Input.PressEndOfLineAsync();
-        await TestServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync(SpecialKey.End);
+        await TestServices.Input.PressAsync(SpecialKey.Enter);
 
         // Type a partial HTML tag - VS Code should show completions
         await TestServices.Input.TypeAsync("<di");
@@ -82,8 +82,8 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
 
         // Navigate to line 2 (after @rendermode) and add a new line
         await TestServices.Editor.GoToLineAsync(2);
-        await TestServices.Input.PressEndOfLineAsync();
-        await TestServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync(SpecialKey.End);
+        await TestServices.Input.PressAsync(SpecialKey.Enter);
 
         // Type @ to trigger Razor completions
         await TestServices.Input.TypeAsync("@in"); // Partial "@inject"

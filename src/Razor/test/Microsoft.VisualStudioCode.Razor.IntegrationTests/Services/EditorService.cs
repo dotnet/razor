@@ -271,11 +271,11 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     public async Task GoToLineAsync(int line, int column = 1)
     {
         // Ctrl+G opens Go to Line dialog (Control on all platforms, including macOS)
-        await TestServices.Input.PressWithControlAsync("g");
+        await TestServices.Input.PressWithControlAsync('g');
         await WaitForQuickInputAsync();
 
         await TestServices.Input.TypeAsync($"{line}:{column}");
-        await TestServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync(SpecialKey.Enter);
 
         await WaitForQuickInputToCloseAsync();
 
@@ -292,7 +292,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     /// </summary>
     public async Task SelectAllAsync()
     {
-        await TestServices.Input.PressWithPrimaryModifierAsync("a");
+        await TestServices.Input.PressWithPrimaryModifierAsync('a');
         // Selection is synchronous, minimal wait
         await Task.Delay(50);
     }
@@ -303,7 +303,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     public async Task SaveAsync()
     {
         TestServices.Logger.Log("Saving document.");
-        await TestServices.Input.PressWithPrimaryModifierAsync("s");
+        await TestServices.Input.PressWithPrimaryModifierAsync('s');
 
         // Wait for the "dirty" indicator to disappear from the tab
         try
@@ -339,7 +339,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     /// </summary>
     public async Task OpenCommandPaletteAsync()
     {
-        await TestServices.Input.PressWithShiftPrimaryModifierAsync("p");
+        await TestServices.Input.PressWithShiftPrimaryModifierAsync('p');
         await WaitForQuickInputAsync();
     }
 
@@ -360,7 +360,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
             },
             TimeSpan.FromSeconds(5));
 
-        await TestServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync(SpecialKey.Enter);
         await WaitForQuickInputToCloseAsync();
     }
 
@@ -373,7 +373,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     public async Task GoToWordAsync(string word, bool selectWord = false)
     {
         // Use Find to navigate to the word
-        await TestServices.Input.PressWithPrimaryModifierAsync("f");
+        await TestServices.Input.PressWithPrimaryModifierAsync('f');
 
         // Wait for the find widget to appear
         await TestServices.Playwright.Page.Locator(".editor-widget.find-widget")
@@ -389,9 +389,9 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
 
         // Close the find dialog - press Escape twice:
         // First Escape unfocuses the find input, second closes the widget
-        await TestServices.Input.PressAsync("Escape");
+        await TestServices.Input.PressAsync(SpecialKey.Escape);
         await Task.Delay(50);
-        await TestServices.Input.PressAsync("Escape");
+        await TestServices.Input.PressAsync(SpecialKey.Escape);
 
         // Wait for find widget to close
         try
@@ -406,7 +406,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         catch (TimeoutException)
         {
             // Widget still visible - try one more escape and take screenshot for debugging
-            await TestServices.Input.PressAsync("Escape");
+            await TestServices.Input.PressAsync(SpecialKey.Escape);
             await Task.Delay(100);
             await TestServices.Playwright.TakeScreenshotAsync($"GoToWord_{word}_StillVisible");
         }
@@ -418,13 +418,13 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
             // Use Ctrl+Shift+Left to select word to the left (cursor is at end of match)
             for (var i = 0; i < word.Length; i++)
             {
-                await TestServices.Input.PressAsync("Shift+ArrowLeft");
+                await TestServices.Input.PressWithShiftAsync(SpecialKey.ArrowLeft);
             }
         }
         else
         {
             // GoToWord leaves cursor at end, move to start of word
-            await TestServices.Input.PressAsync("ArrowLeft");
+            await TestServices.Input.PressAsync(SpecialKey.ArrowLeft);
         }
     }
 
@@ -436,7 +436,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         TestServices.Logger.Log($"Opening file: {relativePath}");
 
         // Use the Quick Open dialog (Ctrl+P / Cmd+P) to open the file
-        await TestServices.Input.PressWithPrimaryModifierAsync("p");
+        await TestServices.Input.PressWithPrimaryModifierAsync('p');
 
         // Wait for Quick Open input to appear - wait for the input field itself which is more reliable
         await TestServices.Playwright.Page.Locator(".quick-input-widget .quick-input-box input")
@@ -457,7 +457,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
             },
             TimeSpan.FromSeconds(5));
 
-        await TestServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync(SpecialKey.Enter);
 
         // Wait for the file to be open by checking the active tab
         var expectedFileName = Path.GetFileName(relativePath);

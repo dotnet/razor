@@ -60,10 +60,10 @@ public class RazorService(IntegrationTestServices testServices) : ServiceBase(te
                 }
 
                 // Close the token inspector by pressing Escape
-                await TestServices.Input.PressAsync("Escape");
+                await TestServices.Input.PressAsync(SpecialKey.Escape);
 
                 // Close the file and wait for tab to close
-                await TestServices.Input.PressWithPrimaryModifierAsync("w");
+                await TestServices.Input.PressWithPrimaryModifierAsync('w');
                 await EditorService.WaitForConditionAsync(
                     async () =>
                     {
@@ -90,8 +90,8 @@ public class RazorService(IntegrationTestServices testServices) : ServiceBase(te
                 // Try to close any open file/dialog before retrying
                 try
                 {
-                    await TestServices.Input.PressAsync("Escape");
-                    await TestServices.Input.PressWithPrimaryModifierAsync("w");
+                    await TestServices.Input.PressAsync(SpecialKey.Escape);
+                    await TestServices.Input.PressWithPrimaryModifierAsync('w');
                 }
                 catch
                 {

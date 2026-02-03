@@ -21,7 +21,7 @@ public class NavigationServices(IntegrationTestServices testServices) : ServiceB
         var originalFile = await TestServices.Editor.GetCurrentFileNameAsync();
         var originalPosition = await TestServices.Editor.GetCursorPositionAsync();
 
-        await TestServices.Input.PressAsync("F12");
+        await TestServices.Input.PressAsync(SpecialKey.F12);
 
         if (expectedFileName != null)
         {
@@ -60,7 +60,7 @@ public class NavigationServices(IntegrationTestServices testServices) : ServiceB
     {
         timeout ??= TestServices.Settings.LspTimeout;
 
-        await TestServices.Input.PressAsync("Shift+F12");
+        await TestServices.Input.PressWithShiftAsync(SpecialKey.F12);
 
         // Wait for the references panel or peek view to appear
         await EditorService.WaitForConditionAsync(

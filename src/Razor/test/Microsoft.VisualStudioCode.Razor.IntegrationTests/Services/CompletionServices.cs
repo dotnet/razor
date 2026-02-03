@@ -18,7 +18,7 @@ public class CompletionServices(IntegrationTestServices testServices) : ServiceB
     /// <param name="timeout">Timeout for waiting. Uses LspTimeout if not specified.</param>
     public async Task<bool> TriggerAsync(bool waitForList = true, TimeSpan? timeout = null)
     {
-        await TestServices.Input.PressWithPrimaryModifierAsync("Space");
+        await TestServices.Input.PressWithPrimaryModifierAsync(SpecialKey.Space);
 
         if (waitForList)
         {

@@ -17,7 +17,7 @@ public class CodeActionService(IntegrationTestServices testServices) : ServiceBa
     /// <param name="timeout">Timeout for waiting.</param>
     public async Task<bool> OpenQuickFixMenuAsync(bool waitForActions = true, TimeSpan? timeout = null)
     {
-        await TestServices.Input.PressWithPrimaryModifierAsync(".");
+        await TestServices.Input.PressWithPrimaryModifierAsync('.');
 
         if (waitForActions)
         {

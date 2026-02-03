@@ -34,7 +34,7 @@ public class CodeActionsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
         Assert.True(hasCodeActions, "Expected code actions for unresolved type");
 
         // Select the first code action (Add using)
-        await TestServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync(SpecialKey.Enter);
 
         // Wait for the code action to be applied by checking for editor dirty state then save
         await TestServices.Editor.WaitForEditorDirtyAsync();

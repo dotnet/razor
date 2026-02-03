@@ -20,8 +20,8 @@ public class FormattingTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
 
         // Go to end of line 14 (blank line before IncrementCount method) and add badly indented code
         await TestServices.Editor.GoToLineAsync(14);
-        await TestServices.Input.PressEndOfLineAsync();
-        await TestServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync(SpecialKey.End);
+        await TestServices.Input.PressAsync(SpecialKey.Enter);
         await TestServices.Input.TypeAsync("private string BadlyIndented=\"test\";");
 
         // Formatting could be async, so make sure we save after the edit, so WaitForEditorTextChangeAsync works correctly
@@ -44,15 +44,15 @@ public class FormattingTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
 
         // Add unformatted mixed content at end of line 5 (after </h1>)
         await TestServices.Editor.GoToLineAsync(5);
-        await TestServices.Input.PressEndOfLineAsync();
-        await TestServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync(SpecialKey.End);
+        await TestServices.Input.PressAsync(SpecialKey.Enter);
         // Typing like this is weird, but seems to help reduce flakiness
         await TestServices.Input.TypeAsync("<div>");
         await Task.Delay(100);
         await TestServices.Input.TypeAsync("@");
         await Task.Delay(100);
         // Dismiss completion just in case it gets in the way
-        await TestServices.Input.PressAsync("Escape");
+        await TestServices.Input.PressAsync(SpecialKey.Escape);
         await TestServices.Input.TypeAsync("{var x=1;}");
 
         // Act

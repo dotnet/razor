@@ -42,7 +42,7 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
         await TestServices.Diagnostics.WaitForDiagnosticsAsync(expectErrors: true, timeout: TimeSpan.FromSeconds(5));
 
         // Act - fix the error by adding the missing value
-        await TestServices.Input.PressAsync("Backspace");
+        await TestServices.Input.PressAsync(SpecialKey.Backspace);
         await TestServices.Input.TypeAsync("5; }");
 
         // Assert - wait for errors to disappear
