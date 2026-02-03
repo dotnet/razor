@@ -87,7 +87,7 @@ public abstract class VSCodeIntegrationTestBase : IAsyncLifetime
             // Step 4: Launch VS Code with the workspace
             currentStep = "Step 4/7: Launching VS Code";
             TestServices.Logger.Log($"{currentStep}...");
-            await TestServices.VSCode.LaunchAsync(TestServices.Workspace.Path).WaitAsync(cts.Token);
+            await TestServices.VSCode.LaunchAsync(TestServices.Workspace.WorkspacePath).WaitAsync(cts.Token);
             TestServices.Logger.Log($"{currentStep} - Complete");
 
             // Step 5: Connect Playwright to VS Code

@@ -108,7 +108,6 @@ public partial class VSCodeService(IntegrationTestServices testServices)
             }
         };
         process.Start();
-        _vsCodeProcess = process;
 
         // Poll for the CDP endpoint to become available instead of fixed delay
         testServices.Logger.Log("Waiting for VS Code debugging port to open...");
@@ -134,18 +133,19 @@ public partial class VSCodeService(IntegrationTestServices testServices)
             }
 
             // Check if process exited with an error
-            if (_vsCodeProcess?.HasExited == true && _vsCodeProcess.ExitCode != 0)
+            if (process.HasExited == true && process.ExitCode != 0)
             {
                 var stdout = await process.StandardOutput.ReadToEndAsync();
                 var stderr = await process.StandardError.ReadToEndAsync();
                 throw new InvalidOperationException(
-                    $"VS Code CLI exited with error code {_vsCodeProcess.ExitCode}. " +
+                    $"VS Code CLI exited with error code {process.ExitCode}. " +
                     $"stdout: {stdout}, stderr: {stderr}");
             }
 
             await Task.Delay(500);
         }
 
+        _vsCodeProcess = process;
         httpClient.Dispose();
 
         // Check if process exited with an error

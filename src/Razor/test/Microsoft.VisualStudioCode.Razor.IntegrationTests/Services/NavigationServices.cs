@@ -10,7 +10,6 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// </summary>
 public class NavigationServices(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
-
     /// <summary>
     /// Triggers Go to Definition and waits for navigation.
     /// </summary>

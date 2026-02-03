@@ -1,6 +1,8 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics;
+
 namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 
 /// <summary>
@@ -10,29 +12,28 @@ public class WorkspaceService(IntegrationTestServices testServices) : ServiceBas
 {
     private string? _workspacePath;
 
-
     /// <summary>
     /// Gets the path to the current test workspace.
     /// </summary>
-    public string Path => _workspacePath ?? throw new InvalidOperationException("Workspace not created. Call CreateAsync first.");
+    public string WorkspacePath => _workspacePath ?? throw new InvalidOperationException("Workspace not created. Call CreateAsync first.");
 
     /// <summary>
     /// Gets the workspace folder name.
     /// </summary>
-    public string Name => System.IO.Path.GetFileName(_workspacePath) ?? throw new InvalidOperationException("Workspace not created.");
+    public string Name => Path.GetFileName(_workspacePath) ?? throw new InvalidOperationException("Workspace not created.");
 
     /// <summary>
     /// Creates a new test workspace with a Blazor project.
     /// </summary>
     public async Task CreateAsync()
     {
-        _workspacePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"vscode-razor-test-{Guid.NewGuid():N}");
+        _workspacePath = Path.Combine(Path.GetTempPath(), $"vscode-razor-test-{Guid.NewGuid():N}");
         Directory.CreateDirectory(_workspacePath);
 
         TestServices.Logger.Log($"Creating test workspace at: {_workspacePath}");
 
         // Create a new Blazor project using dotnet new (includes .razor files)
-        var process = new System.Diagnostics.Process
+        var process = new Process
         {
             StartInfo = new System.Diagnostics.ProcessStartInfo
             {

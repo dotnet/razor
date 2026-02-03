@@ -140,7 +140,7 @@ public class RazorService(IntegrationTestServices testServices) : ServiceBase(te
                 const allElements = document.querySelectorAll('*');
                 for (const el of allElements) {
                     const text = el.textContent || '';
-                    if (text.includes('razorComponentElement') && text.length < 5000) {
+                    if (text.includes('razorComponentElement')) {
                         return text.substring(0, 1000);
                     }
                 }

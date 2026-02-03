@@ -81,7 +81,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
             return string.Empty;
         }
 
-        var filePath = Path.Combine(TestServices.Workspace.Path, _currentOpenFile);
+        var filePath = Path.Combine(TestServices.Workspace.WorkspacePath, _currentOpenFile);
 
         // Read the original file contents before saving
         var originalContents = "";
@@ -102,11 +102,12 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
         var delayMs = 50;
 
+        var currentContents = "";
         while (DateTime.UtcNow < deadline)
         {
             try
             {
-                var currentContents = await ReadFileExclusiveAsync(filePath);
+                currentContents = await ReadFileExclusiveAsync(filePath);
                 if (currentContents != originalContents)
                 {
                     // File has been updated, return the new contents
@@ -125,17 +126,8 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
 
         // Timeout: return the last read contents (file may not have changed)
         TestServices.Logger.Log($"WaitForEditorTextChangeAsync: Timeout waiting for contents change, returning current contents");
-        try
-        {
-            var text = await ReadFileExclusiveAsync(filePath);
-            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents (fallback, {text.Length} chars):\n{text}");
-            return text;
-        }
-        catch (IOException ex)
-        {
-            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: Failed to read file: {ex.Message}");
-            throw;
-        }
+        TestServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents (fallback, {currentContents.Length} chars):\n{currentContents}");
+        return currentContents;
     }
 
     /// <summary>
@@ -261,7 +253,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         // Example: "Ln 13, Col 17" or "Ln 13, Col 17 (5 selected)"
         var match = System.Text.RegularExpressions.Regex.Match(
             statusText,
-            @"Ln\s*(\d+),?\s*Col\s*(\d+)");
+            @"Ln\s*(\d+),\s*Col\s*(\d+)");
 
         if (match.Success &&
             int.TryParse(match.Groups[1].Value, out var line) &&
@@ -316,14 +308,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         // Wait for the "dirty" indicator to disappear from the tab
         try
         {
-            await WaitForConditionAsync(
-                async () =>
-                {
-                    var dirtyCount = await TestServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
-                    TestServices.Logger.Log("Dirty indicator: " + (dirtyCount > 0 ? "present" : "not present"));
-                    return dirtyCount == 0;
-                },
-                TimeSpan.FromSeconds(5));
+            await WaitForEditorDirtyAsync(expectDirty: false);
         }
         catch (TimeoutException)
         {
@@ -333,16 +318,18 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     }
 
     /// <summary>
-    /// Waits for the editor to have unsaved changes (dirty indicator on tab).
+    /// Waits for the editor dirty state to match the expected value.
     /// </summary>
-    public async Task WaitForEditorDirtyAsync()
+    /// <param name="expectDirty">If true, waits for unsaved changes. If false, waits for clean state.</param>
+    public async Task WaitForEditorDirtyAsync(bool expectDirty = true)
     {
         await WaitForConditionAsync(
             async () =>
             {
                 var dirtyCount = await TestServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
-                TestServices.Logger.Log("Dirty indicator: " + (dirtyCount > 0 ? "present" : "not present"));
-                return dirtyCount > 0;
+                var isDirty = dirtyCount > 0;
+                TestServices.Logger.Log("Dirty indicator: " + (isDirty ? "present" : "not present"));
+                return isDirty == expectDirty;
             },
             TimeSpan.FromSeconds(5));
     }

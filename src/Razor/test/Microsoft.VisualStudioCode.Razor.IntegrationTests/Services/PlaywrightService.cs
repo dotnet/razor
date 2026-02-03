@@ -134,7 +134,7 @@ public class PlaywrightService(IntegrationTestServices testServices) : ServiceBa
                 TestServices.Logger.Log("Connected to VS Code (fallback to first page)");
                 return;
             }
-            catch (Exception ex) when (retries > 1)
+            catch (Exception ex)
             {
                 TestServices.Logger.Log($"Failed to connect (attempt {11 - retries}), retrying... ({ex.GetType().Name}: {ex.Message})");
                 await Task.Delay(retryDelay);
@@ -149,6 +149,7 @@ public class PlaywrightService(IntegrationTestServices testServices) : ServiceBa
     {
         TestServices.Logger.Log($"Looking for workspace page with folder: {workspaceName}");
 
+        var pagesWithWorkbench = new List<IPage>();
         foreach (var context in _browser!.Contexts)
         {
             foreach (var page in context.Pages)
@@ -161,6 +162,8 @@ public class PlaywrightService(IntegrationTestServices testServices) : ServiceBa
                     {
                         continue;
                     }
+
+                    pagesWithWorkbench.Add(page);
 
                     // Check if the title or explorer contains our workspace name
                     var title = await page.TitleAsync();
@@ -189,24 +192,6 @@ public class PlaywrightService(IntegrationTestServices testServices) : ServiceBa
                 {
                     TestServices.Logger.Log($"Error checking page: {ex.Message}");
                 }
-            }
-        }
-
-        // If we only have one page with a workbench, use that
-        var pagesWithWorkbench = new List<IPage>();
-        foreach (var context in _browser.Contexts)
-        {
-            foreach (var page in context.Pages)
-            {
-                try
-                {
-                    var workbenchLocator = page.Locator(".monaco-workbench");
-                    if (await workbenchLocator.CountAsync() > 0)
-                    {
-                        pagesWithWorkbench.Add(page);
-                    }
-                }
-                catch { }
             }
         }
 

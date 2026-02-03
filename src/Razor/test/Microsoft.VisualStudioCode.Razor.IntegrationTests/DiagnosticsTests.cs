@@ -69,7 +69,7 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
     [Fact]
     public Task Diagnostics_UnclosedTag_ShowsRZ9980() => ScreenshotOnFailureAsync(async () =>
     {
-        var fileName = Path.Combine(TestServices.Workspace.Path, "Components/Pages/Home.razor");
+        var fileName = Path.Combine(TestServices.Workspace.WorkspacePath, "Components/Pages/Home.razor");
         var contents = File.ReadAllText(fileName);
         contents = contents.Replace("</PageTitle>", ""); // Remove closing tag to introduce error
         File.WriteAllText(fileName, contents);
@@ -89,7 +89,7 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
     {
         // Typing is problematic, and automatic close tag insertion gets in the way, so it's easier
         // to just modify the file on disk directly.
-        var fileName = Path.Combine(TestServices.Workspace.Path, "Components/Pages/Home.razor");
+        var fileName = Path.Combine(TestServices.Workspace.WorkspacePath, "Components/Pages/Home.razor");
         var contents = File.ReadAllText(fileName);
         contents = contents.Replace("</h1>", ""); // Remove closing tag to introduce error
         File.WriteAllText(fileName, contents);

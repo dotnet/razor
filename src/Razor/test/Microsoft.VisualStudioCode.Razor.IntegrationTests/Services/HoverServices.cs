@@ -10,7 +10,6 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// </summary>
 public class HoverServices(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
-
     /// <summary>
     /// Triggers hover information at the current cursor position and waits for it to appear.
     /// </summary>
@@ -95,20 +94,22 @@ public class HoverServices(IntegrationTestServices testServices) : ServiceBase(t
         }
 
         // Wait for actual content, not "Loading..."
-        // The LSP may take time to respond, so we poll until we get real content.
-        var deadline = DateTime.UtcNow + timeout.Value;
-        while (DateTime.UtcNow < deadline)
+        string? content = null;
+        try
         {
-            var content = await GetContentAsync();
-            if (!string.IsNullOrEmpty(content) && !content.Equals("Loading...", StringComparison.OrdinalIgnoreCase))
-            {
-                return content;
-            }
-
-            await Task.Delay(100);
+            await EditorService.WaitForConditionAsync(
+                async () =>
+                {
+                    content = await GetContentAsync();
+                    return !string.IsNullOrEmpty(content) && !content.Equals("Loading...", StringComparison.OrdinalIgnoreCase);
+                },
+                timeout.Value);
+        }
+        catch (TimeoutException)
+        {
+            // Return whatever we have, even if it's still "Loading..."
         }
 
-        // Return whatever we have, even if it's still "Loading..."
-        return await GetContentAsync();
+        return content ?? await GetContentAsync();
     }
 }

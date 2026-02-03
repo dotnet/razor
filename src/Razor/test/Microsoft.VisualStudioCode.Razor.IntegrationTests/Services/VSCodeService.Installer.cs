@@ -374,7 +374,7 @@ public partial class VSCodeService
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    // On macOS, we must use ditto or unzip to preserve symlinks and app bundle structure.
+                    // On macOS, we must use ditto to preserve symlinks and app bundle structure.
                     // .NET's ZipFile.ExtractToDirectory doesn't handle macOS app bundles correctly.
                     var process = new System.Diagnostics.Process
                     {
