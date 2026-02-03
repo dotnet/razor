@@ -358,8 +358,6 @@ internal abstract class AbstractDocumentMappingService(ILogger logger) : IDocume
                     csharpPosition = csharpDocument.Text.GetLinePosition(csharpIndex);
                     return true;
                 }
-
-                break;
             }
         }
 
