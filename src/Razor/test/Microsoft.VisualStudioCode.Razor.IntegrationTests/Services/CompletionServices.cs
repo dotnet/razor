@@ -37,27 +37,15 @@ public class CompletionServices(IntegrationTestServices testServices)
 
         try
         {
-            // Try multiple possible selectors for the suggest widget concurrently (VS Code versions vary)
-            var locators = new[]
-            {
-                testServices.Playwright.Page.Locator(".suggest-widget.visible"),
-                testServices.Playwright.Page.Locator(".monaco-list.suggest-widget"),
-                testServices.Playwright.Page.Locator(".editor-widget.suggest-widget"),
-                testServices.Playwright.Page.Locator("[widgetid='editor.widget.suggestWidget']")
-            };
-
-            // Wait for any of the selectors to become visible, each with the full timeout
-            var waitTasks = locators.Select(locator =>
-                locator.WaitForAsync(new LocatorWaitForOptions
+            // The suggest widget has class "visible" when shown
+            await testServices.Playwright.Page.Locator(".suggest-widget.visible")
+                .WaitForAsync(new LocatorWaitForOptions
                 {
                     State = WaitForSelectorState.Visible,
                     Timeout = (float)timeout.Value.TotalMilliseconds
-                })).ToArray();
+                });
 
-            await Task.WhenAny(waitTasks);
-
-            // Check if any succeeded
-            return waitTasks.Any(t => t.IsCompletedSuccessfully);
+            return true;
         }
         catch (TimeoutException)
         {
