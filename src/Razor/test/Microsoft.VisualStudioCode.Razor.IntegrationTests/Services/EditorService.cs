@@ -379,10 +379,10 @@ public class EditorService(IntegrationTestServices testServices)
 
     /// <summary>
     /// Navigates to a specific word/symbol in the file and positions the cursor on it.
-    /// Uses Find to locate the word, then closes the find dialog and selects the word.
+    /// Uses Find to locate the word, then closes the find dialog and optionally selects the word.
     /// </summary>
     /// <param name="word">The word to navigate to.</param>
-    /// <param name="selectWord">If true, selects the entire word after navigating.</param>
+    /// <param name="selectWord">If true, selects the found text after navigating.</param>
     public async Task GoToWordAsync(string word, bool selectWord = false)
     {
         // Use Find to navigate to the word
@@ -424,9 +424,19 @@ public class EditorService(IntegrationTestServices testServices)
             await testServices.Playwright.TakeScreenshotAsync($"GoToWord_{word}_StillVisible");
         }
 
-        if (!selectWord)
+        if (selectWord)
         {
-            // GoToWord leaves cursor at end, but if not selecting, move to start of word
+            // Select the word by using Ctrl+D (Add Selection To Next Find Match)
+            // which selects the word at cursor, or we can use Shift+Arrow keys
+            // Use Ctrl+Shift+Left to select word to the left (cursor is at end of match)
+            for (var i = 0; i < word.Length; i++)
+            {
+                await testServices.Input.PressAsync("Shift+ArrowLeft");
+            }
+        }
+        else
+        {
+            // GoToWord leaves cursor at end, move to start of word
             await testServices.Input.PressAsync("ArrowLeft");
         }
     }
