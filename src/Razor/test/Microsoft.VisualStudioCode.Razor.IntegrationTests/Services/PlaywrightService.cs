@@ -10,7 +10,7 @@ using Playwright = Playwright.Playwright;
 /// <summary>
 /// Manages the Playwright browser connection to VS Code via Chrome DevTools Protocol.
 /// </summary>
-public class PlaywrightService(IntegrationTestServices testServices)
+public class PlaywrightService(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
     private IPlaywright? _playwright;
     private IBrowser? _browser;
@@ -32,14 +32,14 @@ public class PlaywrightService(IntegrationTestServices testServices)
     {
         if (_page == null)
         {
-            testServices.Logger.Log("Cannot take screenshot - page not connected");
+            TestServices.Logger.Log("Cannot take screenshot - page not connected");
             return string.Empty;
         }
 
-        var screenshotsDir = testServices.Settings.ScreenshotsDir;
+        var screenshotsDir = TestServices.Settings.ScreenshotsDir;
         if (string.IsNullOrEmpty(screenshotsDir))
         {
-            testServices.Logger.Log("Cannot take screenshot - ScreenshotsDir not configured");
+            TestServices.Logger.Log("Cannot take screenshot - ScreenshotsDir not configured");
             return string.Empty;
         }
 
@@ -59,12 +59,12 @@ public class PlaywrightService(IntegrationTestServices testServices)
                 FullPage = true
             });
 
-            testServices.Logger.Log($"Screenshot saved: {filepath}");
+            TestServices.Logger.Log($"Screenshot saved: {filepath}");
             return filepath;
         }
         catch (Exception ex)
         {
-            testServices.Logger.Log($"Failed to take screenshot: {ex.Message}");
+            TestServices.Logger.Log($"Failed to take screenshot: {ex.Message}");
             return string.Empty;
         }
     }
@@ -75,7 +75,7 @@ public class PlaywrightService(IntegrationTestServices testServices)
     public async Task InitializeAsync()
     {
         // Ensure Chromium browser is installed (similar to VS Code auto-install pattern)
-        testServices.Logger.Log("Ensuring Playwright browsers are installed...");
+        TestServices.Logger.Log("Ensuring Playwright browsers are installed...");
         var exitCode = Microsoft.Playwright.Program.Main(["install", "chromium"]);
         if (exitCode != 0)
         {
@@ -93,7 +93,7 @@ public class PlaywrightService(IntegrationTestServices testServices)
     public async Task ConnectAsync(int port, string workspaceName)
     {
         var cdpUrl = $"http://localhost:{port}";
-        testServices.Logger.Log($"Connecting to VS Code via CDP: {cdpUrl}");
+        TestServices.Logger.Log($"Connecting to VS Code via CDP: {cdpUrl}");
 
         var retries = 10; // Increased retries for Linux/CI
         var retryDelay = 3000; // 3 seconds between retries
@@ -102,7 +102,7 @@ public class PlaywrightService(IntegrationTestServices testServices)
         {
             try
             {
-                testServices.Logger.Log($"CDP connection attempt ({11 - retries}/10)...");
+                TestServices.Logger.Log($"CDP connection attempt ({11 - retries}/10)...");
 
                 // Add timeout to the CDP connection
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
@@ -116,7 +116,7 @@ public class PlaywrightService(IntegrationTestServices testServices)
                 }
 
                 _browser = await connectTask;
-                testServices.Logger.Log("CDP connection established, looking for workspace page...");
+                TestServices.Logger.Log("CDP connection established, looking for workspace page...");
 
                 // Find the page that has the workspace open (look for the workbench with our folder)
                 _page = await FindWorkspacePageAsync(workspaceName);
@@ -124,19 +124,19 @@ public class PlaywrightService(IntegrationTestServices testServices)
                 if (_page != null)
                 {
                     _context = _page.Context;
-                    testServices.Logger.Log("Connected to VS Code workspace window successfully");
+                    TestServices.Logger.Log("Connected to VS Code workspace window successfully");
                     return;
                 }
 
                 // Fallback to first available page if we couldn't find the workspace
                 _context = _browser.Contexts.FirstOrDefault() ?? await _browser.NewContextAsync();
                 _page = _context.Pages.FirstOrDefault() ?? await _context.NewPageAsync();
-                testServices.Logger.Log("Connected to VS Code (fallback to first page)");
+                TestServices.Logger.Log("Connected to VS Code (fallback to first page)");
                 return;
             }
             catch (Exception ex) when (retries > 1)
             {
-                testServices.Logger.Log($"Failed to connect (attempt {11 - retries}), retrying... ({ex.GetType().Name}: {ex.Message})");
+                TestServices.Logger.Log($"Failed to connect (attempt {11 - retries}), retrying... ({ex.GetType().Name}: {ex.Message})");
                 await Task.Delay(retryDelay);
                 retries--;
             }
@@ -147,7 +147,7 @@ public class PlaywrightService(IntegrationTestServices testServices)
 
     private async Task<IPage?> FindWorkspacePageAsync(string workspaceName)
     {
-        testServices.Logger.Log($"Looking for workspace page with folder: {workspaceName}");
+        TestServices.Logger.Log($"Looking for workspace page with folder: {workspaceName}");
 
         foreach (var context in _browser!.Contexts)
         {
@@ -164,11 +164,11 @@ public class PlaywrightService(IntegrationTestServices testServices)
 
                     // Check if the title or explorer contains our workspace name
                     var title = await page.TitleAsync();
-                    testServices.Logger.Log($"Found VS Code page with title: {title}");
+                    TestServices.Logger.Log($"Found VS Code page with title: {title}");
 
                     if (title.Contains(workspaceName, StringComparison.OrdinalIgnoreCase))
                     {
-                        testServices.Logger.Log("Matched workspace by title");
+                        TestServices.Logger.Log("Matched workspace by title");
                         return page;
                     }
 
@@ -177,17 +177,17 @@ public class PlaywrightService(IntegrationTestServices testServices)
                     if (await explorerTitleLocator.CountAsync() > 0)
                     {
                         var explorerText = await explorerTitleLocator.TextContentAsync();
-                        testServices.Logger.Log($"Explorer shows: {explorerText}");
+                        TestServices.Logger.Log($"Explorer shows: {explorerText}");
                         if (explorerText?.Contains(workspaceName, StringComparison.OrdinalIgnoreCase) == true)
                         {
-                            testServices.Logger.Log("Matched workspace by explorer");
+                            TestServices.Logger.Log("Matched workspace by explorer");
                             return page;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    testServices.Logger.Log($"Error checking page: {ex.Message}");
+                    TestServices.Logger.Log($"Error checking page: {ex.Message}");
                 }
             }
         }
@@ -212,11 +212,11 @@ public class PlaywrightService(IntegrationTestServices testServices)
 
         if (pagesWithWorkbench.Count == 1)
         {
-            testServices.Logger.Log("Only one VS Code page found, using it");
+            TestServices.Logger.Log("Only one VS Code page found, using it");
             return pagesWithWorkbench[0];
         }
 
-        testServices.Logger.Log($"Found {pagesWithWorkbench.Count} VS Code pages, could not determine correct one");
+        TestServices.Logger.Log($"Found {pagesWithWorkbench.Count} VS Code pages, could not determine correct one");
         return null;
     }
 

@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// <summary>
 /// Services for code action operations (Quick Fix, refactorings) in integration tests.
 /// </summary>
-public class CodeActionService(IntegrationTestServices testServices)
+public class CodeActionService(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
     /// <summary>
     /// Opens the Quick Fix menu (Ctrl+.) and waits for code actions to appear.
@@ -17,7 +17,7 @@ public class CodeActionService(IntegrationTestServices testServices)
     /// <param name="timeout">Timeout for waiting.</param>
     public async Task<bool> OpenQuickFixMenuAsync(bool waitForActions = true, TimeSpan? timeout = null)
     {
-        await testServices.Input.PressWithPrimaryModifierAsync(".");
+        await TestServices.Input.PressWithPrimaryModifierAsync(".");
 
         if (waitForActions)
         {
@@ -32,13 +32,13 @@ public class CodeActionService(IntegrationTestServices testServices)
     /// </summary>
     public async Task<bool> WaitForCodeActionsAsync(TimeSpan? timeout = null)
     {
-        timeout ??= testServices.Settings.LspTimeout;
+        timeout ??= TestServices.Settings.LspTimeout;
 
         try
         {
             // VS Code uses different widgets for code actions depending on context
             // Try the action widget first (lightbulb menu), then fallback to context menu
-            await testServices.Playwright.Page.Locator(".action-widget, .context-view.monaco-menu-container")
+            await TestServices.Playwright.Page.Locator(".action-widget, .context-view.monaco-menu-container")
                 .WaitForAsync(new LocatorWaitForOptions
                 {
                     State = WaitForSelectorState.Visible,

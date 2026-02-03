@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// Helper methods for interacting with VS Code's editor in Playwright tests.
 /// Provides high-level abstractions for common editor operations.
 /// </summary>
-public class EditorService(IntegrationTestServices testServices)
+public class EditorService(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
     // Default polling interval for condition-based waits
     private const int DefaultPollIntervalMs = 100;
@@ -77,22 +77,22 @@ public class EditorService(IntegrationTestServices testServices)
     {
         if (_currentOpenFile == null)
         {
-            testServices.Logger.Log("WaitForEditorTextChangeAsync: No file currently open");
+            TestServices.Logger.Log("WaitForEditorTextChangeAsync: No file currently open");
             return string.Empty;
         }
 
-        var filePath = Path.Combine(testServices.Workspace.Path, _currentOpenFile);
+        var filePath = Path.Combine(TestServices.Workspace.Path, _currentOpenFile);
 
         // Read the original file contents before saving
         var originalContents = "";
         try
         {
             originalContents = await ReadFileExclusiveAsync(filePath);
-            testServices.Logger.Log($"WaitForEditorTextChangeAsync: BEFORE contents ({originalContents.Length} chars):\n{originalContents}");
+            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: BEFORE contents ({originalContents.Length} chars):\n{originalContents}");
         }
         catch (IOException ex)
         {
-            testServices.Logger.Log($"WaitForEditorTextChangeAsync: Failed to read original file: {ex.Message}");
+            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: Failed to read original file: {ex.Message}");
         }
 
         // Trigger save
@@ -110,7 +110,7 @@ public class EditorService(IntegrationTestServices testServices)
                 if (currentContents != originalContents)
                 {
                     // File has been updated, return the new contents
-                    testServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents ({currentContents.Length} chars):\n{currentContents}");
+                    TestServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents ({currentContents.Length} chars):\n{currentContents}");
                     return currentContents;
                 }
             }
@@ -124,16 +124,16 @@ public class EditorService(IntegrationTestServices testServices)
         }
 
         // Timeout: return the last read contents (file may not have changed)
-        testServices.Logger.Log($"WaitForEditorTextChangeAsync: Timeout waiting for contents change, returning current contents");
+        TestServices.Logger.Log($"WaitForEditorTextChangeAsync: Timeout waiting for contents change, returning current contents");
         try
         {
             var text = await ReadFileExclusiveAsync(filePath);
-            testServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents (fallback, {text.Length} chars):\n{text}");
+            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents (fallback, {text.Length} chars):\n{text}");
             return text;
         }
         catch (IOException ex)
         {
-            testServices.Logger.Log($"WaitForEditorTextChangeAsync: Failed to read file: {ex.Message}");
+            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: Failed to read file: {ex.Message}");
             throw;
         }
     }
@@ -172,7 +172,7 @@ public class EditorService(IntegrationTestServices testServices)
     public async Task WaitForQuickInputAsync(int timeoutMs = 5000)
     {
         // Wait for the input field itself which is more reliable than the container
-        await testServices.Playwright.Page.Locator(".quick-input-widget .quick-input-box input")
+        await TestServices.Playwright.Page.Locator(".quick-input-widget .quick-input-box input")
             .WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Visible,
@@ -188,7 +188,7 @@ public class EditorService(IntegrationTestServices testServices)
     {
         try
         {
-            await testServices.Playwright.Page.Locator(".quick-input-widget")
+            await TestServices.Playwright.Page.Locator(".quick-input-widget")
                 .WaitForAsync(new LocatorWaitForOptions
                 {
                     State = WaitForSelectorState.Hidden,
@@ -206,7 +206,7 @@ public class EditorService(IntegrationTestServices testServices)
     /// </summary>
     public async Task<string?> GetCurrentFileNameAsync()
     {
-        var activeTabLocator = testServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container").First;
+        var activeTabLocator = TestServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container").First;
         if (await activeTabLocator.CountAsync() == 0)
         {
             return null;
@@ -222,7 +222,7 @@ public class EditorService(IntegrationTestServices testServices)
     {
         // VS Code shows cursor position in the status bar as "Ln X, Col Y"
         // The element has class "editor-status-selection" or similar
-        var statusText = await testServices.Playwright.Page.EvaluateAsync<string?>(@"
+        var statusText = await TestServices.Playwright.Page.EvaluateAsync<string?>(@"
             (() => {
                 // Try multiple selectors for the cursor position in status bar
                 const selectors = [
@@ -279,11 +279,11 @@ public class EditorService(IntegrationTestServices testServices)
     public async Task GoToLineAsync(int line, int column = 1)
     {
         // Ctrl+G opens Go to Line dialog (Control on all platforms, including macOS)
-        await testServices.Input.PressWithControlAsync("g");
+        await TestServices.Input.PressWithControlAsync("g");
         await WaitForQuickInputAsync();
 
-        await testServices.Input.TypeAsync($"{line}:{column}");
-        await testServices.Input.PressAsync("Enter");
+        await TestServices.Input.TypeAsync($"{line}:{column}");
+        await TestServices.Input.PressAsync("Enter");
 
         await WaitForQuickInputToCloseAsync();
 
@@ -300,7 +300,7 @@ public class EditorService(IntegrationTestServices testServices)
     /// </summary>
     public async Task SelectAllAsync()
     {
-        await testServices.Input.PressWithPrimaryModifierAsync("a");
+        await TestServices.Input.PressWithPrimaryModifierAsync("a");
         // Selection is synchronous, minimal wait
         await Task.Delay(50);
     }
@@ -310,8 +310,8 @@ public class EditorService(IntegrationTestServices testServices)
     /// </summary>
     public async Task SaveAsync()
     {
-        testServices.Logger.Log("Saving document.");
-        await testServices.Input.PressWithPrimaryModifierAsync("s");
+        TestServices.Logger.Log("Saving document.");
+        await TestServices.Input.PressWithPrimaryModifierAsync("s");
 
         // Wait for the "dirty" indicator to disappear from the tab
         try
@@ -319,8 +319,8 @@ public class EditorService(IntegrationTestServices testServices)
             await WaitForConditionAsync(
                 async () =>
                 {
-                    var dirtyCount = await testServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
-                    testServices.Logger.Log("Dirty indicator: " + (dirtyCount > 0 ? "present" : "not present"));
+                    var dirtyCount = await TestServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
+                    TestServices.Logger.Log("Dirty indicator: " + (dirtyCount > 0 ? "present" : "not present"));
                     return dirtyCount == 0;
                 },
                 TimeSpan.FromSeconds(5));
@@ -340,8 +340,8 @@ public class EditorService(IntegrationTestServices testServices)
         await WaitForConditionAsync(
             async () =>
             {
-                var dirtyCount = await testServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
-                testServices.Logger.Log("Dirty indicator: " + (dirtyCount > 0 ? "present" : "not present"));
+                var dirtyCount = await TestServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
+                TestServices.Logger.Log("Dirty indicator: " + (dirtyCount > 0 ? "present" : "not present"));
                 return dirtyCount > 0;
             },
             TimeSpan.FromSeconds(5));
@@ -352,7 +352,7 @@ public class EditorService(IntegrationTestServices testServices)
     /// </summary>
     public async Task OpenCommandPaletteAsync()
     {
-        await testServices.Input.PressWithShiftPrimaryModifierAsync("p");
+        await TestServices.Input.PressWithShiftPrimaryModifierAsync("p");
         await WaitForQuickInputAsync();
     }
 
@@ -362,18 +362,18 @@ public class EditorService(IntegrationTestServices testServices)
     public async Task ExecuteCommandAsync(string command)
     {
         await OpenCommandPaletteAsync();
-        await testServices.Input.TypeAsync(command);
+        await TestServices.Input.TypeAsync(command);
 
         // Wait for the command to appear in the list
         await WaitForConditionAsync(
             async () =>
             {
-                var itemCount = await testServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row").CountAsync();
+                var itemCount = await TestServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row").CountAsync();
                 return itemCount > 0;
             },
             TimeSpan.FromSeconds(5));
 
-        await testServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync("Enter");
         await WaitForQuickInputToCloseAsync();
     }
 
@@ -386,30 +386,30 @@ public class EditorService(IntegrationTestServices testServices)
     public async Task GoToWordAsync(string word, bool selectWord = false)
     {
         // Use Find to navigate to the word
-        await testServices.Input.PressWithPrimaryModifierAsync("f");
+        await TestServices.Input.PressWithPrimaryModifierAsync("f");
 
         // Wait for the find widget to appear
-        await testServices.Playwright.Page.Locator(".editor-widget.find-widget")
+        await TestServices.Playwright.Page.Locator(".editor-widget.find-widget")
             .WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Visible,
                 Timeout = 5000
             });
 
-        await testServices.Input.TypeAsync(word);
+        await TestServices.Input.TypeAsync(word);
 
         await Task.Delay(100);
 
         // Close the find dialog - press Escape twice:
         // First Escape unfocuses the find input, second closes the widget
-        await testServices.Input.PressAsync("Escape");
+        await TestServices.Input.PressAsync("Escape");
         await Task.Delay(50);
-        await testServices.Input.PressAsync("Escape");
+        await TestServices.Input.PressAsync("Escape");
 
         // Wait for find widget to close
         try
         {
-            await testServices.Playwright.Page.Locator(".editor-widget.find-widget.visible")
+            await TestServices.Playwright.Page.Locator(".editor-widget.find-widget.visible")
                 .WaitForAsync(new LocatorWaitForOptions
                 {
                     State = WaitForSelectorState.Hidden,
@@ -419,9 +419,9 @@ public class EditorService(IntegrationTestServices testServices)
         catch (TimeoutException)
         {
             // Widget still visible - try one more escape and take screenshot for debugging
-            await testServices.Input.PressAsync("Escape");
+            await TestServices.Input.PressAsync("Escape");
             await Task.Delay(100);
-            await testServices.Playwright.TakeScreenshotAsync($"GoToWord_{word}_StillVisible");
+            await TestServices.Playwright.TakeScreenshotAsync($"GoToWord_{word}_StillVisible");
         }
 
         if (selectWord)
@@ -431,13 +431,13 @@ public class EditorService(IntegrationTestServices testServices)
             // Use Ctrl+Shift+Left to select word to the left (cursor is at end of match)
             for (var i = 0; i < word.Length; i++)
             {
-                await testServices.Input.PressAsync("Shift+ArrowLeft");
+                await TestServices.Input.PressAsync("Shift+ArrowLeft");
             }
         }
         else
         {
             // GoToWord leaves cursor at end, move to start of word
-            await testServices.Input.PressAsync("ArrowLeft");
+            await TestServices.Input.PressAsync("ArrowLeft");
         }
     }
 
@@ -446,48 +446,48 @@ public class EditorService(IntegrationTestServices testServices)
     /// </summary>
     public async Task OpenFileAsync(string relativePath)
     {
-        testServices.Logger.Log($"Opening file: {relativePath}");
+        TestServices.Logger.Log($"Opening file: {relativePath}");
 
         // Use the Quick Open dialog (Ctrl+P / Cmd+P) to open the file
-        await testServices.Input.PressWithPrimaryModifierAsync("p");
+        await TestServices.Input.PressWithPrimaryModifierAsync("p");
 
         // Wait for Quick Open input to appear - wait for the input field itself which is more reliable
-        await testServices.Playwright.Page.Locator(".quick-input-widget .quick-input-box input")
+        await TestServices.Playwright.Page.Locator(".quick-input-widget .quick-input-box input")
             .WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Visible,
                 Timeout = 5000
             });
 
-        await testServices.Input.TypeAsync(relativePath);
+        await TestServices.Input.TypeAsync(relativePath);
 
         // Wait for the file list to populate by checking for list items
         await WaitForConditionAsync(
             async () =>
             {
-                var listItemCount = await testServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row").CountAsync();
+                var listItemCount = await TestServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row").CountAsync();
                 return listItemCount > 0;
             },
             TimeSpan.FromSeconds(5));
 
-        await testServices.Input.PressAsync("Enter");
+        await TestServices.Input.PressAsync("Enter");
 
         // Wait for the file to be open by checking the active tab
         var expectedFileName = Path.GetFileName(relativePath);
         await WaitForConditionAsync(
             async () =>
             {
-                var activeTabLocator = testServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container").First;
+                var activeTabLocator = TestServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container").First;
                 if (await activeTabLocator.CountAsync() == 0)
                     return false;
                 var tabText = await activeTabLocator.TextContentAsync();
                 return tabText?.Contains(expectedFileName, StringComparison.OrdinalIgnoreCase) == true;
             },
-            testServices.Settings.LspTimeout);
+            TestServices.Settings.LspTimeout);
 
         // Track the currently open file for GetEditorTextAsync
         _currentOpenFile = relativePath;
 
-        testServices.Logger.Log($"File opened: {relativePath}");
+        TestServices.Logger.Log($"File opened: {relativePath}");
     }
 }

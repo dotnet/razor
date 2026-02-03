@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// <summary>
 /// Services for Razor language server operations in integration tests.
 /// </summary>
-public class RazorService(IntegrationTestServices testServices)
+public class RazorService(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
     /// <summary>
     /// Waits for the Razor language server to be fully initialized by verifying semantic tokenization is working.
@@ -18,24 +18,24 @@ public class RazorService(IntegrationTestServices testServices)
         var deadline = DateTime.UtcNow + timeout.Value;
         var attempt = 0;
 
-        testServices.Logger.Log("Waiting for Razor language server to be ready (checking semantic tokens)...");
+        TestServices.Logger.Log("Waiting for Razor language server to be ready (checking semantic tokens)...");
 
         while (DateTime.UtcNow < deadline)
         {
             attempt++;
-            testServices.Logger.Log($"Razor ready check attempt {attempt}...");
+            TestServices.Logger.Log($"Razor ready check attempt {attempt}...");
 
             try
             {
                 // Open Home.razor which contains <PageTitle> component
-                await testServices.Editor.OpenFileAsync("Components/Pages/Home.razor");
+                await TestServices.Editor.OpenFileAsync("Components/Pages/Home.razor");
 
                 // Navigate to PageTitle - it's typically on line 3
                 // Home.razor usually has: @page "/" then <PageTitle>Home</PageTitle>
-                await testServices.Editor.GoToWordAsync("PageTitle", selectWord: false);
+                await TestServices.Editor.GoToWordAsync("PageTitle", selectWord: false);
 
                 // Run "Developer: Inspect Editor Tokens and Scopes" command
-                await testServices.Editor.ExecuteCommandAsync("Developer: Inspect Editor Tokens and Scopes");
+                await TestServices.Editor.ExecuteCommandAsync("Developer: Inspect Editor Tokens and Scopes");
 
                 // Wait for the token inspector popup to appear and contain razorComponentElement
                 var hasRazorToken = false;
@@ -56,42 +56,42 @@ public class RazorService(IntegrationTestServices testServices)
                 catch (TimeoutException)
                 {
                     // Token not found within timeout
-                    testServices.Logger.Log("Token inspector did not show razorComponentElement");
+                    TestServices.Logger.Log("Token inspector did not show razorComponentElement");
                 }
 
                 // Close the token inspector by pressing Escape
-                await testServices.Input.PressAsync("Escape");
+                await TestServices.Input.PressAsync("Escape");
 
                 // Close the file and wait for tab to close
-                await testServices.Input.PressWithPrimaryModifierAsync("w");
+                await TestServices.Input.PressWithPrimaryModifierAsync("w");
                 await EditorService.WaitForConditionAsync(
                     async () =>
                     {
-                        var fileName = await testServices.Editor.GetCurrentFileNameAsync();
+                        var fileName = await TestServices.Editor.GetCurrentFileNameAsync();
                         return fileName == null || !fileName.Contains("Home.razor", StringComparison.OrdinalIgnoreCase);
                     },
                     TimeSpan.FromSeconds(2));
 
                 if (hasRazorToken)
                 {
-                    testServices.Logger.Log($"Razor language server is ready - semantic tokens verified (attempt {attempt})");
+                    TestServices.Logger.Log($"Razor language server is ready - semantic tokens verified (attempt {attempt})");
                     return;
                 }
 
-                testServices.Logger.Log($"Razor tokens not yet available (attempt {attempt}), retrying...");
+                TestServices.Logger.Log($"Razor tokens not yet available (attempt {attempt}), retrying...");
 
                 // Wait before next attempt
                 await Task.Delay(1000);
             }
             catch (Exception ex)
             {
-                testServices.Logger.Log($"Razor ready check attempt {attempt} failed: {ex.Message}");
+                TestServices.Logger.Log($"Razor ready check attempt {attempt} failed: {ex.Message}");
 
                 // Try to close any open file/dialog before retrying
                 try
                 {
-                    await testServices.Input.PressAsync("Escape");
-                    await testServices.Input.PressWithPrimaryModifierAsync("w");
+                    await TestServices.Input.PressAsync("Escape");
+                    await TestServices.Input.PressWithPrimaryModifierAsync("w");
                 }
                 catch
                 {
@@ -112,7 +112,7 @@ public class RazorService(IntegrationTestServices testServices)
     {
         // The token inspector shows in a hover-like widget
         // Look for the content that contains token scope information
-        var tokenContent = await testServices.Playwright.Page.EvaluateAsync<string?>(@"
+        var tokenContent = await TestServices.Playwright.Page.EvaluateAsync<string?>(@"
             (() => {
                 // The token inspector typically uses a hover widget
                 // Try multiple selectors to find it
@@ -151,11 +151,11 @@ public class RazorService(IntegrationTestServices testServices)
 
         if (string.IsNullOrEmpty(tokenContent))
         {
-            testServices.Logger.Log("Token inspector content not found or no razorComponentElement");
+            TestServices.Logger.Log("Token inspector content not found or no razorComponentElement");
             return false;
         }
 
-        testServices.Logger.Log($"Found razorComponentElement in token inspector");
+        TestServices.Logger.Log($"Found razorComponentElement in token inspector");
         return true;
     }
 }

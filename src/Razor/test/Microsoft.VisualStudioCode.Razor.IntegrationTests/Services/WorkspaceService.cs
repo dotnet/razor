@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// <summary>
 /// Service for creating and managing test workspaces.
 /// </summary>
-public class WorkspaceService(IntegrationTestServices testServices)
+public class WorkspaceService(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
     private string? _workspacePath;
 
@@ -29,7 +29,7 @@ public class WorkspaceService(IntegrationTestServices testServices)
         _workspacePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"vscode-razor-test-{Guid.NewGuid():N}");
         Directory.CreateDirectory(_workspacePath);
 
-        testServices.Logger.Log($"Creating test workspace at: {_workspacePath}");
+        TestServices.Logger.Log($"Creating test workspace at: {_workspacePath}");
 
         // Create a new Blazor project using dotnet new (includes .razor files)
         var process = new System.Diagnostics.Process
@@ -53,15 +53,15 @@ public class WorkspaceService(IntegrationTestServices testServices)
 
         if (process.ExitCode != 0)
         {
-            testServices.Logger.Log($"dotnet new output: {output}");
-            testServices.Logger.Log($"dotnet new error: {error}");
+            TestServices.Logger.Log($"dotnet new output: {output}");
+            TestServices.Logger.Log($"dotnet new error: {error}");
             throw new InvalidOperationException($"Failed to create test project: {error}");
         }
 
-        testServices.Logger.Log("Test workspace created successfully");
+        TestServices.Logger.Log("Test workspace created successfully");
 
         // Run dotnet restore to ensure all packages are available
-        testServices.Logger.Log("Restoring packages...");
+        TestServices.Logger.Log("Restoring packages...");
         process = new System.Diagnostics.Process
         {
             StartInfo = new System.Diagnostics.ProcessStartInfo
@@ -88,7 +88,7 @@ public class WorkspaceService(IntegrationTestServices testServices)
                 $"stdout: {stdout}, stderr: {stderr}");
         }
 
-        testServices.Logger.Log("Packages restored");
+        TestServices.Logger.Log("Packages restored");
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public class WorkspaceService(IntegrationTestServices testServices)
             try
             {
                 Directory.Delete(_workspacePath, recursive: true);
-                testServices.Logger.Log("Workspace cleaned up");
+                TestServices.Logger.Log("Workspace cleaned up");
             }
             catch
             {

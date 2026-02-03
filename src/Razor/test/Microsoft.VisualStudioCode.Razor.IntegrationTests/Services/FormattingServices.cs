@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// <summary>
 /// Services for formatting operations in integration tests.
 /// </summary>
-public class FormattingServices(IntegrationTestServices testServices)
+public class FormattingServices(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
     /// <summary>
     /// Formats the entire document using the command palette.
@@ -14,11 +14,11 @@ public class FormattingServices(IntegrationTestServices testServices)
     public async Task FormatDocumentAsync()
     {
         // Formatting could be async, so make sure we save after the edit, so WaitForEditorTextChangeAsync works correctly
-        await testServices.Editor.SaveAsync();
-        testServices.Logger.Log("Formatting document via command palette...");
-        await testServices.Editor.ExecuteCommandAsync("Format Document");
-        testServices.Logger.Log("Format Document command executed");
-        await testServices.Editor.WaitForEditorDirtyAsync();
-        testServices.Logger.Log("Editor is dirty after formatting");
+        await TestServices.Editor.SaveAsync();
+        TestServices.Logger.Log("Formatting document via command palette...");
+        await TestServices.Editor.ExecuteCommandAsync("Format Document");
+        TestServices.Logger.Log("Format Document command executed");
+        await TestServices.Editor.WaitForEditorDirtyAsync();
+        TestServices.Logger.Log("Editor is dirty after formatting");
     }
 }

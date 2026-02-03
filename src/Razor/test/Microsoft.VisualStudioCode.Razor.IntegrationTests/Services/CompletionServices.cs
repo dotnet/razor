@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// <summary>
 /// Services for completion (IntelliSense) operations in integration tests.
 /// </summary>
-public class CompletionServices(IntegrationTestServices testServices)
+public class CompletionServices(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
 
     /// <summary>
@@ -18,7 +18,7 @@ public class CompletionServices(IntegrationTestServices testServices)
     /// <param name="timeout">Timeout for waiting. Uses LspTimeout if not specified.</param>
     public async Task<bool> TriggerAsync(bool waitForList = true, TimeSpan? timeout = null)
     {
-        await testServices.Input.PressWithPrimaryModifierAsync("Space");
+        await TestServices.Input.PressWithPrimaryModifierAsync("Space");
 
         if (waitForList)
         {
@@ -33,12 +33,12 @@ public class CompletionServices(IntegrationTestServices testServices)
     /// </summary>
     public async Task<bool> WaitForListAsync(TimeSpan? timeout = null)
     {
-        timeout ??= testServices.Settings.LspTimeout;
+        timeout ??= TestServices.Settings.LspTimeout;
 
         try
         {
             // The suggest widget has class "visible" when shown
-            await testServices.Playwright.Page.Locator(".suggest-widget.visible")
+            await TestServices.Playwright.Page.Locator(".suggest-widget.visible")
                 .WaitForAsync(new LocatorWaitForOptions
                 {
                     State = WaitForSelectorState.Visible,
@@ -64,7 +64,7 @@ public class CompletionServices(IntegrationTestServices testServices)
         await WaitForListAsync();
 
         // Try to get items using JavaScript which can access more of the DOM
-        var itemTexts = await testServices.Playwright.Page.EvaluateAsync<string[]>(@"
+        var itemTexts = await TestServices.Playwright.Page.EvaluateAsync<string[]>(@"
             (() => {
                 const widget = document.querySelector('.suggest-widget');
                 if (!widget) return [];
@@ -102,16 +102,16 @@ public class CompletionServices(IntegrationTestServices testServices)
         if (itemTexts.Length > 0)
         {
             results.AddRange(itemTexts.Where(t => !string.IsNullOrWhiteSpace(t)));
-            testServices.Logger.Log($"Found {results.Count} completion items via JS");
+            TestServices.Logger.Log($"Found {results.Count} completion items via JS");
             if (results.Count > 0)
             {
-                testServices.Logger.Log($"First few items: {string.Join(", ", results.Take(5))}");
+                TestServices.Logger.Log($"First few items: {string.Join(", ", results.Take(5))}");
             }
             return results;
         }
 
         // Debug: dump the full suggest widget structure
-        var debugInfo = await testServices.Playwright.Page.EvaluateAsync<string>(@"
+        var debugInfo = await TestServices.Playwright.Page.EvaluateAsync<string>(@"
             (() => {
                 const widget = document.querySelector('.suggest-widget');
                 if (!widget) return 'No suggest widget found';
@@ -136,7 +136,7 @@ public class CompletionServices(IntegrationTestServices testServices)
                 return info;
             })()
         ");
-        testServices.Logger.Log($"Suggest widget debug: {debugInfo}");
+        TestServices.Logger.Log($"Suggest widget debug: {debugInfo}");
 
         return results;
     }

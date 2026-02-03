@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// <summary>
 /// Services for keyboard and mouse input in integration tests.
 /// </summary>
-public class InputService(IntegrationTestServices testServices)
+public class InputService(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
     // Platform-specific primary modifier key (Cmd on macOS, Ctrl elsewhere)
     private static readonly string s_primaryModifier = OperatingSystem.IsMacOS() ? "Meta" : "Control";
@@ -16,7 +16,7 @@ public class InputService(IntegrationTestServices testServices)
     /// </summary>
     public async Task TypeAsync(string text, int delayMs = 50)
     {
-        await testServices.Playwright.Page.Keyboard.TypeAsync(text, new Microsoft.Playwright.KeyboardTypeOptions { Delay = delayMs });
+        await TestServices.Playwright.Page.Keyboard.TypeAsync(text, new Microsoft.Playwright.KeyboardTypeOptions { Delay = delayMs });
     }
 
     /// <summary>
@@ -24,7 +24,7 @@ public class InputService(IntegrationTestServices testServices)
     /// </summary>
     public async Task PressAsync(string key)
     {
-        await testServices.Playwright.Page.Keyboard.PressAsync(key);
+        await TestServices.Playwright.Page.Keyboard.PressAsync(key);
     }
 
     /// <summary>
@@ -33,7 +33,7 @@ public class InputService(IntegrationTestServices testServices)
     /// <param name="key">The key to press with the modifier (e.g., "s" for save, "ArrowLeft" for word navigation)</param>
     public async Task PressWithPrimaryModifierAsync(string key)
     {
-        await testServices.Playwright.Page.Keyboard.PressAsync($"{s_primaryModifier}+{key}");
+        await TestServices.Playwright.Page.Keyboard.PressAsync($"{s_primaryModifier}+{key}");
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class InputService(IntegrationTestServices testServices)
     /// <param name="key">The key to press with Shift+modifier</param>
     public async Task PressWithShiftPrimaryModifierAsync(string key)
     {
-        await testServices.Playwright.Page.Keyboard.PressAsync($"{s_primaryModifier}+Shift+{key}");
+        await TestServices.Playwright.Page.Keyboard.PressAsync($"{s_primaryModifier}+Shift+{key}");
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public class InputService(IntegrationTestServices testServices)
     /// <param name="key">The key to press with Control</param>
     public async Task PressWithControlAsync(string key)
     {
-        await testServices.Playwright.Page.Keyboard.PressAsync($"Control+{key}");
+        await TestServices.Playwright.Page.Keyboard.PressAsync($"Control+{key}");
     }
 
     /// <summary>
@@ -63,11 +63,11 @@ public class InputService(IntegrationTestServices testServices)
     {
         if (OperatingSystem.IsMacOS())
         {
-            await testServices.Playwright.Page.Keyboard.PressAsync("Meta+ArrowRight");
+            await TestServices.Playwright.Page.Keyboard.PressAsync("Meta+ArrowRight");
         }
         else
         {
-            await testServices.Playwright.Page.Keyboard.PressAsync("End");
+            await TestServices.Playwright.Page.Keyboard.PressAsync("End");
         }
     }
 }

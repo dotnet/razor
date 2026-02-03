@@ -8,14 +8,14 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// <summary>
 /// Services for diagnostics (error squiggles) operations in integration tests.
 /// </summary>
-public class DiagnosticsServices(IntegrationTestServices testServices)
+public class DiagnosticsServices(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
     /// <summary>
     /// Checks if there are any error diagnostics visible (squiggles in the editor).
     /// </summary>
     public async Task<bool> HasErrorsAsync()
     {
-        var errorCount = await testServices.Playwright.Page.Locator(".squiggly-error").CountAsync();
+        var errorCount = await TestServices.Playwright.Page.Locator(".squiggly-error").CountAsync();
         return errorCount > 0;
     }
 
@@ -24,7 +24,7 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
     /// </summary>
     public async Task<bool> HasWarningsAsync()
     {
-        var warningCount = await testServices.Playwright.Page.Locator(".squiggly-warning").CountAsync();
+        var warningCount = await TestServices.Playwright.Page.Locator(".squiggly-warning").CountAsync();
         return warningCount > 0;
     }
 
@@ -33,7 +33,7 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
     /// </summary>
     public async Task WaitForDiagnosticsAsync(bool expectErrors = true, TimeSpan? timeout = null)
     {
-        timeout ??= testServices.Settings.LspTimeout;
+        timeout ??= TestServices.Settings.LspTimeout;
 
         await EditorService.WaitForConditionAsync(
             HasErrorsAsync,
@@ -46,10 +46,10 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
     /// </summary>
     public async Task OpenProblemsPanelAsync()
     {
-        await testServices.Editor.ExecuteCommandAsync("View: Toggle Problems");
+        await TestServices.Editor.ExecuteCommandAsync("View: Toggle Problems");
         
         // Wait for panel to be visible - VS Code uses .markers-panel for the problems panel
-        await testServices.Playwright.Page.Locator(".markers-panel")
+        await TestServices.Playwright.Page.Locator(".markers-panel")
             .WaitForAsync(new LocatorWaitForOptions
             {
                 State = WaitForSelectorState.Visible,
@@ -67,7 +67,7 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
 
         // The problems panel shows items in a tree structure with markers
         // Each problem is in a .monaco-list-row within the .markers-panel
-        var problemItems = await testServices.Playwright.Page.EvaluateAsync<string[]>(@"
+        var problemItems = await TestServices.Playwright.Page.EvaluateAsync<string[]>(@"
             (() => {
                 const items = [];
                 const rows = document.querySelectorAll('.markers-panel .monaco-list-row');
@@ -85,7 +85,7 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
 
         problems.AddRange(problemItems.Where(p => !string.IsNullOrWhiteSpace(p)));
 
-        testServices.Logger.Log($"Found {problems.Count} problems: {string.Join("; ", problems.Take(5))}");
+        TestServices.Logger.Log($"Found {problems.Count} problems: {string.Join("; ", problems.Take(5))}");
         return problems;
     }
 
@@ -96,7 +96,7 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
     /// <param name="timeout">Timeout for waiting.</param>
     public async Task WaitForProblemAsync(string problemCode, TimeSpan? timeout = null)
     {
-        timeout ??= testServices.Settings.LspTimeout;
+        timeout ??= TestServices.Settings.LspTimeout;
 
         await EditorService.WaitForConditionAsync(
             async () =>

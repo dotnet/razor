@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// <summary>
 /// Services for hover (Quick Info) operations in integration tests.
 /// </summary>
-public class HoverServices(IntegrationTestServices testServices)
+public class HoverServices(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
 
     /// <summary>
@@ -20,7 +20,7 @@ public class HoverServices(IntegrationTestServices testServices)
     {
         // Move mouse to the current cursor position and hover
         // Use First since there may be multiple cursor elements (e.g., in split editors or interactive window)
-        var cursorLocator = testServices.Playwright.Page.Locator(".cursor").First;
+        var cursorLocator = TestServices.Playwright.Page.Locator(".cursor").First;
         if (await cursorLocator.CountAsync() == 0)
         {
             return false;
@@ -32,7 +32,7 @@ public class HoverServices(IntegrationTestServices testServices)
             return false;
         }
 
-        await testServices.Playwright.Page.Mouse.MoveAsync(box.X + (box.Width / 2), box.Y + (box.Height / 2));
+        await TestServices.Playwright.Page.Mouse.MoveAsync(box.X + (box.Width / 2), box.Y + (box.Height / 2));
 
         if (waitForHover)
         {
@@ -47,12 +47,12 @@ public class HoverServices(IntegrationTestServices testServices)
     /// </summary>
     public async Task<bool> WaitForAsync(TimeSpan? timeout = null)
     {
-        timeout ??= testServices.Settings.LspTimeout;
+        timeout ??= TestServices.Settings.LspTimeout;
 
         try
         {
             // Use First since there may be multiple hover widgets
-            await testServices.Playwright.Page.Locator(".monaco-hover-content").First
+            await TestServices.Playwright.Page.Locator(".monaco-hover-content").First
                 .WaitForAsync(new LocatorWaitForOptions
                 {
                     State = WaitForSelectorState.Visible,
@@ -71,7 +71,7 @@ public class HoverServices(IntegrationTestServices testServices)
     /// </summary>
     public async Task<string?> GetContentAsync()
     {
-        var hoverLocator = testServices.Playwright.Page.Locator(".monaco-hover-content").First;
+        var hoverLocator = TestServices.Playwright.Page.Locator(".monaco-hover-content").First;
         if (await hoverLocator.CountAsync() == 0)
         {
             return null;
