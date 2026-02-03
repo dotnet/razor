@@ -48,14 +48,13 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
     {
         await testServices.Editor.ExecuteCommandAsync("View: Toggle Problems");
         
-        // Wait for panel to be visible
-        await EditorService.WaitForConditionAsync(
-            async () =>
+        // Wait for panel to be visible - VS Code uses .markers-panel for the problems panel
+        await testServices.Playwright.Page.Locator(".markers-panel")
+            .WaitForAsync(new LocatorWaitForOptions
             {
-                var panelCount = await testServices.Playwright.Page.Locator(".markers-panel, .problems-panel, [aria-label*='Problems']").CountAsync();
-                return panelCount > 0;
-            },
-            TimeSpan.FromSeconds(5));
+                State = WaitForSelectorState.Visible,
+                Timeout = 5000
+            });
     }
 
     /// <summary>
@@ -67,30 +66,16 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
         var problems = new List<string>();
 
         // The problems panel shows items in a tree structure with markers
+        // Each problem is in a .monaco-list-row within the .markers-panel
         var problemItems = await testServices.Playwright.Page.EvaluateAsync<string[]>(@"
             (() => {
                 const items = [];
-                
-                // Look for marker rows in the problems panel
-                // Each problem is in a .monaco-list-row containing the marker message
-                const rows = document.querySelectorAll('.markers-panel .monaco-list-row, [id=""workbench.panel.markers""] .monaco-list-row');
+                const rows = document.querySelectorAll('.markers-panel .monaco-list-row');
                 
                 for (const row of rows) {
-                    // Get all text content from the row
                     const text = row.textContent || '';
                     if (text.trim()) {
                         items.push(text.trim());
-                    }
-                }
-                
-                // If we didn't find any, try the tree items directly
-                if (items.length === 0) {
-                    const treeItems = document.querySelectorAll('.markers-panel .monaco-tl-row, .panel .markers-panel-container .monaco-list-row');
-                    for (const item of treeItems) {
-                        const text = item.textContent || '';
-                        if (text.trim()) {
-                            items.push(text.trim());
-                        }
                     }
                 }
                 
