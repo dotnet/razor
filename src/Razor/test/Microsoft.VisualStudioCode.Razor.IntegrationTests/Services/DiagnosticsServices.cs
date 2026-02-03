@@ -15,8 +15,8 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
     /// </summary>
     public async Task<bool> HasErrorsAsync()
     {
-        var errorSquiggles = await testServices.Playwright.Page.QuerySelectorAllAsync(".squiggly-error");
-        return errorSquiggles.Count > 0;
+        var errorCount = await testServices.Playwright.Page.Locator(".squiggly-error").CountAsync();
+        return errorCount > 0;
     }
 
     /// <summary>
@@ -24,8 +24,8 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
     /// </summary>
     public async Task<bool> HasWarningsAsync()
     {
-        var warningSquiggles = await testServices.Playwright.Page.QuerySelectorAllAsync(".squiggly-warning");
-        return warningSquiggles.Count > 0;
+        var warningCount = await testServices.Playwright.Page.Locator(".squiggly-warning").CountAsync();
+        return warningCount > 0;
     }
 
     /// <summary>

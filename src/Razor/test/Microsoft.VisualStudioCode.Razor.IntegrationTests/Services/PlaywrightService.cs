@@ -156,8 +156,8 @@ public class PlaywrightService(IntegrationTestServices testServices)
                 try
                 {
                     // Check if this page has the VS Code workbench
-                    var workbench = await page.QuerySelectorAsync(".monaco-workbench");
-                    if (workbench == null)
+                    var workbenchLocator = page.Locator(".monaco-workbench");
+                    if (await workbenchLocator.CountAsync() == 0)
                     {
                         continue;
                     }
@@ -172,11 +172,11 @@ public class PlaywrightService(IntegrationTestServices testServices)
                         return page;
                     }
 
-                    // Also check for explorer view showing the folder
-                    var explorerTitle = await page.QuerySelectorAsync(".explorer-folders-view .monaco-icon-label");
-                    if (explorerTitle != null)
+                    // Also check for explorer view showing the folder (use First since multiple elements match)
+                    var explorerTitleLocator = page.Locator(".explorer-folders-view .monaco-icon-label").First;
+                    if (await explorerTitleLocator.CountAsync() > 0)
                     {
-                        var explorerText = await explorerTitle.TextContentAsync();
+                        var explorerText = await explorerTitleLocator.TextContentAsync();
                         testServices.Logger.Log($"Explorer shows: {explorerText}");
                         if (explorerText?.Contains(workspaceName, StringComparison.OrdinalIgnoreCase) == true)
                         {
@@ -200,8 +200,8 @@ public class PlaywrightService(IntegrationTestServices testServices)
             {
                 try
                 {
-                    var workbench = await page.QuerySelectorAsync(".monaco-workbench");
-                    if (workbench != null)
+                    var workbenchLocator = page.Locator(".monaco-workbench");
+                    if (await workbenchLocator.CountAsync() > 0)
                     {
                         pagesWithWorkbench.Add(page);
                     }

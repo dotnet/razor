@@ -60,15 +60,15 @@ public class FindReferencesTests(ITestOutputHelper output) : VSCodeIntegrationTe
     private async Task<int> GetReferencesCountAsync()
     {
         // Try to count references in the peek view
-        var peekItems = await TestServices.Playwright.Page.QuerySelectorAllAsync(".peekview-widget .monaco-list-row");
-        if (peekItems.Count > 0)
+        var peekItemsCount = await TestServices.Playwright.Page.Locator(".peekview-widget .monaco-list-row").CountAsync();
+        if (peekItemsCount > 0)
         {
-            return peekItems.Count;
+            return peekItemsCount;
         }
 
         // Try the references panel
-        var panelItems = await TestServices.Playwright.Page.QuerySelectorAllAsync("[id='workbench.panel.referencesView'] .monaco-list-row");
-        return panelItems.Count;
+        var panelItemsCount = await TestServices.Playwright.Page.Locator("[id='workbench.panel.referencesView'] .monaco-list-row").CountAsync();
+        return panelItemsCount;
     }
 }
 

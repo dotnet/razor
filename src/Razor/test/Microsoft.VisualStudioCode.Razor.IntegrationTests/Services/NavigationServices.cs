@@ -40,7 +40,7 @@ public class NavigationServices(IntegrationTestServices testServices)
                 {
                     var currentFile = await testServices.Editor.GetCurrentFileNameAsync();
                     var currentPosition = await testServices.Editor.GetCursorPositionAsync();
-                    var peekVisible = await testServices.Playwright.Page.QuerySelectorAsync(".peekview-widget") != null;
+                    var peekVisible = await testServices.Playwright.Page.Locator(".peekview-widget").CountAsync() > 0;
 
                     // Check if file changed, position changed, or peek appeared
                     var fileChanged = currentFile != originalFile;
@@ -64,9 +64,13 @@ public class NavigationServices(IntegrationTestServices testServices)
         timeout ??= testServices.Settings.LspTimeout;
         var originalFile = await testServices.Editor.GetCurrentFileNameAsync();
 
-        // Get the cursor position
-        var cursor = await testServices.Playwright.Page.QuerySelectorAsync(".cursor") ?? throw new InvalidOperationException("Cannot find cursor position");
-        var box = await cursor.BoundingBoxAsync() ?? throw new InvalidOperationException("Cannot get cursor bounding box");
+        // Get the cursor position (use First since there may be multiple cursor elements)
+        var cursorLocator = testServices.Playwright.Page.Locator(".cursor").First;
+        if (await cursorLocator.CountAsync() == 0)
+        {
+            throw new InvalidOperationException("Cannot find cursor position");
+        }
+        var box = await cursorLocator.BoundingBoxAsync() ?? throw new InvalidOperationException("Cannot get cursor bounding box");
 
         // Ctrl+Click (Cmd+Click on macOS) at the cursor position
         await testServices.Input.ClickWithPrimaryModifierAsync(box.X + (box.Width / 2), box.Y + (box.Height / 2));
@@ -86,7 +90,7 @@ public class NavigationServices(IntegrationTestServices testServices)
                 async () =>
                 {
                     var currentFile = await testServices.Editor.GetCurrentFileNameAsync();
-                    var peekVisible = await testServices.Playwright.Page.QuerySelectorAsync(".peekview-widget") != null;
+                    var peekVisible = await testServices.Playwright.Page.Locator(".peekview-widget").CountAsync() > 0;
                     return currentFile != originalFile || peekVisible;
                 },
                 timeout.Value);
@@ -106,9 +110,9 @@ public class NavigationServices(IntegrationTestServices testServices)
         await EditorService.WaitForConditionAsync(
             async () =>
             {
-                var peekView = await testServices.Playwright.Page.QuerySelectorAsync(".peekview-widget");
-                var referencesPanel = await testServices.Playwright.Page.QuerySelectorAsync("[id='workbench.panel.referencesView']");
-                return peekView != null || referencesPanel != null;
+                var peekViewCount = await testServices.Playwright.Page.Locator(".peekview-widget").CountAsync();
+                var referencesPanelCount = await testServices.Playwright.Page.Locator("[id='workbench.panel.referencesView']").CountAsync();
+                return peekViewCount > 0 || referencesPanelCount > 0;
             },
             timeout.Value);
     }

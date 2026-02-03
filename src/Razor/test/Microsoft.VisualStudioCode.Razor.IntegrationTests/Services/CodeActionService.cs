@@ -38,9 +38,8 @@ public class CodeActionService(IntegrationTestServices testServices)
         {
             // VS Code uses different widgets for code actions depending on context
             // Try the action widget first (lightbulb menu), then fallback to context menu
-            await testServices.Playwright.Page.WaitForSelectorAsync(
-                ".action-widget, .context-view.monaco-menu-container",
-                new PageWaitForSelectorOptions
+            await testServices.Playwright.Page.Locator(".action-widget, .context-view.monaco-menu-container")
+                .WaitForAsync(new LocatorWaitForOptions
                 {
                     State = WaitForSelectorState.Visible,
                     Timeout = (float)timeout.Value.TotalMilliseconds

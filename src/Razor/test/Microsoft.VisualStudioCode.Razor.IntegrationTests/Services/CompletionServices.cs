@@ -37,33 +37,27 @@ public class CompletionServices(IntegrationTestServices testServices)
 
         try
         {
-            // Try multiple possible selectors for the suggest widget (VS Code versions vary)
-            var selectors = new[]
+            // Try multiple possible selectors for the suggest widget concurrently (VS Code versions vary)
+            var locators = new[]
             {
-                ".suggest-widget.visible",
-                ".monaco-list.suggest-widget",
-                ".editor-widget.suggest-widget",
-                "[widgetid='editor.widget.suggestWidget']"
+                testServices.Playwright.Page.Locator(".suggest-widget.visible"),
+                testServices.Playwright.Page.Locator(".monaco-list.suggest-widget"),
+                testServices.Playwright.Page.Locator(".editor-widget.suggest-widget"),
+                testServices.Playwright.Page.Locator("[widgetid='editor.widget.suggestWidget']")
             };
 
-            foreach (var selector in selectors)
-            {
-                try
+            // Wait for any of the selectors to become visible, each with the full timeout
+            var waitTasks = locators.Select(locator =>
+                locator.WaitForAsync(new LocatorWaitForOptions
                 {
-                    await testServices.Playwright.Page.WaitForSelectorAsync(selector, new PageWaitForSelectorOptions
-                    {
-                        State = WaitForSelectorState.Visible,
-                        Timeout = (float)(timeout.Value.TotalMilliseconds / selectors.Length)
-                    });
-                    return true;
-                }
-                catch (TimeoutException)
-                {
-                    // Try next selector
-                }
-            }
+                    State = WaitForSelectorState.Visible,
+                    Timeout = (float)timeout.Value.TotalMilliseconds
+                })).ToArray();
 
-            return false;
+            await Task.WhenAny(waitTasks);
+
+            // Check if any succeeded
+            return waitTasks.Any(t => t.IsCompletedSuccessfully);
         }
         catch (TimeoutException)
         {

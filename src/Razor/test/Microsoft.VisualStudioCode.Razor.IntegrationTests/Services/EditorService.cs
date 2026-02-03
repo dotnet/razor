@@ -262,11 +262,12 @@ public class EditorService(IntegrationTestServices testServices)
     public async Task WaitForQuickInputAsync(int timeoutMs = 5000)
     {
         // Wait for the input field itself which is more reliable than the container
-        await testServices.Playwright.Page.WaitForSelectorAsync(".quick-input-widget .quick-input-box input", new PageWaitForSelectorOptions
-        {
-            State = WaitForSelectorState.Visible,
-            Timeout = timeoutMs
-        });
+        await testServices.Playwright.Page.Locator(".quick-input-widget .quick-input-box input")
+            .WaitForAsync(new LocatorWaitForOptions
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = timeoutMs
+            });
     }
 
     /// <summary>
@@ -277,11 +278,12 @@ public class EditorService(IntegrationTestServices testServices)
     {
         try
         {
-            await testServices.Playwright.Page.WaitForSelectorAsync(".quick-input-widget", new PageWaitForSelectorOptions
-            {
-                State = WaitForSelectorState.Hidden,
-                Timeout = timeoutMs
-            });
+            await testServices.Playwright.Page.Locator(".quick-input-widget")
+                .WaitForAsync(new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Hidden,
+                    Timeout = timeoutMs
+                });
         }
         catch (TimeoutException)
         {
@@ -294,8 +296,12 @@ public class EditorService(IntegrationTestServices testServices)
     /// </summary>
     public async Task<string?> GetCurrentFileNameAsync()
     {
-        var activeTab = await testServices.Playwright.Page.QuerySelectorAsync(".tab.active .monaco-icon-label-container");
-        return activeTab != null ? await activeTab.TextContentAsync() : null;
+        var activeTabLocator = testServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container").First;
+        if (await activeTabLocator.CountAsync() == 0)
+        {
+            return null;
+        }
+        return await activeTabLocator.TextContentAsync();
     }
 
     /// <summary>
@@ -403,9 +409,9 @@ public class EditorService(IntegrationTestServices testServices)
             await WaitForConditionAsync(
                 async () =>
                 {
-                    var dirtyIndicator = await testServices.Playwright.Page.QuerySelectorAsync(".tab.active.dirty");
-                    testServices.Logger.Log("Dirty indicator: " + (dirtyIndicator != null ? "present" : "not present"));
-                    return dirtyIndicator == null;
+                    var dirtyCount = await testServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
+                    testServices.Logger.Log("Dirty indicator: " + (dirtyCount > 0 ? "present" : "not present"));
+                    return dirtyCount == 0;
                 },
                 TimeSpan.FromSeconds(5));
         }
@@ -424,9 +430,9 @@ public class EditorService(IntegrationTestServices testServices)
         await WaitForConditionAsync(
             async () =>
             {
-                var dirtyIndicator = await testServices.Playwright.Page.QuerySelectorAsync(".tab.active.dirty");
-                testServices.Logger.Log("Dirty indicator: " + (dirtyIndicator != null ? "present" : "not present"));
-                return dirtyIndicator != null;
+                var dirtyCount = await testServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
+                testServices.Logger.Log("Dirty indicator: " + (dirtyCount > 0 ? "present" : "not present"));
+                return dirtyCount > 0;
             },
             TimeSpan.FromSeconds(5));
     }
@@ -462,8 +468,8 @@ public class EditorService(IntegrationTestServices testServices)
         await WaitForConditionAsync(
             async () =>
             {
-                var items = await testServices.Playwright.Page.QuerySelectorAllAsync(".quick-input-list .monaco-list-row");
-                return items.Count > 0;
+                var itemCount = await testServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row").CountAsync();
+                return itemCount > 0;
             },
             TimeSpan.FromSeconds(5));
 
@@ -479,11 +485,12 @@ public class EditorService(IntegrationTestServices testServices)
         await testServices.Input.PressWithPrimaryModifierAsync("h");
 
         // Wait for the find widget to appear
-        await testServices.Playwright.Page.WaitForSelectorAsync(".editor-widget.find-widget", new PageWaitForSelectorOptions
-        {
-            State = WaitForSelectorState.Visible,
-            Timeout = 5000
-        });
+        await testServices.Playwright.Page.Locator(".editor-widget.find-widget")
+            .WaitForAsync(new LocatorWaitForOptions
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = 5000
+            });
     }
 
     /// <summary>
@@ -494,11 +501,12 @@ public class EditorService(IntegrationTestServices testServices)
         await testServices.Input.PressWithPrimaryModifierAsync("f");
 
         // Wait for the find widget to appear
-        await testServices.Playwright.Page.WaitForSelectorAsync(".editor-widget.find-widget", new PageWaitForSelectorOptions
-        {
-            State = WaitForSelectorState.Visible,
-            Timeout = 5000
-        });
+        await testServices.Playwright.Page.Locator(".editor-widget.find-widget")
+            .WaitForAsync(new LocatorWaitForOptions
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = 5000
+            });
 
         await testServices.Input.TypeAsync(text);
         await testServices.Input.PressAsync("Enter"); // Find next
@@ -522,11 +530,12 @@ public class EditorService(IntegrationTestServices testServices)
         await testServices.Input.PressWithPrimaryModifierAsync("f");
 
         // Wait for the find widget to appear
-        await testServices.Playwright.Page.WaitForSelectorAsync(".editor-widget.find-widget", new PageWaitForSelectorOptions
-        {
-            State = WaitForSelectorState.Visible,
-            Timeout = 5000
-        });
+        await testServices.Playwright.Page.Locator(".editor-widget.find-widget")
+            .WaitForAsync(new LocatorWaitForOptions
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = 5000
+            });
 
         await testServices.Input.TypeAsync(word);
 
@@ -541,11 +550,12 @@ public class EditorService(IntegrationTestServices testServices)
         // Wait for find widget to close
         try
         {
-            await testServices.Playwright.Page.WaitForSelectorAsync(".editor-widget.find-widget.visible", new PageWaitForSelectorOptions
-            {
-                State = WaitForSelectorState.Hidden,
-                Timeout = 2000
-            });
+            await testServices.Playwright.Page.Locator(".editor-widget.find-widget.visible")
+                .WaitForAsync(new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Hidden,
+                    Timeout = 2000
+                });
         }
         catch (TimeoutException)
         {
@@ -573,11 +583,12 @@ public class EditorService(IntegrationTestServices testServices)
         await testServices.Input.PressWithPrimaryModifierAsync("p");
 
         // Wait for Quick Open input to appear - wait for the input field itself which is more reliable
-        await testServices.Playwright.Page.WaitForSelectorAsync(".quick-input-widget .quick-input-box input", new PageWaitForSelectorOptions
-        {
-            State = WaitForSelectorState.Visible,
-            Timeout = 5000
-        });
+        await testServices.Playwright.Page.Locator(".quick-input-widget .quick-input-box input")
+            .WaitForAsync(new LocatorWaitForOptions
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = 5000
+            });
 
         await testServices.Input.TypeAsync(relativePath);
 
@@ -591,10 +602,10 @@ public class EditorService(IntegrationTestServices testServices)
         await WaitForConditionAsync(
             async () =>
             {
-                var activeTab = await testServices.Playwright.Page.QuerySelectorAsync(".tab.active .monaco-icon-label-container");
-                if (activeTab == null)
+                var activeTabLocator = testServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container").First;
+                if (await activeTabLocator.CountAsync() == 0)
                     return false;
-                var tabText = await activeTab.TextContentAsync();
+                var tabText = await activeTabLocator.TextContentAsync();
                 return tabText?.Contains(expectedFileName, StringComparison.OrdinalIgnoreCase) == true;
             },
             testServices.Settings.LspTimeout);

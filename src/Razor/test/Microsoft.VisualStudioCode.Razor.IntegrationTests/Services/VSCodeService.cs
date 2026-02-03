@@ -439,11 +439,12 @@ public partial class VSCodeService(IntegrationTestServices testServices)
         testServices.Logger.Log("Waiting for VS Code workbench to load...");
 
         // Wait for the main VS Code container
-        await testServices.Playwright.Page.WaitForSelectorAsync(".monaco-workbench", new PageWaitForSelectorOptions
-        {
-            State = WaitForSelectorState.Visible,
-            Timeout = (float)timeout.TotalMilliseconds
-        });
+        await testServices.Playwright.Page.Locator(".monaco-workbench")
+            .WaitForAsync(new LocatorWaitForOptions
+            {
+                State = WaitForSelectorState.Visible,
+                Timeout = (float)timeout.TotalMilliseconds
+            });
 
         // Give extensions a moment to initialize
         testServices.Logger.Log("Workbench loaded, waiting for extensions...");
@@ -451,11 +452,12 @@ public partial class VSCodeService(IntegrationTestServices testServices)
         // Wait for the status bar to be visible as a sign of full initialization
         try
         {
-            await testServices.Playwright.Page.WaitForSelectorAsync(".statusbar", new PageWaitForSelectorOptions
-            {
-                State = WaitForSelectorState.Visible,
-                Timeout = 10000
-            });
+            await testServices.Playwright.Page.Locator(".statusbar")
+                .WaitForAsync(new LocatorWaitForOptions
+                {
+                    State = WaitForSelectorState.Visible,
+                    Timeout = 10000
+                });
         }
         catch (TimeoutException)
         {
@@ -473,15 +475,17 @@ public partial class VSCodeService(IntegrationTestServices testServices)
         var timeout = testServices.Settings.LspTimeout;
         testServices.Logger.Log("Waiting for C# LSP to be ready...");
 
-        // Strategy 1: Look for C# status bar item
+        // Strategy 1: Look for C# status bar item (use CountAsync to avoid strict mode issues)
         var csharpReady = false;
         try
         {
-            await testServices.Playwright.Page.WaitForSelectorAsync("[aria-label*='C#']", new PageWaitForSelectorOptions
-            {
-                State = WaitForSelectorState.Visible,
-                Timeout = (float)(timeout.TotalMilliseconds / 2)
-            });
+            await EditorService.WaitForConditionAsync(
+                async () =>
+                {
+                    var count = await testServices.Playwright.Page.Locator("[aria-label*='C#']").CountAsync();
+                    return count > 0;
+                },
+                TimeSpan.FromSeconds(timeout.TotalSeconds / 2));
             testServices.Logger.Log("C# status bar item found");
             csharpReady = true;
         }
@@ -499,10 +503,11 @@ public partial class VSCodeService(IntegrationTestServices testServices)
                 await EditorService.WaitForConditionAsync(
                     async () =>
                     {
-                        var languageMode = await testServices.Playwright.Page.QuerySelectorAsync("[aria-label*='Select Language Mode']");
-                        if (languageMode == null)
+                        var languageModeLocator = testServices.Playwright.Page.Locator("[aria-label*='Select Language Mode']");
+                        var count = await languageModeLocator.CountAsync();
+                        if (count == 0)
                             return false;
-                        var text = await languageMode.TextContentAsync();
+                        var text = await languageModeLocator.First.TextContentAsync();
                         return text?.Contains("C#", StringComparison.OrdinalIgnoreCase) == true ||
                                text?.Contains("Razor", StringComparison.OrdinalIgnoreCase) == true ||
                                text?.Contains("ASP.NET", StringComparison.OrdinalIgnoreCase) == true;
@@ -526,8 +531,8 @@ public partial class VSCodeService(IntegrationTestServices testServices)
                 await EditorService.WaitForConditionAsync(
                     async () =>
                     {
-                        var loading = await testServices.Playwright.Page.QuerySelectorAsync(".progress-bit");
-                        return loading == null;
+                        var loadingCount = await testServices.Playwright.Page.Locator(".progress-bit").CountAsync();
+                        return loadingCount == 0;
                     },
                     TimeSpan.FromSeconds(10));
                 testServices.Logger.Log("No loading indicators present");
