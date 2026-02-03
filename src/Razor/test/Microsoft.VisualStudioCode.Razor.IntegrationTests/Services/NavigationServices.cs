@@ -116,4 +116,21 @@ public class NavigationServices(IntegrationTestServices testServices)
             },
             timeout.Value);
     }
+
+    /// <summary>
+    /// Gets the count of references shown in the peek view or references panel.
+    /// </summary>
+    public async Task<int> GetReferencesCountAsync()
+    {
+        // Try to count references in the peek view
+        var peekItemsCount = await testServices.Playwright.Page.Locator(".peekview-widget .monaco-list-row").CountAsync();
+        if (peekItemsCount > 0)
+        {
+            return peekItemsCount;
+        }
+
+        // Try the references panel
+        var panelItemsCount = await testServices.Playwright.Page.Locator("[id='workbench.panel.referencesView'] .monaco-list-row").CountAsync();
+        return panelItemsCount;
+    }
 }

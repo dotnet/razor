@@ -30,7 +30,7 @@ public class FindReferencesTests(ITestOutputHelper output) : VSCodeIntegrationTe
         // 1. Definition: "private int currentCount = 0;"
         // 2. Usage in markup: "@currentCount"
         // 3. Usage in method: "currentCount++;"
-        var referencesCount = await GetReferencesCountAsync();
+        var referencesCount = await TestServices.Navigation.GetReferencesCountAsync();
         Assert.True(referencesCount >= 3, $"Expected at least 3 references for currentCount, found {referencesCount}");
     });
 
@@ -50,25 +50,8 @@ public class FindReferencesTests(ITestOutputHelper output) : VSCodeIntegrationTe
         // Assert - should show at least 2 references:
         // 1. The definition
         // 2. The @onclick="IncrementCount" usage
-        var referencesCount = await GetReferencesCountAsync();
+        var referencesCount = await TestServices.Navigation.GetReferencesCountAsync();
         Assert.True(referencesCount >= 2, $"Expected at least 2 references for IncrementCount, found {referencesCount}");
     });
-
-    /// <summary>
-    /// Gets the count of references shown in the peek view or references panel.
-    /// </summary>
-    private async Task<int> GetReferencesCountAsync()
-    {
-        // Try to count references in the peek view
-        var peekItemsCount = await TestServices.Playwright.Page.Locator(".peekview-widget .monaco-list-row").CountAsync();
-        if (peekItemsCount > 0)
-        {
-            return peekItemsCount;
-        }
-
-        // Try the references panel
-        var panelItemsCount = await TestServices.Playwright.Page.Locator("[id='workbench.panel.referencesView'] .monaco-list-row").CountAsync();
-        return panelItemsCount;
-    }
 }
 
