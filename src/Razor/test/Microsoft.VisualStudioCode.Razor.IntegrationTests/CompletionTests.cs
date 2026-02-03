@@ -39,7 +39,7 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         // Assert - look for currentCount in completions
         var items = await TestServices.Completion.GetItemsAsync();
         Assert.True(
-            items.Any(i => i.Contains("currentCount", StringComparison.OrdinalIgnoreCase)),
+            items.Any(i => i == "currentCount"),
             $"Expected C# completions in @code block. Found: {string.Join(", ", items.Take(10))}");
     });
 
@@ -102,7 +102,6 @@ public class CompletionTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         // Assert - look for Razor directives starting with "in"
         var hasRazorDirectives = items.Any(i =>
             i.Contains("inject", StringComparison.OrdinalIgnoreCase) ||
-            i.Contains("implements", StringComparison.OrdinalIgnoreCase) ||
             i.Contains("inherits", StringComparison.OrdinalIgnoreCase));
 
         Assert.True(hasRazorDirectives, $"Expected Razor directive completions after @. Found: {string.Join(", ", items.Take(10))}");

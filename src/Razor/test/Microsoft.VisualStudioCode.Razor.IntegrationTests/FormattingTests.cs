@@ -33,7 +33,7 @@ public class FormattingTests(ITestOutputHelper output) : VSCodeIntegrationTestBa
         // Assert - the code should now be properly indented with spaces
         var afterFormat = await TestServices.Editor.WaitForEditorTextChangeAsync();
         // Formatting should have added proper indentation (4 spaces before "private")
-        Assert.Contains("    private string BadlyIndented", afterFormat);
+        Assert.Contains("\n    private string BadlyIndented", afterFormat);
     });
 
     [Fact]

@@ -25,9 +25,6 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
 
         // Assert - wait for CS1002 (semicolon expected) to appear in Problems panel
         await TestServices.Diagnostics.WaitForProblemAsync("CS1002", timeout: TimeSpan.FromSeconds(5));
-
-        var problems = await TestServices.Diagnostics.GetProblemsAsync();
-        Assert.Contains(problems, p => p.Contains("CS1002"));
     });
 
     [Fact]
@@ -50,8 +47,6 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
 
         // Assert - wait for errors to disappear
         await TestServices.Diagnostics.WaitForDiagnosticsAsync(expectErrors: false, timeout: TimeSpan.FromSeconds(5));
-        var hasErrors = await TestServices.Diagnostics.HasErrorsAsync();
-        Assert.False(hasErrors, "Expected error diagnostics to disappear after fix");
     });
 
     [Fact]
@@ -92,7 +87,8 @@ public class DiagnosticsTests(ITestOutputHelper output) : VSCodeIntegrationTestB
     [Fact]
     public Task Diagnostics_UnclosedComponentTag_ShowsRZ9980() => ScreenshotOnFailureAsync(async () =>
     {
-        // Arrange
+        // Typing is problematic, and automatic close tag insertion gets in the way, so it's easier
+        // to just modify the file on disk directly.
         var fileName = Path.Combine(TestServices.Workspace.Path, "Components/Pages/Home.razor");
         var contents = File.ReadAllText(fileName);
         contents = contents.Replace("</h1>", ""); // Remove closing tag to introduce error
