@@ -152,14 +152,4 @@ public class CompletionServices(IntegrationTestServices testServices)
 
         return results;
     }
-
-    /// <summary>
-    /// Accepts the currently selected completion item.
-    /// </summary>
-    public async Task AcceptAsync()
-    {
-        await testServices.Input.PressAsync("Enter");
-        // Wait briefly for the completion to be inserted
-        await Task.Delay(100);
-    }
 }

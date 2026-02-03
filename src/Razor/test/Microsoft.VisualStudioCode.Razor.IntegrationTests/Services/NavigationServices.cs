@@ -55,49 +55,6 @@ public class NavigationServices(IntegrationTestServices testServices)
     }
 
     /// <summary>
-    /// Triggers Go to Definition with Ctrl+Click on the current cursor position.
-    /// </summary>
-    /// <param name="expectedFileName">If provided, waits until a file containing this name is opened.</param>
-    /// <param name="timeout">Timeout for waiting.</param>
-    public async Task CtrlClickGoToDefinitionAsync(string? expectedFileName = null, TimeSpan? timeout = null)
-    {
-        timeout ??= testServices.Settings.LspTimeout;
-        var originalFile = await testServices.Editor.GetCurrentFileNameAsync();
-
-        // Get the cursor position (use First since there may be multiple cursor elements)
-        var cursorLocator = testServices.Playwright.Page.Locator(".cursor").First;
-        if (await cursorLocator.CountAsync() == 0)
-        {
-            throw new InvalidOperationException("Cannot find cursor position");
-        }
-        var box = await cursorLocator.BoundingBoxAsync() ?? throw new InvalidOperationException("Cannot get cursor bounding box");
-
-        // Ctrl+Click (Cmd+Click on macOS) at the cursor position
-        await testServices.Input.ClickWithPrimaryModifierAsync(box.X + (box.Width / 2), box.Y + (box.Height / 2));
-
-        if (expectedFileName != null)
-        {
-            // Wait for navigation to the expected file
-            await EditorService.WaitForConditionAsync(
-                testServices.Editor.GetCurrentFileNameAsync,
-                fileName => fileName?.Contains(expectedFileName, StringComparison.OrdinalIgnoreCase) == true,
-                timeout.Value);
-        }
-        else
-        {
-            // Wait for any navigation (file name changes or peek definition appears)
-            await EditorService.WaitForConditionAsync(
-                async () =>
-                {
-                    var currentFile = await testServices.Editor.GetCurrentFileNameAsync();
-                    var peekVisible = await testServices.Playwright.Page.Locator(".peekview-widget").CountAsync() > 0;
-                    return currentFile != originalFile || peekVisible;
-                },
-                timeout.Value);
-        }
-    }
-
-    /// <summary>
     /// Triggers Find All References (Shift+F12) and waits for references panel.
     /// </summary>
     public async Task FindAllReferencesAsync(TimeSpan? timeout = null)

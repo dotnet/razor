@@ -121,25 +121,4 @@ public class DiagnosticsServices(IntegrationTestServices testServices)
             },
             timeout.Value);
     }
-
-    /// <summary>
-    /// Waits for the problems panel to show no problems (or a specific count).
-    /// </summary>
-    /// <param name="expectedCount">Expected number of problems (default 0).</param>
-    /// <param name="timeout">Timeout for waiting.</param>
-    public async Task WaitForNoProblemAsync(int expectedCount = 0, TimeSpan? timeout = null)
-    {
-        timeout ??= testServices.Settings.LspTimeout;
-
-        await EditorService.WaitForConditionAsync(
-            async () =>
-            {
-                var problems = await GetProblemsAsync();
-                // Filter out file/folder headers (they don't contain error codes)
-                var actualProblems = problems.Where(p =>
-                    p.Contains("CS") || p.Contains("RZ") || p.Contains("error") || p.Contains("warning")).ToList();
-                return actualProblems.Count == expectedCount;
-            },
-            timeout.Value);
-    }
 }

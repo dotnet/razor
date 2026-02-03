@@ -19,96 +19,6 @@ public class EditorService(IntegrationTestServices testServices)
     private string? _currentOpenFile;
 
     /// <summary>
-    /// Checks if <paramref name="text"/> contains <paramref name="substring"/> while ignoring whitespace in both strings.
-    /// </summary>
-    /// <remarks>
-    /// When extracting text from the VS Code DOM, whitespace can be unpredictable:
-    /// <list type="bullet">
-    ///   <item>Monaco editor uses non-breaking spaces (U+00A0) instead of regular spaces</item>
-    ///   <item>Text may wrap across multiple DOM elements, causing line breaks mid-word</item>
-    ///   <item>Joining wrapped lines introduces extra spaces at wrap points</item>
-    ///   <item>Various Unicode whitespace characters may appear (figure space, narrow no-break space, etc.)</item>
-    /// </list>
-    /// This method efficiently scans through both strings, skipping whitespace characters,
-    /// and attempts to match without allocating new strings.
-    /// </remarks>
-    public static bool ContainsIgnoringWhitespace(string text, string substring)
-    {
-        if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(substring))
-        {
-            return false;
-        }
-
-        var textIndex = 0;
-
-        while (textIndex < text.Length)
-        {
-            // Try to match starting from this position
-            if (MatchesAtPositionIgnoringWhitespace(text, textIndex, substring))
-            {
-                return true;
-            }
-
-            textIndex++;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Checks if the substring matches starting at the given position in text, ignoring whitespace in both.
-    /// </summary>
-    private static bool MatchesAtPositionIgnoringWhitespace(string text, int startIndex, string substring)
-    {
-        var textIndex = startIndex;
-        var subIndex = 0;
-
-        while (subIndex < substring.Length)
-        {
-            // Skip whitespace in the substring
-            if (IsWhitespaceOrSpecial(substring[subIndex]))
-            {
-                subIndex++;
-                continue;
-            }
-
-            // Skip whitespace in the input text
-            while (textIndex < text.Length && IsWhitespaceOrSpecial(text[textIndex]))
-            {
-                textIndex++;
-            }
-
-            // If we've run out of text, no match
-            if (textIndex >= text.Length)
-            {
-                return false;
-            }
-
-            // Compare characters (case-insensitive)
-            if (char.ToLowerInvariant(text[textIndex]) != char.ToLowerInvariant(substring[subIndex]))
-            {
-                return false;
-            }
-
-            textIndex++;
-            subIndex++;
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Checks if a character is whitespace or a special zero-width/formatting character.
-    /// </summary>
-    private static bool IsWhitespaceOrSpecial(char c)
-    {
-        return char.IsWhiteSpace(c)
-            || c == '\u2060'  // Word joiner (zero-width)
-            || c == '\u200B'  // Zero-width space
-            || c == '\uFEFF'; // Byte order mark (zero-width no-break space)
-    }
-
-    /// <summary>
     /// Polls for a condition to become true, with exponential backoff.
     /// This replaces arbitrary Task.Delay() calls with smart condition-based waiting.
     /// </summary>
@@ -438,16 +348,6 @@ public class EditorService(IntegrationTestServices testServices)
     }
 
     /// <summary>
-    /// Undoes the last action.
-    /// </summary>
-    public async Task UndoAsync()
-    {
-        await testServices.Input.PressWithPrimaryModifierAsync("z");
-        // Undo is synchronous, minimal wait
-        await Task.Delay(50);
-    }
-
-    /// <summary>
     /// Opens the command palette and waits for it to appear.
     /// </summary>
     public async Task OpenCommandPaletteAsync()
@@ -475,47 +375,6 @@ public class EditorService(IntegrationTestServices testServices)
 
         await testServices.Input.PressAsync("Enter");
         await WaitForQuickInputToCloseAsync();
-    }
-
-    /// <summary>
-    /// Opens the Find and Replace dialog and waits for it to appear.
-    /// </summary>
-    public async Task OpenFindReplaceAsync()
-    {
-        await testServices.Input.PressWithPrimaryModifierAsync("h");
-
-        // Wait for the find widget to appear
-        await testServices.Playwright.Page.Locator(".editor-widget.find-widget")
-            .WaitForAsync(new LocatorWaitForOptions
-            {
-                State = WaitForSelectorState.Visible,
-                Timeout = 5000
-            });
-    }
-
-    /// <summary>
-    /// Opens the Find dialog, searches for text, and closes the dialog.
-    /// </summary>
-    public async Task FindTextAsync(string text)
-    {
-        await testServices.Input.PressWithPrimaryModifierAsync("f");
-
-        // Wait for the find widget to appear
-        await testServices.Playwright.Page.Locator(".editor-widget.find-widget")
-            .WaitForAsync(new LocatorWaitForOptions
-            {
-                State = WaitForSelectorState.Visible,
-                Timeout = 5000
-            });
-
-        await testServices.Input.TypeAsync(text);
-        await testServices.Input.PressAsync("Enter"); // Find next
-
-        // Brief wait for highlight to appear
-        await Task.Delay(100);
-
-        // Close the find dialog
-        await testServices.Input.PressAsync("Escape");
     }
 
     /// <summary>
