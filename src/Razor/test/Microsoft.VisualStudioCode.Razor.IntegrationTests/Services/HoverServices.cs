@@ -19,13 +19,13 @@ public class HoverServices(IntegrationTestServices testServices) : ServiceBase(t
     {
         // Move mouse to the current cursor position and hover
         // Use First since there may be multiple cursor elements (e.g., in split editors or interactive window)
-        var cursorLocator = TestServices.Playwright.Page.Locator(".cursor").First;
+        var cursorLocator = TestServices.Playwright.Page.Locator(".cursor");
         if (await cursorLocator.CountAsync() == 0)
         {
             return false;
         }
 
-        var box = await cursorLocator.BoundingBoxAsync();
+        var box = await cursorLocator.First.BoundingBoxAsync();
         if (box == null)
         {
             return false;
@@ -70,12 +70,13 @@ public class HoverServices(IntegrationTestServices testServices) : ServiceBase(t
     /// </summary>
     public async Task<string?> GetContentAsync()
     {
-        var hoverLocator = TestServices.Playwright.Page.Locator(".monaco-hover-content").First;
+        var hoverLocator = TestServices.Playwright.Page.Locator(".monaco-hover-content");
         if (await hoverLocator.CountAsync() == 0)
         {
             return null;
         }
-        return await hoverLocator.TextContentAsync();
+
+        return await hoverLocator.First.TextContentAsync();
     }
 
     /// <summary>

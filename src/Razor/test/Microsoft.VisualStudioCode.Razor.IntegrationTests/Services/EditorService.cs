@@ -198,12 +198,13 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     /// </summary>
     public async Task<string?> GetCurrentFileNameAsync()
     {
-        var activeTabLocator = TestServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container").First;
+        var activeTabLocator = TestServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container");
         if (await activeTabLocator.CountAsync() == 0)
         {
             return null;
         }
-        return await activeTabLocator.TextContentAsync();
+
+        return await activeTabLocator.First.TextContentAsync();
     }
 
     /// <summary>
@@ -314,7 +315,6 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         {
             // File may not have been dirty, or indicator differs
         }
-
     }
 
     /// <summary>
@@ -464,10 +464,10 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         await WaitForConditionAsync(
             async () =>
             {
-                var activeTabLocator = TestServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container").First;
+                var activeTabLocator = TestServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container");
                 if (await activeTabLocator.CountAsync() == 0)
                     return false;
-                var tabText = await activeTabLocator.TextContentAsync();
+                var tabText = await activeTabLocator.First.TextContentAsync();
                 return tabText?.Contains(expectedFileName, StringComparison.OrdinalIgnoreCase) == true;
             },
             TestServices.Settings.LspTimeout);

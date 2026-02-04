@@ -176,10 +176,10 @@ public class PlaywrightService(IntegrationTestServices testServices) : ServiceBa
                     }
 
                     // Also check for explorer view showing the folder (use First since multiple elements match)
-                    var explorerTitleLocator = page.Locator(".explorer-folders-view .monaco-icon-label").First;
+                    var explorerTitleLocator = page.Locator(".explorer-folders-view .monaco-icon-label");
                     if (await explorerTitleLocator.CountAsync() > 0)
                     {
-                        var explorerText = await explorerTitleLocator.TextContentAsync();
+                        var explorerText = await explorerTitleLocator.First.TextContentAsync();
                         TestServices.Logger.Log($"Explorer shows: {explorerText}");
                         if (explorerText?.Contains(workspaceName, StringComparison.OrdinalIgnoreCase) == true)
                         {
