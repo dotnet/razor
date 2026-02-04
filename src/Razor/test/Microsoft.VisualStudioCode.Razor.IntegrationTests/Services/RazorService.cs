@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
@@ -38,24 +38,15 @@ public class RazorService(IntegrationTestServices testServices) : ServiceBase(te
                     await TestServices.Editor.ExecuteCommandAsync("Developer: Inspect Editor Tokens and Scopes");
 
                     // Wait for the token inspector popup to appear and contain razorComponentElement
-                    var hasRazorToken = false;
+                    var hasRazorToken = true;
                     try
                     {
-                        await Helper.WaitForConditionAsync(
-                            async () =>
-                            {
-                                var found = await CheckForRazorTokenAsync();
-                                if (found)
-                                {
-                                    hasRazorToken = true;
-                                }
-                                return found;
-                            },
-                            TimeSpan.FromSeconds(3));
+                        await Helper.WaitForConditionAsync(CheckForRazorTokenAsync, TimeSpan.FromSeconds(3));
                     }
                     catch (TimeoutException)
                     {
                         // Token not found within timeout
+                        hasRazorToken = false;
                         TestServices.Logger.Log("Token inspector did not show razorComponentElement");
                     }
 
