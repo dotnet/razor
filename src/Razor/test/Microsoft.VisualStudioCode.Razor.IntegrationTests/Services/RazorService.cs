@@ -15,94 +15,96 @@ public class RazorService(IntegrationTestServices testServices) : ServiceBase(te
     public async Task WaitForReadyAsync(TimeSpan? timeout = null)
     {
         timeout ??= TimeSpan.FromSeconds(60);
-        var deadline = DateTime.UtcNow + timeout.Value;
         var attempt = 0;
 
         TestServices.Logger.Log("Waiting for Razor language server to be ready (checking semantic tokens)...");
 
-        while (DateTime.UtcNow < deadline)
-        {
-            attempt++;
-            TestServices.Logger.Log($"Razor ready check attempt {attempt}...");
-
-            try
+        await Helper.WaitForConditionAsync(
+            async () =>
             {
-                // Open Home.razor which contains <PageTitle> component
-                await TestServices.Editor.OpenFileAsync("Components/Pages/Home.razor");
+                attempt++;
+                TestServices.Logger.Log($"Razor ready check attempt {attempt}...");
 
-                // Navigate to PageTitle - it's typically on line 3
-                // Home.razor usually has: @page "/" then <PageTitle>Home</PageTitle>
-                await TestServices.Editor.GoToWordAsync("PageTitle", selectWord: false);
-
-                // Run "Developer: Inspect Editor Tokens and Scopes" command
-                await TestServices.Editor.ExecuteCommandAsync("Developer: Inspect Editor Tokens and Scopes");
-
-                // Wait for the token inspector popup to appear and contain razorComponentElement
-                var hasRazorToken = false;
                 try
                 {
-                    await EditorService.WaitForConditionAsync(
+                    // Open Home.razor which contains <PageTitle> component
+                    await TestServices.Editor.OpenFileAsync("Components/Pages/Home.razor");
+
+                    // Navigate to PageTitle - it's typically on line 3
+                    // Home.razor usually has: @page "/" then <PageTitle>Home</PageTitle>
+                    await TestServices.Editor.GoToWordAsync("PageTitle", selectWord: false);
+
+                    // Run "Developer: Inspect Editor Tokens and Scopes" command
+                    await TestServices.Editor.ExecuteCommandAsync("Developer: Inspect Editor Tokens and Scopes");
+
+                    // Wait for the token inspector popup to appear and contain razorComponentElement
+                    var hasRazorToken = false;
+                    try
+                    {
+                        await Helper.WaitForConditionAsync(
+                            async () =>
+                            {
+                                var found = await CheckForRazorTokenAsync();
+                                if (found)
+                                {
+                                    hasRazorToken = true;
+                                }
+                                return found;
+                            },
+                            TimeSpan.FromSeconds(3));
+                    }
+                    catch (TimeoutException)
+                    {
+                        // Token not found within timeout
+                        TestServices.Logger.Log("Token inspector did not show razorComponentElement");
+                    }
+
+                    // Close the token inspector by pressing Escape
+                    await TestServices.Input.PressAsync(SpecialKey.Escape);
+
+                    // Close the file and wait for tab to close
+                    await TestServices.Input.PressWithPrimaryModifierAsync('w');
+                    await Helper.WaitForConditionAsync(
                         async () =>
                         {
-                            var found = await CheckForRazorTokenAsync();
-                            if (found)
-                            {
-                                hasRazorToken = true;
-                            }
-                            return found;
+                            var fileName = await TestServices.Editor.GetCurrentFileNameAsync();
+                            return fileName == null || !fileName.Contains("Home.razor", StringComparison.OrdinalIgnoreCase);
                         },
-                        TimeSpan.FromSeconds(3));
-                }
-                catch (TimeoutException)
-                {
-                    // Token not found within timeout
-                    TestServices.Logger.Log("Token inspector did not show razorComponentElement");
-                }
+                        TimeSpan.FromSeconds(2));
 
-                // Close the token inspector by pressing Escape
-                await TestServices.Input.PressAsync(SpecialKey.Escape);
-
-                // Close the file and wait for tab to close
-                await TestServices.Input.PressWithPrimaryModifierAsync('w');
-                await EditorService.WaitForConditionAsync(
-                    async () =>
+                    if (hasRazorToken)
                     {
-                        var fileName = await TestServices.Editor.GetCurrentFileNameAsync();
-                        return fileName == null || !fileName.Contains("Home.razor", StringComparison.OrdinalIgnoreCase);
-                    },
-                    TimeSpan.FromSeconds(2));
+                        TestServices.Logger.Log($"Razor language server is ready - semantic tokens verified (attempt {attempt})");
+                        return true;
+                    }
 
-                if (hasRazorToken)
-                {
-                    TestServices.Logger.Log($"Razor language server is ready - semantic tokens verified (attempt {attempt})");
-                    return;
+                    TestServices.Logger.Log($"Razor tokens not yet available (attempt {attempt}), retrying...");
+
+                    // Wait before next attempt
+                    await Task.Delay(1000);
+                    return false;
                 }
-
-                TestServices.Logger.Log($"Razor tokens not yet available (attempt {attempt}), retrying...");
-
-                // Wait before next attempt
-                await Task.Delay(1000);
-            }
-            catch (Exception ex)
-            {
-                TestServices.Logger.Log($"Razor ready check attempt {attempt} failed: {ex.Message}");
-
-                // Try to close any open file/dialog before retrying
-                try
+                catch (Exception ex)
                 {
-                    await TestServices.Input.PressAsync(SpecialKey.Escape);
-                    await TestServices.Input.PressWithPrimaryModifierAsync('w');
-                }
-                catch
-                {
-                    // Ignore cleanup errors
-                }
+                    TestServices.Logger.Log($"Razor ready check attempt {attempt} failed: {ex.Message}");
 
-                await Task.Delay(1000);
-            }
-        }
+                    // Try to close any open file/dialog before retrying
+                    try
+                    {
+                        await TestServices.Input.PressAsync(SpecialKey.Escape);
+                        await TestServices.Input.PressWithPrimaryModifierAsync('w');
+                    }
+                    catch
+                    {
+                        // Ignore cleanup errors
+                    }
 
-        throw new TimeoutException($"Razor language server did not become ready within {timeout.Value.TotalSeconds} seconds");
+                    await Task.Delay(1000);
+                    return false;
+                }
+            },
+            timeout.Value,
+            initialDelayMs: 0); // No initial delay - the loop body handles delays
     }
 
     /// <summary>

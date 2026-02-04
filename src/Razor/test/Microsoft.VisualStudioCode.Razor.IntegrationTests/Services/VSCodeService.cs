@@ -112,41 +112,38 @@ public partial class VSCodeService(IntegrationTestServices testServices)
         // Poll for the CDP endpoint to become available instead of fixed delay
         testServices.Logger.Log("Waiting for VS Code debugging port to open...");
         var cdpUrl = $"http://127.0.0.1:{testServices.Settings.RemoteDebuggingPort}";
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(30);
-        var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
 
-        while (DateTime.UtcNow < deadline)
-        {
-            try
+        await Helper.WaitForConditionAsync(
+            async () =>
             {
-                // Check if the CDP endpoint is responding
-                var response = await httpClient.GetAsync($"{cdpUrl}/json/version");
-                if (response.IsSuccessStatusCode)
+                // Check if process exited with an error
+                if (process.HasExited && process.ExitCode != 0)
                 {
-                    testServices.Logger.Log("VS Code debugging port is ready");
-                    break;
+                    var stdout = await process.StandardOutput.ReadToEndAsync();
+                    var stderr = await process.StandardError.ReadToEndAsync();
+                    throw new InvalidOperationException(
+                        $"VS Code CLI exited with error code {process.ExitCode}. " +
+                        $"stdout: {stdout}, stderr: {stderr}");
                 }
-            }
-            catch (Exception)
-            {
-                // Not ready yet, continue polling
-            }
 
-            // Check if process exited with an error
-            if (process.HasExited == true && process.ExitCode != 0)
-            {
-                var stdout = await process.StandardOutput.ReadToEndAsync();
-                var stderr = await process.StandardError.ReadToEndAsync();
-                throw new InvalidOperationException(
-                    $"VS Code CLI exited with error code {process.ExitCode}. " +
-                    $"stdout: {stdout}, stderr: {stderr}");
-            }
+                try
+                {
+                    // Check if the CDP endpoint is responding
+                    var response = await httpClient.GetAsync($"{cdpUrl}/json/version");
+                    return response.IsSuccessStatusCode;
+                }
+                catch (Exception)
+                {
+                    // Not ready yet, continue polling
+                    return false;
+                }
+            },
+            TimeSpan.FromSeconds(30),
+            initialDelayMs: 500);
 
-            await Task.Delay(500);
-        }
-
+        testServices.Logger.Log("VS Code debugging port is ready");
         _vsCodeProcess = process;
-        httpClient.Dispose();
 
         // Check if process exited with an error
         // Note: On Windows, code.cmd is a wrapper that spawns Electron and exits immediately with code 0.
@@ -513,7 +510,7 @@ public partial class VSCodeService(IntegrationTestServices testServices)
         var csharpReady = false;
         try
         {
-            await EditorService.WaitForConditionAsync(
+            await Helper.WaitForConditionAsync(
                 async () =>
                 {
                     var count = await testServices.Playwright.Page.Locator("[aria-label*='C#']").CountAsync();
@@ -534,7 +531,7 @@ public partial class VSCodeService(IntegrationTestServices testServices)
             try
             {
                 // Look for language mode indicator showing C# or Razor
-                await EditorService.WaitForConditionAsync(
+                await Helper.WaitForConditionAsync(
                     async () =>
                     {
                         var languageModeLocator = testServices.Playwright.Page.Locator("[aria-label*='Select Language Mode']");
@@ -562,7 +559,7 @@ public partial class VSCodeService(IntegrationTestServices testServices)
             try
             {
                 // Wait for any progress/loading indicators to disappear
-                await EditorService.WaitForConditionAsync(
+                await Helper.WaitForConditionAsync(
                     async () =>
                     {
                         var loadingCount = await testServices.Playwright.Page.Locator(".progress-bit").CountAsync();

@@ -98,7 +98,7 @@ public class HoverServices(IntegrationTestServices testServices) : ServiceBase(t
         string? content = null;
         try
         {
-            await EditorService.WaitForConditionAsync(
+            await Helper.WaitForConditionAsync(
                 async () =>
                 {
                     content = await GetContentAsync();

@@ -35,7 +35,7 @@ public class DiagnosticsServices(IntegrationTestServices testServices) : Service
     {
         timeout ??= TestServices.Settings.LspTimeout;
 
-        await EditorService.WaitForConditionAsync(
+        await Helper.WaitForConditionAsync(
             HasErrorsAsync,
             hasErrors => hasErrors == expectErrors,
             timeout.Value);
@@ -98,7 +98,7 @@ public class DiagnosticsServices(IntegrationTestServices testServices) : Service
     {
         timeout ??= TestServices.Settings.LspTimeout;
 
-        await EditorService.WaitForConditionAsync(
+        await Helper.WaitForConditionAsync(
             async () =>
             {
                 var problems = await GetProblemsAsync();

@@ -26,7 +26,7 @@ public class NavigationServices(IntegrationTestServices testServices) : ServiceB
         if (expectedFileName != null)
         {
             // Wait for navigation to the expected file
-            await EditorService.WaitForConditionAsync(
+            await Helper.WaitForConditionAsync(
                 TestServices.Editor.GetCurrentFileNameAsync,
                 fileName => fileName?.Contains(expectedFileName, StringComparison.OrdinalIgnoreCase) == true,
                 timeout.Value);
@@ -34,7 +34,7 @@ public class NavigationServices(IntegrationTestServices testServices) : ServiceB
         else
         {
             // Wait for any navigation: file name changes, cursor position changes, or peek definition appears
-            await EditorService.WaitForConditionAsync(
+            await Helper.WaitForConditionAsync(
                 async () =>
                 {
                     var currentFile = await TestServices.Editor.GetCurrentFileNameAsync();
@@ -63,7 +63,7 @@ public class NavigationServices(IntegrationTestServices testServices) : ServiceB
         await TestServices.Input.PressWithShiftAsync(SpecialKey.F12);
 
         // Wait for the references panel or peek view to appear
-        await EditorService.WaitForConditionAsync(
+        await Helper.WaitForConditionAsync(
             async () =>
             {
                 var peekViewCount = await TestServices.Playwright.Page.Locator(".peekview-widget").CountAsync();

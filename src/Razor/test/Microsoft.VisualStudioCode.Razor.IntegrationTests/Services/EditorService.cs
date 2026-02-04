@@ -1,7 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Runtime.CompilerServices;
 using Microsoft.Playwright;
 
 namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
@@ -12,61 +11,8 @@ namespace Microsoft.VisualStudioCode.Razor.IntegrationTests.Services;
 /// </summary>
 public class EditorService(IntegrationTestServices testServices) : ServiceBase(testServices)
 {
-    // Default polling interval for condition-based waits
-    private const int DefaultPollIntervalMs = 100;
-
     // Track the currently open file's relative path
     private string? _currentOpenFile;
-
-    /// <summary>
-    /// Polls for a condition to become true, with exponential backoff.
-    /// This replaces arbitrary Task.Delay() calls with smart condition-based waiting.
-    /// </summary>
-    /// <typeparam name="T">The type of value to retrieve and check.</typeparam>
-    /// <param name="getValue">Function to retrieve the current value.</param>
-    /// <param name="condition">Predicate that returns true when the condition is met.</param>
-    /// <param name="timeout">Maximum time to wait.</param>
-    /// <param name="initialDelayMs">Initial delay between polls (will increase with backoff).</param>
-    /// <param name="callerName">The name of the calling method (automatically populated).</param>
-    /// <returns>The value that satisfied the condition.</returns>
-    /// <exception cref="TimeoutException">Thrown if the condition is not met within the timeout.</exception>
-    public static async Task<T> WaitForConditionAsync<T>(
-        Func<Task<T>> getValue,
-        Func<T, bool> condition,
-        TimeSpan timeout,
-        int initialDelayMs = DefaultPollIntervalMs,
-        [CallerMemberName] string? callerName = null)
-    {
-        var deadline = DateTime.UtcNow + timeout;
-        var delayMs = initialDelayMs;
-        var maxDelayMs = 1000; // Cap backoff at 1 second
-
-        while (DateTime.UtcNow < deadline)
-        {
-            var value = await getValue();
-            if (condition(value))
-            {
-                return value;
-            }
-
-            await Task.Delay(delayMs);
-            delayMs = Math.Min(delayMs * 2, maxDelayMs); // Exponential backoff
-        }
-
-        throw new TimeoutException($"Condition {callerName} not met within {timeout.TotalSeconds} seconds");
-    }
-
-    /// <summary>
-    /// Polls for a condition to become true, with exponential backoff.
-    /// Overload for simple boolean conditions.
-    /// </summary>
-    public static async Task WaitForConditionAsync(
-        Func<Task<bool>> condition,
-        TimeSpan timeout,
-        int initialDelayMs = DefaultPollIntervalMs)
-    {
-        await WaitForConditionAsync(condition, result => result, timeout, initialDelayMs);
-    }
 
     /// <summary>
     /// Gets the active editor's text content by saving the file and reading from disk.
@@ -99,35 +45,44 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         await SaveAsync();
 
         // Wait for the file contents to change, indicating VS Code has flushed to disk
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
-        var delayMs = 50;
-
         var currentContents = "";
-        while (DateTime.UtcNow < deadline)
+        try
         {
+            currentContents = await Helper.WaitForConditionAsync(
+                async () =>
+                {
+                    try
+                    {
+                        return await ReadFileExclusiveAsync(filePath);
+                    }
+                    catch (IOException)
+                    {
+                        // File might be locked by VS Code, continue waiting
+                        return originalContents;
+                    }
+                },
+                contents => contents != originalContents,
+                TimeSpan.FromSeconds(5),
+                initialDelayMs: 50);
+
+            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents ({currentContents.Length} chars):\n{currentContents}");
+            return currentContents;
+        }
+        catch (TimeoutException)
+        {
+            // Timeout: return the last read contents (file may not have changed)
+            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: Timeout waiting for contents change, returning current contents");
             try
             {
                 currentContents = await ReadFileExclusiveAsync(filePath);
-                if (currentContents != originalContents)
-                {
-                    // File has been updated, return the new contents
-                    TestServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents ({currentContents.Length} chars):\n{currentContents}");
-                    return currentContents;
-                }
             }
             catch (IOException)
             {
-                // File might be locked by VS Code, continue waiting
+                // Use original if we can't read
             }
-
-            await Task.Delay(delayMs);
-            delayMs = Math.Min(delayMs * 2, 500); // Exponential backoff, cap at 500ms
+            TestServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents (fallback, {currentContents.Length} chars):\n{currentContents}");
+            return currentContents;
         }
-
-        // Timeout: return the last read contents (file may not have changed)
-        TestServices.Logger.Log($"WaitForEditorTextChangeAsync: Timeout waiting for contents change, returning current contents");
-        TestServices.Logger.Log($"WaitForEditorTextChangeAsync: AFTER contents (fallback, {currentContents.Length} chars):\n{currentContents}");
-        return currentContents;
     }
 
     /// <summary>
@@ -137,24 +92,25 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     /// </summary>
     private static async Task<string> ReadFileExclusiveAsync(string filePath)
     {
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(3);
-        var delayMs = 50;
+        var result = await Helper.WaitForConditionAsync(
+            async () =>
+            {
+                try
+                {
+                    using var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                    using var reader = new StreamReader(stream);
+                    return (Content: await reader.ReadToEndAsync(), Success: true);
+                }
+                catch (IOException)
+                {
+                    return (Content: string.Empty, Success: false);
+                }
+            },
+            result => result.Success,
+            TimeSpan.FromSeconds(3),
+            initialDelayMs: 50);
 
-        while (true)
-        {
-            try
-            {
-                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-                using var reader = new StreamReader(stream);
-                return await reader.ReadToEndAsync();
-            }
-            catch (IOException) when (DateTime.UtcNow < deadline)
-            {
-                // File is locked, wait and retry
-                await Task.Delay(delayMs);
-                delayMs = Math.Min(delayMs * 2, 500);
-            }
-        }
+        return result.Content;
     }
 
     /// <summary>
@@ -282,7 +238,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
 
         // Wait for the cursor position to actually update in the status bar.
         // The status bar update can lag behind the actual cursor movement.
-        await WaitForConditionAsync(
+        await Helper.WaitForConditionAsync(
             GetCursorPositionAsync,
             pos => pos?.Line == line,
             TimeSpan.FromSeconds(2));
@@ -323,7 +279,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
     /// <param name="expectDirty">If true, waits for unsaved changes. If false, waits for clean state.</param>
     public async Task WaitForEditorDirtyAsync(bool expectDirty = true)
     {
-        await WaitForConditionAsync(
+        await Helper.WaitForConditionAsync(
             async () =>
             {
                 var dirtyCount = await TestServices.Playwright.Page.Locator(".tab.active.dirty").CountAsync();
@@ -352,7 +308,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         await TestServices.Input.TypeAsync(command);
 
         // Wait for the command to appear in the list
-        await WaitForConditionAsync(
+        await Helper.WaitForConditionAsync(
             async () =>
             {
                 var itemCount = await TestServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row").CountAsync();
@@ -449,7 +405,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
         await TestServices.Input.TypeAsync(relativePath);
 
         // Wait for the file list to populate by checking for list items
-        await WaitForConditionAsync(
+        await Helper.WaitForConditionAsync(
             async () =>
             {
                 var listItemCount = await TestServices.Playwright.Page.Locator(".quick-input-list .monaco-list-row").CountAsync();
@@ -461,7 +417,7 @@ public class EditorService(IntegrationTestServices testServices) : ServiceBase(t
 
         // Wait for the file to be open by checking the active tab
         var expectedFileName = Path.GetFileName(relativePath);
-        await WaitForConditionAsync(
+        await Helper.WaitForConditionAsync(
             async () =>
             {
                 var activeTabLocator = TestServices.Playwright.Page.Locator(".tab.active .monaco-icon-label-container");
