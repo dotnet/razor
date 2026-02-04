@@ -392,6 +392,71 @@ public class RemoteDebugInfoServiceTest(ITestOutputHelper testOutputHelper) : Co
         await VerifyBreakpointRangeAsync(input, fileKind: fileKind);
     }
 
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_UsingDirectiveInLine1()
+    {
+        var input = $$"""
+                @{
+                    string x = "";
+                }
+
+                $$<div class="@([|x = nameof(Object)|])" accesskey="A" @using System.IO data="please don't do this">
+                    <h1 class="display-4">Welcome</h1>
+                </div>
+                """;
+
+        // This is only an issue for Legacy files. For Components, the using directive is treated as plain text
+        await VerifyBreakpointRangeAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_UsingDirectiveInLine2()
+    {
+        var input = $$"""
+                @{
+                    string x = "";
+                }
+
+                $$<div class="@[|x|]" accesskey="A" @using System.Text.RegularExpressions data="please don't do this">
+                    <h1 class="display-4">Welcome</h1>
+                </div>
+                """;
+
+        await VerifyBreakpointRangeAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_UsingDirectiveInLine3()
+    {
+        var input = $$"""
+                @{
+                    ViewData["Title"] = "Home Page";
+
+                    string x = "";
+                }
+
+                $$<div>@[|x|]</div> hello @using System.Text.Encodings world
+                """;
+
+        await VerifyBreakpointRangeAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task ResolveBreakpointRangeAsync_MultipleCSharpExpressions()
+    {
+        var input = $$"""
+                @{
+                    string x = "";
+                }
+
+                <div accesskey="@x" $$ class="@[|x|]">
+                    <h1 class="display-4">Welcome</h1>
+                </div>
+                """;
+
+        await VerifyBreakpointRangeAsync(input);
+    }
+
     private async Task VerifyProximityExpressionsAsync(TestCode input, string[] extraExpressions)
     {
         var document = CreateProjectAndRazorDocument(input.Text);
