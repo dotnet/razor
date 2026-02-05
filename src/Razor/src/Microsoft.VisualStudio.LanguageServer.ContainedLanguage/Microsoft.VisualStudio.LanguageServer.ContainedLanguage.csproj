@@ -10,11 +10,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Core" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
     <PackageReference Include="Microsoft.VisualStudio.Copilot" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" />
+    <PackageReference Include="Microsoft.VisualStudio.Language" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Search" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" />
     <!-- Manually upgrade to address CG alert. When the VS packages
          pull in the right version, this can be removed. -->
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />

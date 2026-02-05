@@ -41,6 +41,15 @@
     <PackageReference Include="Microsoft.WebTools.Shared" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Direct references to suppress NU1701 for transitive .NET Framework packages -->
+    <PackageReference Include="Microsoft.IO.Redist" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.GraphModel" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" NoWarn="NU1701" />
+  </ItemGroup>
+
   <!-- Ensure the legacy clasp binary package is available downloaded so we can drop it in the output folder. -->
   <ItemGroup>
     <PackageDownload Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="[$(LegacyClaspVersion)]" />

@@ -37,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Core" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzer.Testing" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
@@ -44,10 +45,19 @@
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Common" />
     <PackageReference Include="Microsoft.CodeAnalysis.Test.Utilities" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
+    <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Framework" />
+    <PackageReference Include="Microsoft.IO.Redist" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Copilot" />
+    <PackageReference Include="Microsoft.VisualStudio.GraphModel" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Search" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
@@ -58,7 +68,6 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'">
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
     <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj" />
   </ItemGroup>
