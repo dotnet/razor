@@ -10,6 +10,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Direct references to suppress NU1701 for transitive .NET Framework packages -->
+    <PackageReference Include="Microsoft.IO.Redist" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.GraphModel" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" NoWarn="NU1701" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../Microsoft.AspNetCore.Razor.Test.Common.Tooling/Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj" />
   </ItemGroup>
