@@ -45,7 +45,7 @@ public static class HtmlConventions
             return input;
         }
 
-        return TryGetKebabCaseString(input, out var result)
+        return TryGetKebabCaseString(input.AsSpan(), out var result)
             ? result
             : input;
     }
