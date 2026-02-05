@@ -977,14 +977,9 @@ internal partial class CSharpFormattingPass
 
             public override LineInfo VisitRazorDirective(RazorDirectiveSyntax node)
             {
-                // Unfortunately the Razor syntax tree doesn't distinguish different directives with different syntax node types,
+                // Unfortunately the Razor syntax tree doesn't distinguish many different directives with different syntax node types,
                 // so this method is handles way more cases that ideally it would. Sorry! I've split it up into separate methods
                 // so we can pretend, for readability of those methods, if not this one.
-
-                if (node.IsUsingDirective())
-                {
-                    return VisitUsingDirective();
-                }
 
                 if (node.IsAttributeDirective(out var attribute))
                 {
@@ -1030,7 +1025,7 @@ internal partial class CSharpFormattingPass
                 return CreateLineInfo(skipNextLineIfBrace: true);
             }
 
-            private LineInfo VisitUsingDirective()
+            public override LineInfo VisitRazorUsingDirective(RazorUsingDirectiveSyntax node)
             {
                 // For @using we just skip over the @ and format as a C# using directive
                 // "@using System" to "using System"

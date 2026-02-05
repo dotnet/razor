@@ -293,6 +293,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public RazorSourceDocument SourceDocument { get; set; }
 
+        public override void VisitRazorUsingDirective(RazorUsingDirectiveSyntax node)
+        {
+            // Using directives don't have a DirectiveDescriptor, so we just visit the body
+            // to pick up the AddImportChunkGenerator in VisitCSharpStatementLiteral
+            Visit(node.Body);
+        }
+
         public override void VisitRazorDirective(RazorDirectiveSyntax node)
         {
             IntermediateNode directiveNode;

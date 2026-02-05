@@ -33,16 +33,17 @@ internal static class RazorSyntaxNodeExtensions
     internal static bool IsCodeBlockDirective(this SyntaxNode node)
         => (node as RazorDirectiveSyntax)?.IsDirectiveKind(DirectiveKind.CodeBlock) is true;
 
-    internal static bool IsUsingDirective(this SyntaxNode node)
-        => node.IsUsingDirective(out _);
-
     internal static bool IsUsingDirective(this SyntaxNode node, out SyntaxTokenList tokens)
     {
-        // Using directives are weird, because the directive keyword ("using") is part of the C# statement it represents
-        if (node is RazorDirectiveSyntax { HasDirectiveDescriptor: false, Body: RazorDirectiveBodySyntax body } &&
-            body.Keyword is CSharpStatementLiteralSyntax
+        if (node is RazorUsingDirectiveSyntax
             {
-                LiteralTokens: [{ Kind: SyntaxKind.Keyword, Content: "using" }, ..] literalTokens
+                Body: RazorDirectiveBodySyntax
+                {
+                    Keyword: CSharpStatementLiteralSyntax
+                    {
+                        LiteralTokens: var literalTokens
+                    }
+                }
             })
         {
             tokens = literalTokens;
