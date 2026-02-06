@@ -160,10 +160,10 @@ internal static class RazorSyntaxFacts
     {
         if (node is CSharpCodeBlockSyntax block &&
             block.Children.FirstOrDefault(n => n is RazorDirectiveSyntax) is RazorDirectiveSyntax directive &&
-            directive.Body is RazorDirectiveBodySyntax directiveBody &&
-            directiveBody.Keyword.GetContent() == "code")
+            directive.DirectiveBody is { } body &&
+            body.Keyword.GetContent() == "code")
         {
-            return directiveBody.CSharpCode;
+            return body.CSharpCode;
         }
 
         return null;

@@ -16,10 +16,10 @@ internal static class RazorSyntaxNodeExtensions
 {
     private static bool IsDirective(SyntaxNode node, DirectiveDescriptor directive, [NotNullWhen(true)] out RazorDirectiveBodySyntax? body)
     {
-        if (node is RazorDirectiveSyntax { HasDirectiveDescriptor: true, Body: RazorDirectiveBodySyntax directiveBody } directiveNode &&
+        if (node is RazorDirectiveSyntax { HasDirectiveDescriptor: true } directiveNode &&
             directiveNode.IsDirective(directive))
         {
-            body = directiveBody;
+            body = directiveNode.DirectiveBody;
             return true;
         }
 
@@ -37,12 +37,9 @@ internal static class RazorSyntaxNodeExtensions
     {
         if (node is RazorUsingDirectiveSyntax
             {
-                Body: RazorDirectiveBodySyntax
+                DirectiveBody.Keyword: CSharpStatementLiteralSyntax
                 {
-                    Keyword: CSharpStatementLiteralSyntax
-                    {
-                        LiteralTokens: var literalTokens
-                    }
+                    LiteralTokens: var literalTokens
                 }
             })
         {
@@ -365,7 +362,7 @@ internal static class RazorSyntaxNodeExtensions
             // @code {
             //    var foo = "bar";
             // }
-            case RazorDirectiveSyntax { Body: RazorDirectiveBodySyntax body }:
+            case RazorDirectiveSyntax { DirectiveBody: var body }:
                 // code {
                 //    var foo = "bar";
                 // }

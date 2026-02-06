@@ -998,9 +998,7 @@ internal partial class CSharpFormattingPass
                 }
 
                 // All other directives that have braces are handled here
-                if (node.Body is RazorDirectiveBodySyntax body &&
-                    body.CSharpCode is CSharpCodeBlockSyntax code &&
-                    code.Children.TryGetOpenBraceToken(out var brace) &&
+                if (node.DirectiveBody.CSharpCode.Children.TryGetOpenBraceToken(out var brace) &&
                     // If the open brace is on the same line as the directive, then we need to ensure the contents are indented.
                     GetLineNumber(brace) == GetLineNumber(_currentToken))
                 {
