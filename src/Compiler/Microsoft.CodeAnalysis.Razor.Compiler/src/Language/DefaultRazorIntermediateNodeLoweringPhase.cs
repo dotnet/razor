@@ -1181,7 +1181,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
             {
                 using PooledArrayBuilder<SyntaxToken> builder = [];
-                
+
                 if (escapedAtTokens.Count > 0)
                 {
                     builder.AddRange(escapedAtTokens);
@@ -1199,7 +1199,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             else if (children.TryCast<MarkupTextLiteralSyntax>(out var markupLiteralArray))
             {
                 using PooledArrayBuilder<SyntaxToken> builder = [];
-                
+
                 if (escapedAtTokens.Count > 0)
                 {
                     builder.AddRange(escapedAtTokens);
@@ -2072,7 +2072,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
             {
                 using PooledArrayBuilder<SyntaxToken> valueTokens = [];
-                
+
                 if (escapedAtTokens.Count > 0)
                 {
                     valueTokens.AddRange(escapedAtTokens);
@@ -2090,7 +2090,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             else if (children.TryCast<MarkupTextLiteralSyntax>(out var markupLiteralArray))
             {
                 using PooledArrayBuilder<SyntaxToken> builder = [];
-                
+
                 if (escapedAtTokens.Count > 0)
                 {
                     builder.AddRange(escapedAtTokens);
