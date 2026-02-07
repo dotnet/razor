@@ -49,6 +49,31 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
         Assert.Equal("PropertyName", node.MemberName);
     }
 
+
+    [Fact]
+    public void InjectDirectivePass_Execute_DefinesProperty_WithKey()
+    {
+        // Arrange
+        var codeDocument = ProjectEngine.CreateCodeDocument(@"
+@inject PropertyType PropertyName ""PropertyKey""
+");
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        processor.ExecutePass<InjectDirective.Pass>();
+
+        // Assert
+        var documentNode = processor.GetDocumentNode();
+        var classNode = documentNode.GetClassNode();
+
+        Assert.Equal(2, classNode.Children.Count);
+
+        var node = Assert.IsType<InjectIntermediateNode>(classNode.Children[1]);
+        Assert.Equal("PropertyType", node.TypeName);
+        Assert.Equal("PropertyName", node.MemberName);
+        Assert.Equal("\"PropertyKey\"", node.KeyName);
+    }
+    // TODO: Check to see if deduping has been effected
     [Fact]
     public void InjectDirectivePass_Execute_DedupesPropertiesByName()
     {

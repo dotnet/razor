@@ -19,9 +19,10 @@ public static class InjectDirective
         builder =>
         {
             builder
-                .AddOptionalStringToken(RazorExtensionsResources.InjectDirective_KeyToken_Name, RazorExtensionsResources.InjectDirective_KeyToken_Description)
                 .AddTypeToken(RazorExtensionsResources.InjectDirective_TypeToken_Name, RazorExtensionsResources.InjectDirective_TypeToken_Description)
-                .AddMemberToken(RazorExtensionsResources.InjectDirective_MemberToken_Name, RazorExtensionsResources.InjectDirective_MemberToken_Description);
+                .AddMemberToken(RazorExtensionsResources.InjectDirective_MemberToken_Name, RazorExtensionsResources.InjectDirective_MemberToken_Description)
+                // having this last to avoid validation issues
+                .AddOptionalStringToken(RazorExtensionsResources.InjectDirective_KeyToken_Name, RazorExtensionsResources.InjectDirective_KeyToken_Description);
 
             builder.Usage = DirectiveUsage.FileScopedMultipleOccurring;
             builder.Description = RazorExtensionsResources.InjectDirective_Description;
@@ -84,8 +85,8 @@ public static class InjectDirective
                     continue;
                 }
 
-                var hasKey = tokens.Length > 2 && !string.IsNullOrWhiteSpace(tokens[2].Content);
-                Debug.Assert(hasKey || isMalformed);
+                var hasKeyName = tokens.Length > 2 && !string.IsNullOrWhiteSpace(tokens[2].Content);
+                // No assert as is optional
                 var keyName = hasKeyName ? tokens[2].Content : null;
                 var keySpan = hasKeyName ? tokens[2].Source : null;
 
@@ -106,7 +107,7 @@ public static class InjectDirective
                     TypeSource = typeSpan,
                     MemberSource = memberSpan,
                     KeyName = keyName,
-                    KeySource = KeySource,
+                    KeySource = keySpan,
                     IsMalformed = isMalformed
                 };
 
