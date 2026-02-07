@@ -12,6 +12,11 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjectTargetExtension
 {
     private const string RazorInjectAttribute = "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]";
+    private const string RazorInjectAttributeWithAsterix = "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute*]";
+
+    private string GetRazorInjectAttributeWithKey(string key) {
+        return RazorInjectAttributeWithAsterix.Replace("*", $"(Key = {key})");
+    }
 
     public void WriteInjectProperty(CodeRenderingContext context, InjectIntermediateNode node)
     {
@@ -36,7 +41,17 @@ public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjec
             }
             else
             {
-                context.CodeWriter.WriteLine(RazorInjectAttribute);
+                // If there is a key write it into inject attribute
+                var keyName = node.KeyName;
+                if (keyName != null)
+                {
+                    context.CodeWriter.WriteLine(GetRazorInjectAttributeWithKey(keyName));
+                }
+                else
+                {
+                    context.CodeWriter.WriteLine(RazorInjectAttribute);
+                }
+
                 var memberName = node.MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
                 context.CodeWriter.WriteAutoPropertyDeclaration(["public"], node.TypeName, memberName, node.TypeSource, node.MemberSource, context, privateSetter: true, defaultValue: true);
             }

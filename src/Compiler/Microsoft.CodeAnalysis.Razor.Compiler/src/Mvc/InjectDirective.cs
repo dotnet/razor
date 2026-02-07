@@ -19,6 +19,7 @@ public static class InjectDirective
         builder =>
         {
             builder
+                .AddOptionalStringToken(RazorExtensionsResources.InjectDirective_KeyToken_Name, RazorExtensionsResources.InjectDirective_KeyToken_Description)
                 .AddTypeToken(RazorExtensionsResources.InjectDirective_TypeToken_Name, RazorExtensionsResources.InjectDirective_TypeToken_Description)
                 .AddMemberToken(RazorExtensionsResources.InjectDirective_MemberToken_Name, RazorExtensionsResources.InjectDirective_MemberToken_Description);
 
@@ -83,6 +84,11 @@ public static class InjectDirective
                     continue;
                 }
 
+                var hasKey = tokens.Length > 2 && !string.IsNullOrWhiteSpace(tokens[2].Content);
+                Debug.Assert(hasKey || isMalformed);
+                var keyName = hasKeyName ? tokens[2].Content : null;
+                var keySpan = hasKeyName ? tokens[2].Source : null;
+
                 const string tModel = "<TModel>";
                 if (typeName.EndsWith(tModel, StringComparison.Ordinal))
                 {
@@ -99,6 +105,8 @@ public static class InjectDirective
                     MemberName = memberName,
                     TypeSource = typeSpan,
                     MemberSource = memberSpan,
+                    KeyName = keyName,
+                    KeySource = KeySource,
                     IsMalformed = isMalformed
                 };
 

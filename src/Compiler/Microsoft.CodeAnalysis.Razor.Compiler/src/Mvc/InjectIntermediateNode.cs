@@ -22,6 +22,10 @@ public class InjectIntermediateNode : ExtensionIntermediateNode
 
     public bool IsMalformed { get; set; }
 
+    public string? KeyName { get; set; }
+
+    public SourceSpan? KeySource { get; set; }
+
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
     public override void Accept(IntermediateNodeVisitor visitor)
@@ -62,6 +66,7 @@ public class InjectIntermediateNode : ExtensionIntermediateNode
 
         formatter.WriteProperty(nameof(MemberName), MemberName);
         formatter.WriteProperty(nameof(TypeName), TypeName);
+        formatter.WriteProperty(nameof(KeyName), KeyName);
         formatter.WriteProperty(nameof(IsMalformed), IsMalformed.ToString());
     }
 }
