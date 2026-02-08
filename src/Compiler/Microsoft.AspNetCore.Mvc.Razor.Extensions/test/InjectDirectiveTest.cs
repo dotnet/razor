@@ -73,7 +73,7 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
         Assert.Equal("PropertyName", node.MemberName);
         Assert.Equal("\"PropertyKey\"", node.KeyName);
     }
-    // TODO: Check to see if deduping has been effected
+    
     [Fact]
     public void InjectDirectivePass_Execute_DedupesPropertiesByName()
     {

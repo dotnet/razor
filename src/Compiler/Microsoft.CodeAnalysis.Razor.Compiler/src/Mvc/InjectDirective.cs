@@ -86,8 +86,8 @@ public static class InjectDirective
                 }
 
                 var hasKeyName = tokens.Length > 2 && !string.IsNullOrWhiteSpace(tokens[2].Content);
-                // No assert as is optional
-                var keyName = hasKeyName ? tokens[2].Content : null;
+                // No assert as is optional and check to make sure it is a valid string (not a semi-colon) if it does exist
+                var keyName = hasKeyName ? ValidateStringToken(tokens[2].Content) : null;
                 var keySpan = hasKeyName ? tokens[2].Source : null;
 
                 const string tModel = "<TModel>";
@@ -113,6 +113,16 @@ public static class InjectDirective
 
                 visitor.Class!.Children.Add(injectNode);
             }
+        }
+
+        private string ValidateStringToken(string token)
+        {
+            // Tokens aren't captured if they're malformed. Therefore, this method will
+            // always be called with a valid token content.
+            Debug.Assert(token.StartsWith("\"", StringComparison.Ordinal));
+            Debug.Assert(token.EndsWith("\"", StringComparison.Ordinal));
+
+            return token;
         }
     }
 
