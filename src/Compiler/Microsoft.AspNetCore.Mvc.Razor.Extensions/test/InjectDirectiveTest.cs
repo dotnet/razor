@@ -15,6 +15,7 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     {
         // Notice we're not registering the InjectDirective.Pass here so we can run it on demand.
         builder.AddDirective(InjectDirective.Directive);
+        builder.AddDirective(KeyedInjectDirective.Directive);
         builder.AddDirective(ModelDirective.Directive);
 
         builder.Features.Add(new RazorPageDocumentClassifierPass());
@@ -51,16 +52,16 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
 
 
     [Fact]
-    public void InjectDirectivePass_Execute_DefinesProperty_WithKey()
+    public void KeyedInjectDirectivePass_Execute_DefinesProperty()
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateCodeDocument(@"
-@inject PropertyType PropertyName ""PropertyKey""
+@keyedinject PropertyType PropertyName ""PropertyKey""
 ");
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<KeyedInjectDirective.Pass>();
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -68,7 +69,7 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
 
         Assert.Equal(2, classNode.Children.Count);
 
-        var node = Assert.IsType<InjectIntermediateNode>(classNode.Children[1]);
+        var node = Assert.IsType<KeyedInjectIntermediateNode>(classNode.Children[1]);
         Assert.Equal("PropertyType", node.TypeName);
         Assert.Equal("PropertyName", node.MemberName);
         Assert.Equal("\"PropertyKey\"", node.KeyName);

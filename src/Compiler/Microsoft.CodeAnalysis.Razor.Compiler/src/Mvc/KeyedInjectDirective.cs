@@ -11,16 +11,17 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
-public static class InjectDirective
+public static class KeyedInjectDirective
 {
     public static readonly DirectiveDescriptor Directive = DirectiveDescriptor.CreateDirective(
-        "inject",
+        "keyedinject",
         DirectiveKind.SingleLine,
         builder =>
         {
             builder
-                .AddTypeToken(RazorExtensionsResources.InjectDirective_TypeToken_Name, RazorExtensionsResources.InjectDirective_TypeToken_Description)
-                .AddMemberToken(RazorExtensionsResources.InjectDirective_MemberToken_Name, RazorExtensionsResources.InjectDirective_MemberToken_Description);
+                .AddTypeToken(RazorExtensionsResources.KeyedInjectDirective_TypeToken_Name, RazorExtensionsResources.KeyedInjectDirective_TypeToken_Description)
+                .AddMemberToken(RazorExtensionsResources.KeyedInjectDirective_MemberToken_Name, RazorExtensionsResources.KeyedInjectDirective_MemberToken_Description)
+                .AddStringToken(RazorExtensionsResources.KeyedInjectDirective_KeyToken_Name, RazorExtensionsResources.KeyedInjectDirective_KeyToken_Description);
 
             builder.Usage = DirectiveUsage.FileScopedMultipleOccurring;
             builder.Description = RazorExtensionsResources.InjectDirective_Description;
@@ -35,7 +36,7 @@ public static class InjectDirective
 
         builder.AddDirective(Directive);
         builder.Features.Add(new Pass());
-        builder.AddTargetExtension(new InjectTargetExtension(considerNullabilityEnforcement));
+        builder.AddTargetExtension(new KeyedInjectTargetExtension(considerNullabilityEnforcement));
         return builder;
     }
 
@@ -83,6 +84,11 @@ public static class InjectDirective
                     continue;
                 }
 
+                var hasKeyName = tokens.Length > 2 && !string.IsNullOrWhiteSpace(tokens[2].Content);
+                // No assert as is optional but assert make sure it is a valid string (not a semi-colon) if it does exist
+                var keyName = hasKeyName ? ValidateStringToken(tokens[2].Content) : null;
+                var keySpan = hasKeyName ? tokens[2].Source : null;
+
                 const string tModel = "<TModel>";
                 if (typeName.EndsWith(tModel, StringComparison.Ordinal))
                 {
@@ -93,17 +99,29 @@ public static class InjectDirective
                     }
                 }
 
-                var injectNode = new InjectIntermediateNode()
+                var injectNode = new KeyedInjectIntermediateNode()
                 {
                     TypeName = typeName,
                     MemberName = memberName,
                     TypeSource = typeSpan,
                     MemberSource = memberSpan,
+                    KeyName = keyName,
+                    KeySource = keySpan,
                     IsMalformed = isMalformed
                 };
 
                 visitor.Class!.Children.Add(injectNode);
             }
+        }
+
+        private string ValidateStringToken(string token)
+        {
+            // Tokens aren't captured if they're malformed. Therefore, this method will
+            // always be called with a valid token content.
+            Debug.Assert(token.StartsWith("\"", StringComparison.Ordinal));
+            Debug.Assert(token.EndsWith("\"", StringComparison.Ordinal));
+
+            return token;
         }
     }
 

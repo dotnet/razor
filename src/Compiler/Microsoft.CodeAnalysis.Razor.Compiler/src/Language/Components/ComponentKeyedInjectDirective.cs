@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -11,15 +12,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 // but this one outputs properties annotated for Components's property injector, plus it doesn't need to
 // support multiple CodeTargets.
 
-internal static class ComponentInjectDirective
+internal static class ComponentKeyedInjectDirective
 {
     public static readonly DirectiveDescriptor Directive = DirectiveDescriptor.CreateDirective(
-        "inject",
+        "keyedinject",
         DirectiveKind.SingleLine,
         builder =>
         {
             builder.AddTypeToken("TypeName", "The type of the service to inject.");
             builder.AddMemberToken("PropertyName", "The name of the property.");
+            builder.AddOptionalStringToken("KeyName", "An optional key for when accessing keyed services.");
             builder.Usage = DirectiveUsage.FileScopedMultipleOccurring;
             builder.Description = "Inject a service from the application's service container into a property.";
         });

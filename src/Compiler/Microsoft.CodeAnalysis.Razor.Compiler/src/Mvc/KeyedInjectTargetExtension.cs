@@ -6,14 +6,22 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using static Microsoft.AspNetCore.Razor.Language.Components.ComponentNodeWriter;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
-public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjectTargetExtension
+public class KeyedInjectTargetExtension(bool considerNullabilityEnforcement) : IKeyedInjectTargetExtension
 {
     private const string RazorInjectAttribute = "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]";
+    private const string RazorInjectAttributeWithAsterix = "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute*]";
 
-    public void WriteInjectProperty(CodeRenderingContext context, InjectIntermediateNode node)
+    private string GetRazorInjectAttributeWithKey(string key) {
+
+        // If there is a key write it into inject attribute
+        return string.IsNullOrEmpty(key) ? RazorInjectAttribute : RazorInjectAttributeWithAsterix.Replace("*", $"(Key = {key})");
+    }
+
+    public void WriteKeyedInjectProperty(CodeRenderingContext context, KeyedInjectIntermediateNode node)
     {
         if (context == null)
         {
@@ -36,7 +44,10 @@ public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjec
             }
             else
             {
-                context.CodeWriter.WriteLine(RazorInjectAttribute);
+                var keyName = node.KeyName;
+                
+                context.CodeWriter.WriteLine(GetRazorInjectAttributeWithKey(keyName));
+
                 var memberName = node.MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
                 context.CodeWriter.WriteAutoPropertyDeclaration(["public"], node.TypeName, memberName, node.TypeSource, node.MemberSource, context, privateSetter: true, defaultValue: true);
             }
@@ -69,7 +80,7 @@ public class InjectTargetExtension(bool considerNullabilityEnforcement) : IInjec
                 }
 
                 context.CodeWriter
-                    .WriteLine(RazorInjectAttribute)
+                    .WriteLine(GetRazorInjectAttributeWithKey(node.KeyName))
                     .WriteLine(property);
 
                 if (considerNullabilityEnforcement && !context.Options.SuppressNullabilityEnforcement)

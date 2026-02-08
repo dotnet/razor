@@ -42,12 +42,12 @@ public class InjectTargetExtensionTest
 
 
     [Fact]
-    public void InjectDirectiveTargetExtension_WritesProperty_WithKey()
+    public void KeyedInjectDirectiveTargetExtension_WritesProperty()
     {
         // Arrange
         using var context = TestCodeRenderingContext.CreateRuntime();
-        var target = new InjectTargetExtension(considerNullabilityEnforcement: true);
-        var node = new InjectIntermediateNode()
+        var target = new KeyedInjectTargetExtension(considerNullabilityEnforcement: true);
+        var node = new KeyedInjectIntermediateNode()
         {
             TypeName = "PropertyType",
             MemberName = "PropertyName",
@@ -55,7 +55,7 @@ public class InjectTargetExtensionTest
         };
 
         // Act
-        target.WriteInjectProperty(context, node);
+        target.WriteKeyedInjectProperty(context, node);
 
         // Assert
         Assert.Equal("""

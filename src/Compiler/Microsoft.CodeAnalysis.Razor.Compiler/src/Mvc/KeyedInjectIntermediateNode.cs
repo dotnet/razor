@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
-public class InjectIntermediateNode : ExtensionIntermediateNode
+public class KeyedInjectIntermediateNode : ExtensionIntermediateNode
 {
     public string TypeName { get; set; }
 
@@ -22,16 +22,21 @@ public class InjectIntermediateNode : ExtensionIntermediateNode
 
     public bool IsMalformed { get; set; }
 
+    public string KeyName { get; set; }
+
+    public SourceSpan? KeySource { get; set; }
+
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
     public override void Accept(IntermediateNodeVisitor visitor)
     {
         if (visitor == null)
-        {
+        { 
+
             throw new ArgumentNullException(nameof(visitor));
         }
 
-        AcceptExtensionNode<InjectIntermediateNode>(this, visitor);
+        AcceptExtensionNode<KeyedInjectIntermediateNode>(this, visitor);
     }
 
     public override void WriteNode(CodeTarget target, CodeRenderingContext context)
@@ -46,14 +51,14 @@ public class InjectIntermediateNode : ExtensionIntermediateNode
             throw new ArgumentNullException(nameof(context));
         }
 
-        var extension = target.GetExtension<IInjectTargetExtension>();
+        var extension = target.GetExtension<IKeyedInjectTargetExtension>();
         if (extension == null)
         {
-            ReportMissingCodeTargetExtension<IInjectTargetExtension>(context);
+            ReportMissingCodeTargetExtension<IKeyedInjectTargetExtension>(context);
             return;
         }
 
-        extension.WriteInjectProperty(context, this);
+        extension.WriteKeyedInjectProperty(context, this);
     }
 
     public override void FormatNode(IntermediateNodeFormatter formatter)
@@ -62,6 +67,7 @@ public class InjectIntermediateNode : ExtensionIntermediateNode
 
         formatter.WriteProperty(nameof(MemberName), MemberName);
         formatter.WriteProperty(nameof(TypeName), TypeName);
+        formatter.WriteProperty(nameof(KeyName), KeyName);
         formatter.WriteProperty(nameof(IsMalformed), IsMalformed.ToString());
     }
 }
