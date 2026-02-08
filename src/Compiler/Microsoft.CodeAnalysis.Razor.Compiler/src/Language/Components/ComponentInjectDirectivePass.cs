@@ -44,7 +44,12 @@ internal sealed class ComponentInjectDirectivePass : IntermediateNodePassBase, I
                 continue;
             }
 
-            classNode!.Children.Add(new ComponentInjectIntermediateNode(typeName, memberName, typeSpan, memberSpan, isMalformed));
+            var hasKeyName = tokens.Length > 2 && !string.IsNullOrWhiteSpace(tokens[2].Content);
+            // No assert as is optional
+            var keyName = hasKeyName ? tokens[2].Content : null;
+            var keySpan = hasKeyName ? tokens[2].Source : null;
+
+            classNode!.Children.Add(new ComponentInjectIntermediateNode(typeName, memberName, typeSpan, memberSpan, isMalformed, keyName, keySpan));
         }
     }
 

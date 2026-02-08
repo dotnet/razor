@@ -8,25 +8,29 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
 {
-    private static readonly ImmutableArray<string> s_injectedPropertyModifiers =
-    [
-        $"[global::{ComponentsApi.InjectAttribute.FullTypeName}]",
-        "private" // Encapsulation is the default
-    ];
+    private ImmutableArray<string> injectedPropertyModifiers() { 
+        return [
+            $"[global::{ComponentsApi.InjectAttribute.FullTypeName}{(!string.IsNullOrEmpty(KeyName) ? "" : $"(Key = {KeyName})")}]",
+            "private" // Encapsulation is the default
+        ];
+    }
 
-    public ComponentInjectIntermediateNode(string typeName, string memberName, SourceSpan? typeSpan, SourceSpan? memberSpan, bool isMalformed)
+    public ComponentInjectIntermediateNode(string typeName, string memberName, SourceSpan? typeSpan, SourceSpan? memberSpan, bool isMalformed, string keyName, SourceSpan? keySpan)
     {
         TypeName = typeName;
         MemberName = memberName;
         TypeSpan = typeSpan;
         MemberSpan = memberSpan;
         IsMalformed = isMalformed;
-     }
+        KeyName = keyName;
+        KeySource = keySpan;
+    }
 
     public string TypeName { get; }
 
@@ -35,6 +39,10 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
     public SourceSpan? TypeSpan { get; }
 
     public SourceSpan? MemberSpan { get; }
+
+    public string KeyName { get; set; }
+
+    public SourceSpan? KeySource { get; set; }
 
     public bool IsMalformed { get; }
 
@@ -76,7 +84,7 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
             if (!context.Options.DesignTime || !IsMalformed)
             {
                 context.CodeWriter.WriteAutoPropertyDeclaration(
-                    s_injectedPropertyModifiers,
+                    injectedPropertyModifiers(),
                     TypeName,
                     memberName,
                     TypeSpan,

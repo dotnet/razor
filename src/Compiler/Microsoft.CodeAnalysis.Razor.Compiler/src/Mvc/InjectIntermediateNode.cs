@@ -22,7 +22,7 @@ public class InjectIntermediateNode : ExtensionIntermediateNode
 
     public bool IsMalformed { get; set; }
 
-    public string? KeyName { get; set; }
+    public string KeyName { get; set; }
 
     public SourceSpan? KeySource { get; set; }
 
