@@ -24,7 +24,7 @@ public static class KeyedInjectDirective
                 .AddStringToken(RazorExtensionsResources.KeyedInjectDirective_KeyToken_Name, RazorExtensionsResources.KeyedInjectDirective_KeyToken_Description);
 
             builder.Usage = DirectiveUsage.FileScopedMultipleOccurring;
-            builder.Description = RazorExtensionsResources.InjectDirective_Description;
+            builder.Description = RazorExtensionsResources.KeyedInjectDirective_Description;
         });
 
     public static RazorProjectEngineBuilder Register(RazorProjectEngineBuilder builder, bool considerNullabilityEnforcement)
@@ -61,6 +61,20 @@ public static class KeyedInjectDirective
             visitor.Visit(documentNode);
             var modelType = ModelDirective.GetModelType(documentNode).Content;
 
+            // Stop collisions with existing inject directives
+            var existingMembers = new HashSet<string>(StringComparer.Ordinal);
+            if (visitor.Class != null)
+            {
+                foreach (var property in visitor.Class.Children
+                    .OfType<InjectIntermediateNode>())
+                {
+                    if (!string.IsNullOrEmpty(property.MemberName))
+                    {
+                        existingMembers.Add(property.MemberName);
+                    }
+                }
+            }
+
             var properties = new HashSet<string>(StringComparer.Ordinal);
 
             for (var i = visitor.Directives.Count - 1; i >= 0; i--)
@@ -78,14 +92,14 @@ public static class KeyedInjectDirective
                 Debug.Assert(hasMemberName || isMalformed);
                 var memberName = hasMemberName ? tokens[1].Content : null;
                 var memberSpan = hasMemberName ? tokens[1].Source : null;
-
-                if (hasMemberName && !properties.Add(memberName!))
+                // continue if the membername is in any existing inject statement or in a previous keyedinject statement
+                if (hasMemberName && (!properties.Add(memberName!) || existingMembers.Contains(memberName!)))
                 {
                     continue;
                 }
 
                 var hasKeyName = tokens.Length > 2 && !string.IsNullOrWhiteSpace(tokens[2].Content);
-                // No assert as is optional but assert make sure it is a valid string (not a semi-colon) if it does exist
+                Debug.Assert(hasKeyName || isMalformed);
                 var keyName = hasKeyName ? ValidateStringToken(tokens[2].Content) : null;
                 var keySpan = hasKeyName ? tokens[2].Source : null;
 
@@ -114,7 +128,7 @@ public static class KeyedInjectDirective
             }
         }
 
-        private string ValidateStringToken(string token)
+        private static string ValidateStringToken(string token)
         {
             // Tokens aren't captured if they're malformed. Therefore, this method will
             // always be called with a valid token content.

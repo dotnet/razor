@@ -49,7 +49,7 @@ internal sealed class ComponentKeyedInjectDirectivePass : IntermediateNodePassBa
             var keyName = hasKeyName ? tokens[2].Content : null;
             var keySpan = hasKeyName ? tokens[2].Source : null;
 
-            classNode!.Children.Add(new ComponentInjectIntermediateNode(typeName, memberName, typeSpan, memberSpan, isMalformed, keyName, keySpan));
+            classNode!.Children.Add(new ComponentKeyedInjectIntermediateNode(typeName, memberName, typeSpan, memberSpan, isMalformed, keyName, keySpan));
         }
     }
 
@@ -59,7 +59,7 @@ internal sealed class ComponentKeyedInjectDirectivePass : IntermediateNodePassBa
 
         public override void VisitDirective(DirectiveIntermediateNode node)
         {
-            if (node.Directive == ComponentInjectDirective.Directive)
+            if (node.Directive == ComponentKeyedInjectDirective.Directive)
             {
                 Directives.Add(node);
             }
@@ -67,7 +67,7 @@ internal sealed class ComponentKeyedInjectDirectivePass : IntermediateNodePassBa
 
         public override void VisitMalformedDirective(MalformedDirectiveIntermediateNode node)
         {
-            if (node.Directive == ComponentInjectDirective.Directive)
+            if (node.Directive == ComponentKeyedInjectDirective.Directive)
             {
                 Directives.Add(node);
             }

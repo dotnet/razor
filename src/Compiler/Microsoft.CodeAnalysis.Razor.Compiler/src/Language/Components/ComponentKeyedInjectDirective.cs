@@ -21,9 +21,9 @@ internal static class ComponentKeyedInjectDirective
         {
             builder.AddTypeToken("TypeName", "The type of the service to inject.");
             builder.AddMemberToken("PropertyName", "The name of the property.");
-            builder.AddOptionalStringToken("KeyName", "An optional key for when accessing keyed services.");
+            builder.AddStringToken("KeyName", "A key for when accessing keyed services.");
             builder.Usage = DirectiveUsage.FileScopedMultipleOccurring;
-            builder.Description = "Inject a service from the application's service container into a property.";
+            builder.Description = "Inject a keyed service from the application's service container into a property.";
         });
 
     public static void Register(RazorProjectEngineBuilder builder)
@@ -34,6 +34,6 @@ internal static class ComponentKeyedInjectDirective
         }
 
         builder.AddDirective(Directive, RazorFileKind.Component, RazorFileKind.ComponentImport);
-        builder.Features.Add(new ComponentInjectDirectivePass());
+        builder.Features.Add(new ComponentKeyedInjectDirectivePass());
     }
 }

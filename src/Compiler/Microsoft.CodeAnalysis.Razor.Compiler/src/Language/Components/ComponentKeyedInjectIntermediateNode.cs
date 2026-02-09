@@ -21,7 +21,7 @@ internal class ComponentKeyedInjectIntermediateNode : ExtensionIntermediateNode
         ];
     }
 
-    public ComponentInjectIntermediateNode(string typeName, string memberName, SourceSpan? typeSpan, SourceSpan? memberSpan, bool isMalformed, string keyName, SourceSpan? keySpan)
+    public ComponentKeyedInjectIntermediateNode(string typeName, string memberName, SourceSpan? typeSpan, SourceSpan? memberSpan, bool isMalformed, string keyName, SourceSpan? keySpan)
     {
         TypeName = typeName;
         MemberName = memberName;
