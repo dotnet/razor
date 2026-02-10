@@ -544,10 +544,9 @@ internal static class Extensions
 
     public static void VerifyIncrementalSteps(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
     {
-        var trackedSteps = result.TrackedSteps;
-        Assert.True(trackedSteps.ContainsKey(stepName), $"Expected step '{stepName}' not found. Available steps: {string.Join(", ", trackedSteps.Keys)}");
+        VerifyStepExists(result, stepName);
         
-        var steps = trackedSteps[stepName];
+        var steps = result.TrackedSteps[stepName];
         Assert.Equal(expectedReasons.Length, steps.Length);
         
         for (int i = 0; i < expectedReasons.Length; i++)
@@ -560,10 +559,9 @@ internal static class Extensions
 
     public static void VerifyIncrementalStepsMultiple(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
     {
-        var trackedSteps = result.TrackedSteps;
-        Assert.True(trackedSteps.ContainsKey(stepName), $"Expected step '{stepName}' not found. Available steps: {string.Join(", ", trackedSteps.Keys)}");
+        VerifyStepExists(result, stepName);
         
-        var steps = trackedSteps[stepName];
+        var steps = result.TrackedSteps[stepName];
         
         var actualReasons = steps.SelectMany(step => step.Outputs.Select(output => output.Reason)).ToArray();
         Assert.Equal(expectedReasons.Length, actualReasons.Length);
@@ -571,6 +569,20 @@ internal static class Extensions
         for (int i = 0; i < expectedReasons.Length; i++)
         {
             Assert.Equal(expectedReasons[i], actualReasons[i]);
+        }
+    }
+
+    private static void VerifyStepExists(GeneratorRunResult result, string stepName)
+    {
+        var trackedSteps = result.TrackedSteps;
+        if (!trackedSteps.ContainsKey(stepName))
+        {
+            var availableSteps = string.Join(", ", trackedSteps.Keys.OrderBy(k => k).Take(10));
+            if (trackedSteps.Count > 10)
+            {
+                availableSteps += $", ... ({trackedSteps.Count - 10} more)";
+            }
+            Assert.Fail($"Expected step '{stepName}' not found. Available steps: {availableSteps}");
         }
     }
 }
