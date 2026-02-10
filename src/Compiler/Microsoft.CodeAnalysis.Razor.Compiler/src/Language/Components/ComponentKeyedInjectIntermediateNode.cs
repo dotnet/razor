@@ -16,7 +16,7 @@ internal class ComponentKeyedInjectIntermediateNode : ExtensionIntermediateNode
 {
     private ImmutableArray<string> injectedPropertyModifiers() { 
         return [
-            $"[global::{ComponentsApi.InjectAttribute.FullTypeName}{(!string.IsNullOrEmpty(KeyName) ? "" : $"(Key = {KeyName})")}]",
+            $"[global::{ComponentsApi.InjectAttribute.FullTypeName}(Key = {KeyName})]",
             "private" // Encapsulation is the default
         ];
     }
@@ -79,18 +79,63 @@ internal class ComponentKeyedInjectIntermediateNode : ExtensionIntermediateNode
         }
         else
         {
+            
             var memberName = MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
 
             if (!context.Options.DesignTime || !IsMalformed)
             {
-                context.CodeWriter.WriteAutoPropertyDeclaration(
-                    injectedPropertyModifiers(),
-                    TypeName,
-                    memberName,
-                    TypeSpan,
-                    MemberSpan,
-                    context,
-                    defaultValue: true);
+                // I was just writing out string interpolation here with no source mappings but that was messing with the
+                // integration tests. Not sure what is preferred.
+                context.CodeWriter.Write($"[global::{ComponentsApi.InjectAttribute.FullTypeName}(");
+
+                context.CodeWriter.Write("Key = ");
+
+                using (context.BuildEnhancedLinePragma(KeySource))
+                {
+                    context.CodeWriter.Write(KeyName);
+                }
+
+                context.CodeWriter.Write(")]");
+
+                // 
+                WriteToken(context.CodeWriter, TypeName, TypeSpan, context);
+                context.CodeWriter.Write(" ");
+                WriteToken(context.CodeWriter, memberName, MemberSpan, context);
+
+                static void WriteToken(CodeWriter writer, string content, SourceSpan? span, CodeRenderingContext context)
+                {
+                    if (span is not null && context?.Options.DesignTime == false)
+                    {
+                        using (context.BuildEnhancedLinePragma(span))
+                        {
+                            writer.Write(content);
+                        }
+                    }
+                    else
+                    {
+                        writer.Write(content);
+                    }
+                }
+
+                context.CodeWriter.Write(" { get;");
+
+                context.CodeWriter.WriteLine(" set; }");
+
+                if (context?.Options is { SuppressNullabilityEnforcement: false, DesignTime: false })
+                {
+                    context.CodeWriter.WriteLine(" = default!;");
+                }
+
+
+
+                //context.CodeWriter.WriteAutoPropertyDeclaration(
+                //    injectedPropertyModifiers(),
+                //    TypeName,
+                //    memberName,
+                //    TypeSpan,
+                //    MemberSpan,
+                //    context,
+                //    defaultValue: true);
             }
         }
     }
