@@ -559,4 +559,36 @@ internal static class Extensions
         Assert.Equal(payload1, e.Payload[0]);
         Assert.Equal(payload2, e.Payload[1]);
     }
+
+    public static void VerifyIncrementalSteps(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
+    {
+        var trackedSteps = result.TrackedSteps;
+        Assert.True(trackedSteps.ContainsKey(stepName), $"Expected step '{stepName}' not found. Available steps: {string.Join(", ", trackedSteps.Keys)}");
+        
+        var steps = trackedSteps[stepName];
+        Assert.Equal(expectedReasons.Length, steps.Length);
+        
+        for (int i = 0; i < expectedReasons.Length; i++)
+        {
+            var step = steps[i];
+            Assert.Collection(step.Outputs,
+                output => Assert.Equal(expectedReasons[i], output.Reason));
+        }
+    }
+
+    public static void VerifyIncrementalStepsMultiple(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
+    {
+        var trackedSteps = result.TrackedSteps;
+        Assert.True(trackedSteps.ContainsKey(stepName), $"Expected step '{stepName}' not found. Available steps: {string.Join(", ", trackedSteps.Keys)}");
+        
+        var steps = trackedSteps[stepName];
+        
+        var actualReasons = steps.SelectMany(step => step.Outputs.Select(output => output.Reason)).ToArray();
+        Assert.Equal(expectedReasons.Length, actualReasons.Length);
+        
+        for (int i = 0; i < expectedReasons.Length; i++)
+        {
+            Assert.Equal(expectedReasons[i], actualReasons[i]);
+        }
+    }
 }
