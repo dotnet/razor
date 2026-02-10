@@ -40,9 +40,6 @@ using Xunit;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
-// RazorSourceGenerator tests cannot run in parallel if they use RazorEventListener
-// because that listens to events across all source generator instances.
-[Collection(nameof(RazorSourceGenerator))]
 public abstract class RazorSourceGeneratorTestsBase
 {
     protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
@@ -543,21 +540,6 @@ internal static class Extensions
             .Replace("\\r\\n", "\\n");                                     // embedded new-lines
         Assert.StartsWith("#pragma", trimmed);
         return trimmed.Substring(trimmed.IndexOf('\n') + 1);
-    }
-
-    public static void AssertSingleItem(this RazorEventListener.RazorEvent e, string expectedEventName, string expectedFileName)
-    {
-        Assert.Equal(expectedEventName, e.EventName);
-        var file = Assert.Single(e.Payload);
-        Assert.Equal(expectedFileName, file);
-    }
-
-    public static void AssertPair(this RazorEventListener.RazorEvent e, string expectedEventName, string payload1, string payload2)
-    {
-        Assert.Equal(expectedEventName, e.EventName);
-        Assert.Equal(2, e.Payload.Length);
-        Assert.Equal(payload1, e.Payload[0]);
-        Assert.Equal(payload2, e.Payload[1]);
     }
 
     public static void VerifyIncrementalSteps(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
