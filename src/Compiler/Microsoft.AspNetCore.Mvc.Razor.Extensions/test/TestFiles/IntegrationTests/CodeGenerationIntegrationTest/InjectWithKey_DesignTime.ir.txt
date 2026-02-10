@@ -26,14 +26,18 @@ Document -
                 DirectiveToken - (793:13,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
                 DirectiveToken - (904:14,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
                 DirectiveToken - (7:0,7 [7] InjectWithKey.cshtml) - MyModel
-                DirectiveToken - (24:1,8 [5] InjectWithKey.cshtml) - MyApp
-                DirectiveToken - (30:1,14 [14] InjectWithKey.cshtml) - MyPropertyName
-                DirectiveToken - (58:2,8 [17] InjectWithKey.cshtml) - MyService<TModel>
-                DirectiveToken - (76:2,26 [4] InjectWithKey.cshtml) - Html
-                DirectiveToken - (93:3,8 [5] InjectWithKey.cshtml) - MyApp
-                DirectiveToken - (99:3,14 [15] InjectWithKey.cshtml) - MyPropertyName2
-                DirectiveToken - (129:4,8 [17] InjectWithKey.cshtml) - MyService<TModel>
-                DirectiveToken - (147:4,26 [5] InjectWithKey.cshtml) - Html2
+                DirectiveToken - (29:1,13 [5] InjectWithKey.cshtml) - MyApp
+                DirectiveToken - (35:1,19 [14] InjectWithKey.cshtml) - MyPropertyName
+                DirectiveToken - (51:1,35 [8] InjectWithKey.cshtml) - "KeyOne"
+                DirectiveToken - (74:2,13 [17] InjectWithKey.cshtml) - MyService<TModel>
+                DirectiveToken - (92:2,31 [4] InjectWithKey.cshtml) - Html
+                DirectiveToken - (97:2,36 [8] InjectWithKey.cshtml) - "KeyOne"
+                DirectiveToken - (120:3,13 [5] InjectWithKey.cshtml) - MyApp
+                DirectiveToken - (126:3,19 [15] InjectWithKey.cshtml) - MyPropertyName2
+                DirectiveToken - (142:3,35 [9] InjectWithKey.cshtml) - "SomeKey"
+                DirectiveToken - (168:4,13 [17] InjectWithKey.cshtml) - MyService<TModel>
+                DirectiveToken - (186:4,31 [5] InjectWithKey.cshtml) - Html2
+                DirectiveToken - (192:4,37 [9] InjectWithKey.cshtml) - "SomeKey"
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning disable 0414
             CSharpCode - 
@@ -46,6 +50,6 @@ Document -
             Inject - 
             Inject - 
             Inject - 
-            Inject - 
-            Inject - 
-            Inject - 
+            KeyedInject - 
+            KeyedInject - 
+            KeyedInject - 

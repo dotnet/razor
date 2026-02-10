@@ -1327,6 +1327,40 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
+    public void InjectWithKeyAfter_DesignTime()
+    {
+        // Arrange
+        AddCSharpSyntaxTree("""
+
+            public class MyModel
+            {
+
+            }
+
+            public class MyService<TModel>
+            {
+                public string Html { get; set; }
+            }
+
+            public class MyApp
+            {
+                public string MyProperty { get; set; }
+            }
+            """);
+
+        var projectItem = CreateProjectItemFromFile();
+
+        // Act
+        var compiled = CompileToAssembly(projectItem, designTime: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
+        AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(compiled.CodeDocument));
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertLinePragmas(compiled.CodeDocument);
+        AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
+    }
+    [Fact]
     public void InjectWithSemicolon_DesignTime()
     {
         // Arrange
