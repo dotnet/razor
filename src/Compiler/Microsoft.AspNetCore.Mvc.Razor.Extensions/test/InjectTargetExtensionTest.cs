@@ -40,34 +40,6 @@ public class InjectTargetExtensionTest
             context.CodeWriter.GetText().ToString());
     }
 
-
-    [Fact]
-    public void KeyedInjectDirectiveTargetExtension_WritesProperty()
-    {
-        // Arrange
-        using var context = TestCodeRenderingContext.CreateRuntime();
-        var target = new KeyedInjectTargetExtension(considerNullabilityEnforcement: true);
-        var node = new KeyedInjectIntermediateNode()
-        {
-            TypeName = "PropertyType",
-            MemberName = "PropertyName",
-            KeyName = "\"PropertyKey\"",
-        };
-
-        // Act
-        target.WriteKeyedInjectProperty(context, node);
-
-        // Assert
-        Assert.Equal("""
-            #nullable restore
-            [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute(Key = "PropertyKey")]
-            public PropertyType PropertyName { get; private set; } = default!;
-            #nullable disable
-
-            """,
-            context.CodeWriter.GetText().ToString());
-    }
-
     [Fact]
     public void InjectDirectiveTargetExtension_WritesPropertyWithLinePragma_WhenSourceIsSet()
     {

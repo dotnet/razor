@@ -60,6 +60,7 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<ComponentFormNameLoweringPass>(feature),
             feature => Assert.IsType<ComponentGenericTypePass>(feature),
             feature => Assert.IsType<ComponentInjectDirectivePass>(feature),
+            feature => Assert.IsType<ComponentKeyedInjectDirectivePass>(feature),
             feature => Assert.IsType<ComponentKeyLoweringPass>(feature),
             feature => Assert.IsType<ComponentLayoutDirectivePass>(feature),
             feature => Assert.IsType<ComponentLoweringPass>(feature),

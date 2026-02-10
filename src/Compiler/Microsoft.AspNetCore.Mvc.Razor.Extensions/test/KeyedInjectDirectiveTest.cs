@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
-public class InjectDirectiveTest : RazorProjectEngineTestBase
+public class KeyedInjectDirectiveTest : RazorProjectEngineTestBase
 {
     protected override RazorLanguageVersion Version => RazorLanguageVersion.Version_3_0;
 
@@ -15,6 +15,7 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     {
         // Notice we're not registering the InjectDirective.Pass here so we can run it on demand.
         builder.AddDirective(InjectDirective.Directive);
+        builder.AddDirective(KeyedInjectDirective.Directive);
         builder.AddDirective(ModelDirective.Directive);
 
         builder.Features.Add(new RazorPageDocumentClassifierPass());
@@ -27,16 +28,16 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
     }
 
     [Fact]
-    public void InjectDirectivePass_Execute_DefinesProperty()
+    public void KeyedInjectDirectivePass_Execute_DefinesProperty()
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateCodeDocument(@"
-@inject PropertyType PropertyName
+@keyedinject PropertyType PropertyName ""PropertyKey""
 ");
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<KeyedInjectDirective.Pass>();
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -44,23 +45,24 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
 
         Assert.Equal(2, classNode.Children.Count);
 
-        var node = Assert.IsType<InjectIntermediateNode>(classNode.Children[1]);
+        var node = Assert.IsType<KeyedInjectIntermediateNode>(classNode.Children[1]);
         Assert.Equal("PropertyType", node.TypeName);
         Assert.Equal("PropertyName", node.MemberName);
+        Assert.Equal("\"PropertyKey\"", node.KeyName);
     }
     
     [Fact]
-    public void InjectDirectivePass_Execute_DedupesPropertiesByName()
+    public void KeyedInjectDirectivePass_Execute_DedupesPropertiesByName()
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateCodeDocument(@"
-@inject PropertyType PropertyName
-@inject PropertyType2 PropertyName
+@keyedinject PropertyType PropertyName ""SomeKey""
+@keyedinject PropertyType2 PropertyName ""SomeKey2""
 ");
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<KeyedInjectDirective.Pass>();
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -68,22 +70,23 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
 
         Assert.Equal(2, classNode.Children.Count);
 
-        var node = Assert.IsType<InjectIntermediateNode>(classNode.Children[1]);
+        var node = Assert.IsType<KeyedInjectIntermediateNode>(classNode.Children[1]);
         Assert.Equal("PropertyType2", node.TypeName);
         Assert.Equal("PropertyName", node.MemberName);
+        Assert.Equal("\"SomeKey2\"", node.KeyName);
     }
 
     [Fact]
-    public void InjectDirectivePass_Execute_ExpandsTModel_WithDynamic()
+    public void KeyedInjectDirectivePass_Execute_ExpandsTModel_WithDynamic()
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateCodeDocument(@"
-@inject PropertyType<TModel> PropertyName
+@keyedinject PropertyType<TModel> PropertyName ""SomeKey""
 ");
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<KeyedInjectDirective.Pass>();
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -91,23 +94,24 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
 
         Assert.Equal(2, classNode.Children.Count);
 
-        var node = Assert.IsType<InjectIntermediateNode>(classNode.Children[1]);
+        var node = Assert.IsType<KeyedInjectIntermediateNode>(classNode.Children[1]);
         Assert.Equal("PropertyType<dynamic>", node.TypeName);
         Assert.Equal("PropertyName", node.MemberName);
+        Assert.Equal("\"SomeKey\"", node.KeyName);
     }
 
     [Fact]
-    public void InjectDirectivePass_Execute_ExpandsTModel_WithModelTypeFirst()
+    public void KeyedInjectDirectivePass_Execute_ExpandsTModel_WithModelTypeFirst()
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateCodeDocument(@"
 @model ModelType
-@inject PropertyType<TModel> PropertyName
+@keyedinject PropertyType<TModel> PropertyName ""SomeKey""
 ");
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<KeyedInjectDirective.Pass>();
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -115,23 +119,24 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
 
         Assert.Equal(2, classNode.Children.Count);
 
-        var node = Assert.IsType<InjectIntermediateNode>(classNode.Children[1]);
+        var node = Assert.IsType<KeyedInjectIntermediateNode>(classNode.Children[1]);
         Assert.Equal("PropertyType<ModelType>", node.TypeName);
         Assert.Equal("PropertyName", node.MemberName);
+        Assert.Equal("\"SomeKey\"", node.KeyName);
     }
 
     [Fact]
-    public void InjectDirectivePass_Execute_ExpandsTModel_WithModelType()
+    public void KeyedInjectDirectivePass_Execute_ExpandsTModel_WithModelType()
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateCodeDocument(@"
-@inject PropertyType<TModel> PropertyName
+@keyedinject PropertyType<TModel> PropertyName ""SomeKey""
 @model ModelType
 ");
         var processor = CreateCodeDocumentProcessor(codeDocument);
 
         // Act
-        processor.ExecutePass<InjectDirective.Pass>();
+        processor.ExecutePass<KeyedInjectDirective.Pass>();
 
         // Assert
         var documentNode = processor.GetDocumentNode();
@@ -139,8 +144,9 @@ public class InjectDirectiveTest : RazorProjectEngineTestBase
 
         Assert.Equal(2, classNode.Children.Count);
 
-        var node = Assert.IsType<InjectIntermediateNode>(classNode.Children[1]);
+        var node = Assert.IsType<KeyedInjectIntermediateNode>(classNode.Children[1]);
         Assert.Equal("PropertyType<ModelType>", node.TypeName);
         Assert.Equal("PropertyName", node.MemberName);
+        Assert.Equal("\"SomeKey\"", node.KeyName);
     }
 }
