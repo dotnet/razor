@@ -632,8 +632,9 @@ public class Person
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            // When a C# type changes, only TagHelpersFromCompilation should re-run
-            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified);
+            // When a C# type changes, TagHelpersFromCompilation re-runs but the output is unchanged
+            // because Person is not a component and doesn't affect tag helpers
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged);
         }
 
         [Fact]
@@ -3334,7 +3335,7 @@ namespace MyApp
             mainProject = mainProject.AddMetadataReference(rclReference);
 
             var mainCompilation = await mainProject.GetCompilationAsync();
-            var (mainDriver, mainAdditionalTexts) = await GetDriverWithAdditionalTextAsync(mainProject);
+            var (mainDriver, mainAdditionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(mainProject, trackSteps: true);
             var mainRun = RunGenerator(mainCompilation!, ref mainDriver);
             Assert.Empty(mainRun.Diagnostics);
             Assert.Single(mainRun.GeneratedSources);
@@ -3374,19 +3375,15 @@ namespace MyApp
             Assert.Empty(mainRun.Diagnostics);
             Assert.Single(mainRun.GeneratedSources);
 
-            // Update the compilation, which will cause us to re-run with tracking enabled
-            var (mainDriverWithTracking, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(mainProject, trackSteps: true);
-            mainDriverWithTracking = mainDriverWithTracking.ReplaceAdditionalText(
-                mainAdditionalTexts.First(t => t.Path.EndsWith("Index.razor", StringComparison.OrdinalIgnoreCase)),
-                updatedIndex);
-
+            // Update the compilation, which will cause us to re-run
             mainCompilation = mainCompilation!.WithOptions(mainCompilation.Options.WithModuleName("newMain"));
-            mainRun = RunGenerator(mainCompilation!, ref mainDriverWithTracking);
+            mainRun = RunGenerator(mainCompilation!, ref mainDriver);
             Assert.Empty(mainRun.Diagnostics);
             Assert.Single(mainRun.GeneratedSources);
 
             // Confirm that the tag helpers from metadata refs _didn't_ re-run
-            mainRun.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified);
+            // TagHelpersFromCompilation re-runs when compilation changes but output is unchanged
+            mainRun.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged);
         }
     }
 }
