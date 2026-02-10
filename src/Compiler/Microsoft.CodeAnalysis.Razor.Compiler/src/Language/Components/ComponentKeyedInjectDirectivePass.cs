@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
@@ -19,6 +20,20 @@ internal sealed class ComponentKeyedInjectDirectivePass : IntermediateNodePassBa
     {
         var visitor = new Visitor();
         visitor.Visit(documentNode);
+
+        // Stop collisions with existing inject directives
+        var existingMembers = new HashSet<string>(StringComparer.Ordinal);
+        if (documentNode != null)
+        {
+            foreach (var property in documentNode.Children
+                .OfType<InjectIntermediateNode>())
+            {
+                if (!string.IsNullOrEmpty(property.MemberName))
+                {
+                    existingMembers.Add(property.MemberName);
+                }
+            }
+        }
 
         var properties = new HashSet<string>(StringComparer.Ordinal);
         var classNode = documentNode.FindPrimaryClass();
@@ -39,13 +54,13 @@ internal sealed class ComponentKeyedInjectDirectivePass : IntermediateNodePassBa
             var memberName = hasMemberName ? tokens[1].Content : null;
             var memberSpan = hasMemberName ? tokens[1].Source : null;
 
-            if (hasMemberName && !properties.Add(memberName!))
+            // continue if the membername is in any existing inject statement or in a previous keyedinject statement
+            if (hasMemberName && (!properties.Add(memberName!) || existingMembers.Contains(memberName!)))
             {
                 continue;
             }
-
             var hasKeyName = tokens.Length > 2 && !string.IsNullOrWhiteSpace(tokens[2].Content);
-            // No assert as is optional
+            Debug.Assert(hasKeyName || isMalformed);
             var keyName = hasKeyName ? tokens[2].Content : null;
             var keySpan = hasKeyName ? tokens[2].Source : null;
 
