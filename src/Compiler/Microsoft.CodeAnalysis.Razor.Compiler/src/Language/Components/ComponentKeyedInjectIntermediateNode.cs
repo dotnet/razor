@@ -84,8 +84,8 @@ internal class ComponentKeyedInjectIntermediateNode : ExtensionIntermediateNode
 
             if (!context.Options.DesignTime || !IsMalformed)
             {
-                // I was just writing out string interpolation here with no source mappings but that was messing with the
-                // integration tests. Not sure what is preferred.
+                // I was just writing out the key with string interpolation here with no source mappings but that was messing with the
+                // integration tests. Leaving it like this but not sure what is preferred.
                 context.CodeWriter.Write($"[global::{ComponentsApi.InjectAttribute.FullTypeName}(");
 
                 context.CodeWriter.Write("Key = ");
