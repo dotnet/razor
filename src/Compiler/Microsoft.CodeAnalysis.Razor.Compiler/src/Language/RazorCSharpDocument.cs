@@ -38,7 +38,7 @@ public sealed class RazorCSharpDocument
         {
             if (SourceMappingsSortedByGenerated[i].GeneratedSpan.CompareByStartThenLength(SourceMappingsSortedByGenerated[i + 1].GeneratedSpan) > 0)
             {
-                Debug.Assert(false, "input not sorted");
+                Debug.Fail("input not sorted");
 
                 SourceMappingsSortedByGenerated = SourceMappingsSortedByGenerated.Sort(static (m1, m2) => m1.GeneratedSpan.CompareByStartThenLength(m2.GeneratedSpan));
                 break;
