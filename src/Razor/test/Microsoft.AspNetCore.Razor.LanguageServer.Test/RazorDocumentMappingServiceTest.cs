@@ -765,8 +765,9 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
     }
 
     [Fact]
-    public void RazorCSharpDocument_Constructor_ThrowsIfMappingsNotOrderedByGeneratedSpans()
+    public void RazorCSharpDocument_Constructor_WhenMappingsNotOrderedByGeneratedSpans()
     {
+        // Arrange
         var razorSource = "Line 1\nLine 2 @{ var abc;\nvar def; }";
         var projectedCSharpSource = "\n// Prefix\n var abc;\nvar def; \n// Suffix";
         var sourceDocument = TestRazorSourceDocument.Create(razorSource);
@@ -785,6 +786,8 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
             new SourceMapping(new SourceSpan(19, 10), new SourceSpan(5, 10))
         ];
 
+        // Act/Assert
+#if DEBUG
         Assert.Throws<InvalidOperationException>(() =>
         {
             _ = TestRazorCSharpDocument.Create(
@@ -792,6 +795,14 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
                 projectedCSharpSource,
                 sourceMappings);
         });
+#else
+        var doc = TestRazorCSharpDocument.Create(
+                codeDocument,
+                projectedCSharpSource,
+                sourceMappings);
+
+        Assert.NotEqual(doc.SourceMappingsSortedByOriginal, sourceMappings);
+#endif
     }
 
     private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, ImmutableArray<SourceMapping> sourceMappings)
