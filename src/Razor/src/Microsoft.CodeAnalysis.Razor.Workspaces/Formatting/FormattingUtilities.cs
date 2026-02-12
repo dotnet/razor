@@ -468,6 +468,29 @@ internal static class FormattingUtilities
                             }
                         }
                     }
+
+                    // The above "CheckForNewLines" means new lines inserted in the middle of a line of the original text, but
+                    // the formatter may have inserted a blank line after the current line too. In that case we need to make sure
+                    // we advance the formatted line pointer past it, but also include it. This only applies if the line after the
+                    // blank line matches the next original line and the next original line isn't blank (ie, an actual insertion)
+                    if (iFormatted + 1 < formattedText.Lines.Count &&
+                        formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
+                        iOriginal + 1 < originalText.Lines.Count &&
+                        originalText.Lines[iOriginal + 1] is { } nextOriginalLine &&
+                        nextOriginalLine.Span.Length != 0)
+                    {
+                        // Next line is blank, and next original line isn't. Now we check the line after next
+                        if (iFormatted + 2 < formattedText.Lines.Count)
+                        {
+                            var lineAfterNext = formattedText.Lines[iFormatted + 2];
+                            if (originalText.NonWhitespaceContentEquals(formattedText, nextOriginalLine.Start, nextOriginalLine.End, lineAfterNext.Start, lineAfterNext.End))
+                            {
+                                // Next line is blank, and line after next matches the next original line, so we skip the blank line
+                                iFormatted++;
+                                formattingChanges.Add(new TextChange(TextSpan.FromBounds(originalLine.End, originalLine.End), context.NewLineString));
+                            }
+                        }
+                    }
                 }
             }
 

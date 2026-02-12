@@ -19,6 +19,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public async Task NewBlankLines()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <html>
+                <head>
+                <title>Goo</title>
+                </head>
+                <body>
+                <div>
+                </div>
+                </body>
+                </html>
+                """,
+            htmlFormatted: """
+                <html>
+
+                <head>
+                    <title>Goo</title>
+                </head>
+
+                <body>
+                    <div>
+                    </div>
+                </body>
+
+                </html>
+                """,
+            expected: """
+                <html>
+            
+                <head>
+                    <title>Goo</title>
+                </head>
+            
+                <body>
+                    <div>
+                    </div>
+                </body>
+            
+                </html>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     public async Task EmptyDocument()
     {
         await RunFormattingTestAsync(
