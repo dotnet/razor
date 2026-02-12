@@ -20,6 +20,88 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 {
     [Fact]
     [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public async Task DifferentAttributeWrappingPoint1()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                             aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            htmlFormatted: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            expected: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public async Task DifferentAttributeWrappingPoint2()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                             data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            htmlFormatted: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            expected: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public async Task DifferentAttributeWrappingPoint3()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                 <div>
+                     <button class="navbar-toggler"
+                             type="button" data-bs-toggle="collapse"
+                             data-bs-target=".navbar-collapse"
+                             aria-controls="navbarSupportedContent"
+                             aria-expanded="false"
+                             aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            htmlFormatted: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            expected: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
     public async Task NewBlankLines()
     {
         await RunFormattingTestAsync(

@@ -414,20 +414,26 @@ internal static class FormattingUtilities
                         Debug.Assert(lineInfo.FormattedLength == 0, "Can't have a FormattedLength if we're looking for new lines. The logic is incompatible.");
                         Debug.Assert(lineInfo.FormattedOffsetFromEndOfLine == 0, "Can't have a FormattedOffsetFromEndOfLine if we're looking for new lines. The logic is incompatible.");
 
-                        // We assume Roslyn won't change anything but whitespace, so we can just apply the changes directly, but
-                        // it could very well be adding whitespace in the form of newlines, for example taking "if (true) {" and
-                        // making it run over two lines, or even "string Prop { get" and making it span three lines.
-                        // Since we assume Roslyn won't change anything non-whitespace, we just keep inserting the formatted lines
-                        // of C# until we match the original line contents.
-                        // Of course, Roslyn could just as easily remove whitespace, eg making a "class Goo {" into "class Goo\n{",
-                        // so whilst the same theory applies, instead of inserting formatted lines, we eat the original lines.
+                        // We assume the external formatter won't change anything but whitespace, so we can just apply the
+                        // changes directly, but it could very well be adding whitespace in the form of newlines, for example
+                        // taking "if (true) {" and making it run over two lines, or even "string Prop { get" and making it
+                        // span three lines. Since we assume it won't change anything non-whitespace, we just keep inserting
+                        // the formatted lines of C# until we match the original line contents.
+                        // Of course, the formatter could just as easily remove whitespace, eg making a "class Goo\n{" into
+                        // "class Goo {", so whilst the same theory applies, instead of inserting formatted lines, we eat
+                        // the original lines.
 
                         // Before we start skipping formatted lines, we need the info to work out where exactly the newline is being added
                         var originalPosition = originalStart + (formattedLine.End - formattedStart);
-                        while (!originalText.NonWhitespaceContentEquals(formattedText, originalStart, originalLine.End, formattedStart, formattedLine.End))
+                        var originalNonWhitespace = CountNonWhitespaceChars(originalText, originalStart, originalLine.End);
+                        var formattedNonWhitespace = CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End);
+
+                        // If there are more non-whitespace chars in the original line, then its something like "if (true) {" to "if (true)\n{",
+                        // so the formatter has inserted newlines. Keep consuming formatted lines until content is equal.
+                        if (originalNonWhitespace > formattedNonWhitespace)
                         {
-                            // If there are more non-whitespace chars in the original line, then its something like "if (true) {" to "if (true)", so keep inserting formatted lines until we're past the brace.
-                            if (CountNonWhitespaceChars(originalText, originalStart, originalLine.End) >= CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End))
+                            var consumedOriginalLines = false;
+                            while (!originalText.NonWhitespaceContentEquals(formattedText, originalStart, originalLine.End, formattedStart, formattedLine.End))
                             {
                                 iFormatted++;
                                 if (iFormatted >= formattedText.Lines.Count)
@@ -439,22 +445,55 @@ internal static class FormattingUtilities
 
                                 formattedLine = formattedText.Lines[iFormatted];
 
-                                // The current line has been split into multiple lines, but its up to whoever called us to decide if we're keeping that.
-                                if (shouldKeepInsertedNewlineAtPosition?.Invoke(originalPosition) ?? true)
+                                // After consuming a formatted line, the formatted range may now contain more content than the
+                                // original line (e.g., the formatter wrapped at a different point). In that case, we also need
+                                // to consume original lines to keep the content aligned.
+                                while (CountNonWhitespaceChars(originalText, originalStart, originalLine.End) < CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End))
                                 {
-                                    // If we're keeping it, we insert this newline after the original line, with the correct indentation.
-                                    formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), fixedIndentString + formattedText.ToString(formattedLine.SpanIncludingLineBreak)));
+                                    iOriginal++;
+                                    if (iOriginal >= originalText.Lines.Count)
+                                    {
+                                        context.Logger?.LogMessage($"Ran out of original lines. iFormatted={iFormatted}, formattedLineCount={formattedText.Lines.Count}, iOriginal={iOriginal}, originalLineCount={originalText.Lines.Count}");
+                                        logger.LogError("Ran out of lines while trying to process formatted changes. Abandoning further formatting to not corrupt the source file, please report this issue.");
+                                        break;
+                                    }
+
+                                    originalLine = originalText.Lines[iOriginal];
+                                    consumedOriginalLines = true;
                                 }
-                                else
+
+                                if (!consumedOriginalLines)
                                 {
-                                    // If we're not keeping the newline, we need to restore this line back to the original line it came from
-                                    formattingChanges.Add(new TextChange(new(originalLine.End, 0), formattedText.ToString(formattedLine.Span)));
+                                    // The current line has been split into multiple lines, but its up to whoever called us to decide if we're keeping that.
+                                    if (shouldKeepInsertedNewlineAtPosition?.Invoke(originalPosition) ?? true)
+                                    {
+                                        // If we're keeping it, we insert this newline after the original line, with the correct indentation.
+                                        formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), fixedIndentString + formattedText.ToString(formattedLine.SpanIncludingLineBreak)));
+                                    }
+                                    else
+                                    {
+                                        // If we're not keeping the newline, we need to restore this line back to the original line it came from
+                                        formattingChanges.Add(new TextChange(new(originalLine.End, 0), formattedText.ToString(formattedLine.Span)));
+                                    }
                                 }
                             }
-                            else
+
+                            if (consumedOriginalLines)
                             {
-                                // Otherwise, there are more whitespace chars in the formatted line, so "if (true)" to "if (true) {", so we need to remove the original lines until we're past the brace.
-                                var oldEnd = originalLine.End;
+                                // The formatter re-wrapped content at a different point, consuming lines from both sides.
+                                // Update the formatting change to cover the full range of consumed original and formatted lines.
+                                formattingChanges[formattingChanges.Count - 1] = new TextChange(
+                                    TextSpan.FromBounds(originalStart, originalLine.End),
+                                    formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End)));
+                            }
+                        }
+                        // Otherwise, there are more non-whitespace chars in the formatted line, so "if (true)\n{" to "if (true) {",
+                        // meaning the formatter has removed newlines. Keep consuming original lines until content is equal.
+                        else if (originalNonWhitespace < formattedNonWhitespace)
+                        {
+                            var consumedFormattedLines = false;
+                            while (!originalText.NonWhitespaceContentEquals(formattedText, originalStart, originalLine.End, formattedStart, formattedLine.End))
+                            {
                                 iOriginal++;
                                 if (iOriginal >= originalText.Lines.Count)
                                 {
@@ -464,7 +503,38 @@ internal static class FormattingUtilities
                                 }
 
                                 originalLine = originalText.Lines[iOriginal];
-                                formattingChanges.Add(new TextChange(TextSpan.FromBounds(oldEnd, originalLine.End), ""));
+
+                                // After consuming an original line, the original range may now contain more content than the
+                                // formatted line (e.g., the formatter wrapped at a different point). In that case, we also need
+                                // to consume formatted lines to keep the content aligned.
+                                while (CountNonWhitespaceChars(originalText, originalStart, originalLine.End) > CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End))
+                                {
+                                    iFormatted++;
+                                    if (iFormatted >= formattedText.Lines.Count)
+                                    {
+                                        context.Logger?.LogMessage($"Ran out of formatted lines. iFormatted={iFormatted}, formattedLineCount={formattedText.Lines.Count}, iOriginal={iOriginal}, originalLineCount={originalText.Lines.Count}");
+                                        logger.LogError($"Ran out of formatted lines while trying to process formatted changes after {iOriginal} lines. Abandoning further formatting to not corrupt the source file, please report this issue.");
+                                        break;
+                                    }
+
+                                    formattedLine = formattedText.Lines[iFormatted];
+                                    consumedFormattedLines = true;
+                                }
+
+                                if (!consumedFormattedLines)
+                                {
+                                    // The formatter has removed newlines, so we need to remove the original lines.
+                                    formattingChanges.Add(new TextChange(TextSpan.FromBounds(originalText.Lines[iOriginal - 1].End, originalLine.End), ""));
+                                }
+                            }
+
+                            if (consumedFormattedLines)
+                            {
+                                // The formatter re-wrapped content at a different point, consuming lines from both sides.
+                                // Update the formatting change to cover the full range of consumed original and formatted lines.
+                                formattingChanges[formattingChanges.Count - 1] = new TextChange(
+                                    TextSpan.FromBounds(originalStart, originalLine.End),
+                                    formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End)));
                             }
                         }
                     }
