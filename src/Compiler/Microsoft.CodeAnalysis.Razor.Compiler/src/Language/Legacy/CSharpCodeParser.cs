@@ -2614,8 +2614,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 hasExplicitSemicolon = TryAccept(SyntaxKind.Semicolon);
             }
 
-            var usingContentBuilder = new StringBuilder();
-            var parsedNamespaceBuilder = new StringBuilder();
+            using var _1 = StringBuilderPool.GetPooledObject(out var usingContentBuilder);
+            using var _2 = StringBuilderPool.GetPooledObject(out var parsedNamespaceBuilder);
 
             for (var i = 0; i < usingStatementTokens.Length; i++)
             {
