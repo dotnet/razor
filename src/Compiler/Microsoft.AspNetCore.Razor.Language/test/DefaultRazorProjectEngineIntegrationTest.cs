@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using Xunit;
 
@@ -337,5 +338,35 @@ public class DefaultRazorProjectEngineIntegrationTest
 
         // Assert
         Assert.Empty(codeDocument.Imports);
+    }
+
+    [Fact]
+    public void Process_FunctionsBlock_WithSupplementaryUnicodeCharacters_PlacedAtClassLevel()
+    {
+        // Arrange - supplementary Unicode characters (emoji) are surrogate pairs in UTF-16
+        // This is a regression test for https://github.com/dotnet/razor/issues/XXXX
+        var projectItem = new TestRazorProjectItem("Index.cshtml")
+        {
+            Content = "<p>\r\n    <span>\U0001F601</span>\r\n    <span>\U0001F4A9</span>\r\n    <span>\U0001F43B</span>\r\n    <span>\U0001F433</span>\r\n    <span>\u2764\uFE0F</span>\r\n    <span>\U0001F336\uFE0F</span>\r\n    <span>\U0001F636\u200D\U0001F32B\uFE0F</span>\r\n    <span>\U0001F47E</span>\r\n    <span>\U0001FAE8</span>\r\n</p>\r\n\r\n@functions {\r\n    static string Title = \"Unicode\";\r\n    public string SomeProperty => Title;\r\n}\r\n"
+        };
+
+        var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var generatedCode = csharpDocument.Text.ToString();
+
+        // The @functions block content should appear AFTER #pragma warning restore 1998
+        // (which marks the end of ExecuteAsync), not before it.
+        var functionsContentIndex = generatedCode.IndexOf("static string Title", StringComparison.Ordinal);
+        var pragmaRestoreIndex = generatedCode.IndexOf("#pragma warning restore 1998", StringComparison.Ordinal);
+
+        Assert.True(functionsContentIndex > pragmaRestoreIndex,
+            $"@functions block content should be placed after ExecuteAsync (at class level), not inside it.\n" +
+            $"Functions content at index: {functionsContentIndex}, pragma restore at index: {pragmaRestoreIndex}\n" +
+            $"Generated code:\n{generatedCode}");
     }
 }

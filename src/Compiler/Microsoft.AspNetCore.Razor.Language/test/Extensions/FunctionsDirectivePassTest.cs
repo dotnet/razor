@@ -108,6 +108,41 @@ public class FunctionsDirectivePassTest : RazorProjectEngineTestBase
     }
 
     [Fact]
+    public void Execute_AddsStatementsToClassLevel_WithSupplementaryUnicodeCharacters()
+    {
+        // Arrange - supplementary Unicode characters (emoji) are surrogate pairs in UTF-16
+        var source = TestRazorSourceDocument.Create("<p>😁💩🐻🐳</p>\r\n@functions { var value = true; }");
+        var codeDocument = ProjectEngine.CreateCodeDocument(source);
+        var processor = CreateCodeDocumentProcessor(codeDocument);
+
+        // Act
+        processor.ExecutePass<FunctionsDirectivePass>();
+
+        // Assert
+        var documentNode = processor.GetDocumentNode();
+
+        Children(
+            documentNode,
+            node => Assert.IsType<NamespaceDeclarationIntermediateNode>(node));
+
+        var @namespace = documentNode.Children[0];
+        Children(
+            @namespace,
+            node => Assert.IsType<ClassDeclarationIntermediateNode>(node));
+
+        var @class = @namespace.Children[0];
+        Children(
+            @class,
+            node => Assert.IsType<MethodDeclarationIntermediateNode>(node),
+            node => CSharpCode(" var value = true; ", node));
+
+        var method = @class.Children[0];
+        Children(
+            method,
+            node => Assert.IsType<HtmlContentIntermediateNode>(node));
+    }
+
+    [Fact]
     public void Execute_FunctionsAndComponentCodeDirective_AddsStatementsToClassLevel()
     {
         // Arrange
