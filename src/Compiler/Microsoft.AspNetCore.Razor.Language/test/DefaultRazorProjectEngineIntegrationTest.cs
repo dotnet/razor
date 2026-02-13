@@ -344,7 +344,7 @@ public class DefaultRazorProjectEngineIntegrationTest
     public void Process_FunctionsBlock_WithSupplementaryUnicodeCharacters_PlacedAtClassLevel()
     {
         // Arrange - supplementary Unicode characters (emoji) are surrogate pairs in UTF-16
-        // This is a regression test for https://github.com/dotnet/razor/issues/XXXX
+        // This is a regression test for https://github.com/dotnet/razor/issues/12777
         var projectItem = new TestRazorProjectItem("Index.cshtml")
         {
             Content = "<p>\r\n    <span>\U0001F601</span>\r\n    <span>\U0001F4A9</span>\r\n    <span>\U0001F43B</span>\r\n    <span>\U0001F433</span>\r\n    <span>\u2764\uFE0F</span>\r\n    <span>\U0001F336\uFE0F</span>\r\n    <span>\U0001F636\u200D\U0001F32B\uFE0F</span>\r\n    <span>\U0001F47E</span>\r\n    <span>\U0001FAE8</span>\r\n</p>\r\n\r\n@functions {\r\n    static string Title = \"Unicode\";\r\n    public string SomeProperty => Title;\r\n}\r\n"
@@ -356,6 +356,36 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
+        AssertFunctionsBlockAtClassLevel(codeDocument);
+    }
+
+    [Fact]
+    public void Process_FunctionsBlock_WithSupplementaryUnicodeCharacters_RoslynTokenizer_PlacedAtClassLevel()
+    {
+        // Arrange - same test but with the Roslyn tokenizer enabled
+        // This is a regression test for https://github.com/dotnet/razor/issues/12777
+        var projectItem = new TestRazorProjectItem("Index.cshtml")
+        {
+            Content = "<p>\r\n    <span>\U0001F601</span>\r\n    <span>\U0001F4A9</span>\r\n    <span>\U0001F43B</span>\r\n    <span>\U0001F433</span>\r\n    <span>\u2764\uFE0F</span>\r\n    <span>\U0001F336\uFE0F</span>\r\n    <span>\U0001F636\u200D\U0001F32B\uFE0F</span>\r\n    <span>\U0001F47E</span>\r\n    <span>\U0001FAE8</span>\r\n</p>\r\n\r\n@functions {\r\n    static string Title = \"Unicode\";\r\n    public string SomeProperty => Title;\r\n}\r\n"
+        };
+
+        var config = new RazorConfiguration(
+            RazorLanguageVersion.Latest,
+            ConfigurationName: "test",
+            Extensions: [],
+            UseRoslynTokenizer: true);
+
+        var projectEngine = RazorProjectEngine.Create(config, TestRazorProjectFileSystem.Empty);
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        AssertFunctionsBlockAtClassLevel(codeDocument);
+    }
+
+    private static void AssertFunctionsBlockAtClassLevel(RazorCodeDocument codeDocument)
+    {
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
         var generatedCode = csharpDocument.Text.ToString();
 

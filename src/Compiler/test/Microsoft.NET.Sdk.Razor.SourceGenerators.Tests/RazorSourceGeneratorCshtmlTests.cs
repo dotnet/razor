@@ -167,4 +167,23 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
             <img src="/test">
             """, html);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12777")]
+    public async Task FunctionsBlock_WithSupplementaryUnicodeCharacters()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Pages/Index.cshtml"] = "<p>\r\n    <span>\U0001F601</span>\r\n    <span>\U0001F4A9</span>\r\n    <span>\U0001F43B</span>\r\n    <span>\U0001F433</span>\r\n    <span>\u2764\uFE0F</span>\r\n    <span>\U0001F336\uFE0F</span>\r\n    <span>\U0001F636\u200D\U0001F32B\uFE0F</span>\r\n    <span>\U0001F47E</span>\r\n    <span>\U0001FAE8</span>\r\n</p>\r\n\r\n@functions {\r\n    static string Title = \"Unicode\";\r\n    public string SomeProperty => Title;\r\n}\r\n",
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert - should compile without errors
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+    }
 }
