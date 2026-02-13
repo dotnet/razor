@@ -340,14 +340,33 @@ public class DefaultRazorProjectEngineIntegrationTest
         Assert.Empty(codeDocument.Imports);
     }
 
+    // Regression test content for https://github.com/dotnet/razor/issues/12777
+    // HTML with supplementary Unicode characters (emoji) that are surrogate pairs in UTF-16
+    private const string SupplementaryUnicodeFunctionsContent =
+        "<p>\r\n" +
+        "    <span>\U0001F601</span>\r\n" +
+        "    <span>\U0001F4A9</span>\r\n" +
+        "    <span>\U0001F43B</span>\r\n" +
+        "    <span>\U0001F433</span>\r\n" +
+        "    <span>\u2764\uFE0F</span>\r\n" +
+        "    <span>\U0001F336\uFE0F</span>\r\n" +
+        "    <span>\U0001F636\u200D\U0001F32B\uFE0F</span>\r\n" +
+        "    <span>\U0001F47E</span>\r\n" +
+        "    <span>\U0001FAE8</span>\r\n" +
+        "</p>\r\n" +
+        "\r\n" +
+        "@functions {\r\n" +
+        "    static string Title = \"Unicode\";\r\n" +
+        "    public string SomeProperty => Title;\r\n" +
+        "}\r\n";
+
     [Fact]
     public void Process_FunctionsBlock_WithSupplementaryUnicodeCharacters_PlacedAtClassLevel()
     {
-        // Arrange - supplementary Unicode characters (emoji) are surrogate pairs in UTF-16
-        // This is a regression test for https://github.com/dotnet/razor/issues/12777
+        // Arrange
         var projectItem = new TestRazorProjectItem("Index.cshtml")
         {
-            Content = "<p>\r\n    <span>\U0001F601</span>\r\n    <span>\U0001F4A9</span>\r\n    <span>\U0001F43B</span>\r\n    <span>\U0001F433</span>\r\n    <span>\u2764\uFE0F</span>\r\n    <span>\U0001F336\uFE0F</span>\r\n    <span>\U0001F636\u200D\U0001F32B\uFE0F</span>\r\n    <span>\U0001F47E</span>\r\n    <span>\U0001FAE8</span>\r\n</p>\r\n\r\n@functions {\r\n    static string Title = \"Unicode\";\r\n    public string SomeProperty => Title;\r\n}\r\n"
+            Content = SupplementaryUnicodeFunctionsContent
         };
 
         var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty);
@@ -363,10 +382,9 @@ public class DefaultRazorProjectEngineIntegrationTest
     public void Process_FunctionsBlock_WithSupplementaryUnicodeCharacters_RoslynTokenizer_PlacedAtClassLevel()
     {
         // Arrange - same test but with the Roslyn tokenizer enabled
-        // This is a regression test for https://github.com/dotnet/razor/issues/12777
         var projectItem = new TestRazorProjectItem("Index.cshtml")
         {
-            Content = "<p>\r\n    <span>\U0001F601</span>\r\n    <span>\U0001F4A9</span>\r\n    <span>\U0001F43B</span>\r\n    <span>\U0001F433</span>\r\n    <span>\u2764\uFE0F</span>\r\n    <span>\U0001F336\uFE0F</span>\r\n    <span>\U0001F636\u200D\U0001F32B\uFE0F</span>\r\n    <span>\U0001F47E</span>\r\n    <span>\U0001FAE8</span>\r\n</p>\r\n\r\n@functions {\r\n    static string Title = \"Unicode\";\r\n    public string SomeProperty => Title;\r\n}\r\n"
+            Content = SupplementaryUnicodeFunctionsContent
         };
 
         var config = new RazorConfiguration(
