@@ -815,10 +815,11 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
 
         // Check if it's a UTF-8 string literal with u8 or U8 suffix
         // UTF-8 strings have the format: "text"u8 or "text"U8
-        // Minimum valid UTF-8 string is ""u8 which has length of (expectedPostfix.Length + 3)
-        // because we need: opening quote + at least one char OR closing quote + closing quote (expectedPostfix) + 'u8' (2 chars)
-        // For expectedPostfix = " (1 char), minimum is ""u8 (4 chars) = 1 + 1 + 2, which is expectedPostfix.Length + 1 + 2
-        if (tokenText.Length >= expectedPostfix.Length + 3)
+        // The minimum length is expectedPostfix.Length + 2 for the 'u8' suffix
+        // For example: ""u8 has expectedPostfix="" (2 chars) + 'u8' (2 chars) = 4 total
+        // For example: "a"u8 has expectedPostfix=" (1 char) + content+opening = 2 chars + 'u8' (2 chars) = 5 total
+        // The key is that we need at least enough characters for the closing quote(s) plus the suffix
+        if (tokenText.Length >= expectedPostfix.Length + 2)
         {
             var suffix = tokenText.AsSpan(tokenText.Length - 2);
             if (suffix is ['u' or 'U', '8'])
