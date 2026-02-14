@@ -1,0 +1,89 @@
+﻿Source Location: (8:1,1 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|using System.Text|
+Generated Location: (576:15,0 [17] )
+|using System.Text|
+
+Source Location: (34:2,7 [10] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|IndexModel|
+Generated Location: (1370:31,0 [10] )
+|IndexModel|
+
+Source Location: (81:5,6 [422] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|
+        // UTF-8 string literal with lowercase u8 suffix
+        ReadOnlySpan<byte> span1 = "hello"u8;
+        
+        // UTF-8 string literal with uppercase U8 suffix
+        ReadOnlySpan<byte> span2 = "world"U8;
+        
+        // Empty UTF-8 string
+        ReadOnlySpan<byte> empty = ""u8;
+        
+        // UTF-8 string with escape sequences
+        ReadOnlySpan<byte> escaped = "hello\nworld"u8;
+    |
+Generated Location: (1900:48,6 [422] )
+|
+        // UTF-8 string literal with lowercase u8 suffix
+        ReadOnlySpan<byte> span1 = "hello"u8;
+        
+        // UTF-8 string literal with uppercase U8 suffix
+        ReadOnlySpan<byte> span2 = "world"U8;
+        
+        // Empty UTF-8 string
+        ReadOnlySpan<byte> empty = ""u8;
+        
+        // UTF-8 string with escape sequences
+        ReadOnlySpan<byte> escaped = "hello\nworld"u8;
+    |
+
+Source Location: (554:20,8 [33] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|Encoding.UTF8.GetString("test"u8)|
+Generated Location: (2496:67,8 [33] )
+|Encoding.UTF8.GetString("test"u8)|
+
+Source Location: (658:23,6 [37] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|
+        var bytes = "data"u8;
+    |
+Generated Location: (2702:74,6 [37] )
+|
+        var bytes = "data"u8;
+    |
+
+Source Location: (743:28,6 [64] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|
+        ReadOnlySpan<byte> verbatim = @"path\to\file"u8;
+    |
+Generated Location: (2911:83,6 [64] )
+|
+        ReadOnlySpan<byte> verbatim = @"path\to\file"u8;
+    |
+
+Source Location: (821:33,1 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|code|
+Generated Location: (3147:92,6 [4] )
+|code|
+
+Source Location: (853:34,24 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|code|
+Generated Location: (3342:99,24 [4] )
+|code|
+
+Source Location: (1135:47,12 [142] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml)
+|
+    // UTF-8 string in @functions block
+    private ReadOnlySpan<byte> GetFunctionData()
+    {
+        return "function data"u8;
+    }
+|
+Generated Location: (3574:108,12 [142] )
+|
+    // UTF-8 string in @functions block
+    private ReadOnlySpan<byte> GetFunctionData()
+    {
+        return "function data"u8;
+    }
+|
+

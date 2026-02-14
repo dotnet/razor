@@ -1,0 +1,39 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(3,1): error CS0246: The type or namespace name 'IndexModel' could not be found (are you missing a using directive or an assembly reference?)
+// IndexModel __typeHelper = default!;
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IndexModel").WithArguments("IndexModel").WithLocation(3, 1),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(8,28): warning CS0219: The variable 'span1' is assigned but its value is never used
+//         ReadOnlySpan<byte> span1 = "hello"u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "span1").WithArguments("span1").WithLocation(8, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(11,28): warning CS0219: The variable 'span2' is assigned but its value is never used
+//         ReadOnlySpan<byte> span2 = "world"U8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "span2").WithArguments("span2").WithLocation(11, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(14,28): warning CS0219: The variable 'empty' is assigned but its value is never used
+//         ReadOnlySpan<byte> empty = ""u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "empty").WithArguments("empty").WithLocation(14, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(17,28): warning CS0219: The variable 'escaped' is assigned but its value is never used
+//         ReadOnlySpan<byte> escaped = "hello\nworld"u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "escaped").WithArguments("escaped").WithLocation(17, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(25,13): warning CS0219: The variable 'bytes' is assigned but its value is never used
+//         var bytes = "data"u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "bytes").WithArguments("bytes").WithLocation(25, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(30,28): warning CS0219: The variable 'verbatim' is assigned but its value is never used
+//         ReadOnlySpan<byte> verbatim = @"path\to\file"u8;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "verbatim").WithArguments("verbatim").WithLocation(30, 28),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(34,7): error CS0103: The name 'code' does not exist in the current context
+// __o = code;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "code").WithArguments("code").WithLocation(34, 7),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(35,25): error CS0103: The name 'code' does not exist in the current context
+//                   __o = code;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "code").WithArguments("code").WithLocation(35, 25),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(137,71): error CS0246: The type or namespace name 'IndexModel' could not be found (are you missing a using directive or an assembly reference?)
+//         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<IndexModel> Html { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IndexModel").WithArguments("IndexModel").WithLocation(137, 71),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(140,73): error CS0246: The type or namespace name 'IndexModel' could not be found (are you missing a using directive or an assembly reference?)
+// public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<IndexModel> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<IndexModel>)PageContext?.ViewData!;
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IndexModel").WithArguments("IndexModel").WithLocation(140, 73),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(140,163): error CS0246: The type or namespace name 'IndexModel' could not be found (are you missing a using directive or an assembly reference?)
+// public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<IndexModel> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<IndexModel>)PageContext?.ViewData!;
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IndexModel").WithArguments("IndexModel").WithLocation(140, 163),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml(143,8): error CS0246: The type or namespace name 'IndexModel' could not be found (are you missing a using directive or an assembly reference?)
+// public IndexModel Model => ViewData.Model!;
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IndexModel").WithArguments("IndexModel").WithLocation(143, 8)
