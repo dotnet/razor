@@ -401,6 +401,30 @@ public class CSharpTokenizerLiteralTest : CSharpTokenizerTestBase
     }
 
     [Fact]
+    public void Utf8_Raw_String_Literal_Is_Recognized()
+    {
+        TestSingleToken("\"\"\"hello\"\"\"u8", SyntaxKind.StringLiteral);
+    }
+
+    [Fact]
+    public void Utf8_Raw_String_Literal_Multiline_Is_Recognized()
+    {
+        TestSingleToken("\"\"\"\nhello\nworld\n\"\"\"u8", SyntaxKind.StringLiteral);
+    }
+
+    [Fact]
+    public void Utf8_Raw_String_Literal_With_Quotes_Is_Recognized()
+    {
+        TestSingleToken("\"\"\"She said \"hello\"\"\"\"u8", SyntaxKind.StringLiteral);
+    }
+
+    [Fact]
+    public void Utf8_Raw_String_Literal_Uppercase_Is_Recognized()
+    {
+        TestSingleToken("\"\"\"content\"\"\"U8", SyntaxKind.StringLiteral);
+    }
+
+    [Fact]
     public void Interpolated_String_Is_Recognized()
     {
         TestSingleToken("""

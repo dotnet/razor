@@ -1,6 +1,5 @@
 @page
 @using System.Text
-@model IndexModel
 
 <div class="text-center">
     @{
@@ -15,6 +14,9 @@
         
         // UTF-8 string with escape sequences
         ReadOnlySpan<byte> escaped = "hello\nworld"u8;
+        
+        // UTF-8 raw string literal
+        ReadOnlySpan<byte> raw = """hello"""u8;
     }
 
     @* UTF-8 string in expression *@
@@ -29,26 +31,25 @@
     @{
         ReadOnlySpan<byte> verbatim = @"path\to\file"u8;
     }
-</div>
-
-@code {
-    // UTF-8 string in @code block
-    private ReadOnlySpan<byte> GetUtf8Data()
-    {
-        return "code block data"u8;
-    }
     
-    private void ProcessUtf8()
-    {
-        ReadOnlySpan<byte> data = "processing"U8;
-        var result = Encoding.UTF8.GetString(data);
+    @* UTF-8 raw string with content *@
+    @{
+        ReadOnlySpan<byte> rawContent = """
+            raw content
+            """u8;
     }
-}
+</div>
 
 @functions {
     // UTF-8 string in @functions block
     private ReadOnlySpan<byte> GetFunctionData()
     {
         return "function data"u8;
+    }
+    
+    // UTF-8 raw string literal in functions
+    private ReadOnlySpan<byte> GetRawData()
+    {
+        return """raw data"""u8;
     }
 }

@@ -26,16 +26,6 @@ using System.Text;
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((global::System.Action)(() => {
-#nullable restore
-#line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
-IndexModel __typeHelper = default!;
-
-#line default
-#line hidden
-#nullable disable
-        }
-        ))();
         }
         #pragma warning restore 219
         #pragma warning disable 0414
@@ -45,7 +35,7 @@ IndexModel __typeHelper = default!;
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
 #nullable restore
-#line 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
+#line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
       
         // UTF-8 string literal with lowercase u8 suffix
         ReadOnlySpan<byte> span1 = "hello"u8;
@@ -58,20 +48,23 @@ IndexModel __typeHelper = default!;
         
         // UTF-8 string with escape sequences
         ReadOnlySpan<byte> escaped = "hello\nworld"u8;
+        
+        // UTF-8 raw string literal
+        ReadOnlySpan<byte> raw = """hello"""u8;
     
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line 21 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
+#line 23 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
   __o = Encoding.UTF8.GetString("test"u8);
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
-#line 24 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
+#line 26 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
       
         var bytes = "data"u8;
     
@@ -80,7 +73,7 @@ IndexModel __typeHelper = default!;
 #line hidden
 #nullable disable
 #nullable restore
-#line 29 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
+#line 31 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
       
         ReadOnlySpan<byte> verbatim = @"path\to\file"u8;
     
@@ -89,15 +82,12 @@ IndexModel __typeHelper = default!;
 #line hidden
 #nullable disable
 #nullable restore
-#line 34 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
-__o = code;
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line 35 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
-                  __o = code;
+#line 36 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
+      
+        ReadOnlySpan<byte> rawContent = """
+            raw content
+            """u8;
+    
 
 #line default
 #line hidden
@@ -105,12 +95,18 @@ __o = code;
         }
         #pragma warning restore 1998
 #nullable restore
-#line 48 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
+#line 43 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Utf8StringLiterals.cshtml"
             
     // UTF-8 string in @functions block
     private ReadOnlySpan<byte> GetFunctionData()
     {
         return "function data"u8;
+    }
+    
+    // UTF-8 raw string literal in functions
+    private ReadOnlySpan<byte> GetRawData()
+    {
+        return """raw data"""u8;
     }
 
 #line default
@@ -134,13 +130,13 @@ __o = code;
         #nullable disable
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
-        public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<IndexModel> Html { get; private set; } = default!;
+        public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals> Html { get; private set; } = default!;
         #nullable disable
         #nullable restore
-public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<IndexModel> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<IndexModel>)PageContext?.ViewData!;
+public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals>)PageContext?.ViewData!;
 #nullable disable
         #nullable restore
-public IndexModel Model => ViewData.Model!;
+public TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8StringLiterals Model => ViewData.Model!;
 #nullable disable
     }
 }
