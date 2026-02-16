@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -72,14 +73,15 @@ internal sealed class RemoteSnapshotManager(IFilePathService filePathService, IT
         }
     }
 
-    public async Task<RazorCodeDocument?> TryGetRazorCodeDocumentAsync(Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    public Task<RazorCodeDocument?> TryGetRazorCodeDocumentAsync(Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
     {
         if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
             !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
         {
-            return null;
+            return SpecializedTasks.Null<RazorCodeDocument>();
         }
 
-        return await GetSnapshot(project).TryGetCodeDocumentForGeneratedDocumentAsync(identity, cancellationToken).ConfigureAwait(false);
+        var snapshot = GetSnapshot(project);
+        return snapshot.TryGetCodeDocumentForGeneratedDocumentAsync(identity, cancellationToken);
     }
 }
