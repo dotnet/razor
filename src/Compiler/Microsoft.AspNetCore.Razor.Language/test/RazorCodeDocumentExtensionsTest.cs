@@ -82,7 +82,7 @@ public class RazorCodeDocumentExtensionsTest
     }
 
     [Fact]
-    public void GetUnusedDirectives_NoReferencedTagHelpers_ReturnsAllContributions()
+    public void IsDirectiveUsed_NoReferencedTagHelpers_ReturnsFalse()
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("@using A\r\n@using B");
@@ -94,16 +94,16 @@ public class RazorCodeDocumentExtensionsTest
         ]);
 
         // Act
-        var unusedDirectives = codeDocument.GetUnusedDirectives();
+        var isFirstUsed = codeDocument.IsDirectiveUsed(directives[0]);
+        var isSecondUsed = codeDocument.IsDirectiveUsed(directives[1]);
 
         // Assert
-        Assert.Equal(2, unusedDirectives.Length);
-        Assert.Contains(directives[0].SpanStart, unusedDirectives);
-        Assert.Contains(directives[1].SpanStart, unusedDirectives);
+        Assert.False(isFirstUsed);
+        Assert.False(isSecondUsed);
     }
 
     [Fact]
-    public void GetUnusedDirectives_MixOfUsedAndUnused_ReturnsOnlyUnused()
+    public void IsDirectiveUsed_MixOfUsedAndUnused_ReturnsExpectedValues()
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("@using A\r\n@using B");
@@ -119,17 +119,18 @@ public class RazorCodeDocumentExtensionsTest
             .WithReferencedTagHelpers(TagHelperCollection.Create([usedTagHelper]));
 
         // Act
-        var unusedDirectives = codeDocument.GetUnusedDirectives();
+        var isFirstUsed = codeDocument.IsDirectiveUsed(directives[0]);
+        var isSecondUsed = codeDocument.IsDirectiveUsed(directives[1]);
 
         // Assert
-        var unusedDirectiveSpanStart = Assert.Single(unusedDirectives);
-        Assert.Equal(directives[1].SpanStart, unusedDirectiveSpanStart);
+        Assert.True(isFirstUsed);
+        Assert.False(isSecondUsed);
     }
 
     [Theory]
     [InlineData("_Imports.razor")]
     [InlineData("_ViewImports.cshtml")]
-    public void GetUnusedDirectives_ImportDocument_ReturnsEmpty(string filePath)
+    public void IsDirectiveUsed_ImportDocument_ReturnsTrue(string filePath)
     {
         // Arrange
         var source = TestRazorSourceDocument.Create("@using A", filePath: filePath, relativePath: filePath);
@@ -141,10 +142,10 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument = codeDocument.WithDirectiveTagHelperContributions([new(directive.SpanStart, TagHelperCollection.Empty)]);
 
         // Act
-        var unusedDirectives = codeDocument.GetUnusedDirectives();
+        var isDirectiveUsed = codeDocument.IsDirectiveUsed(directive);
 
         // Assert
-        Assert.Empty(unusedDirectives);
+        Assert.True(isDirectiveUsed);
     }
 
     [Fact]
