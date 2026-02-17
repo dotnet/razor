@@ -92,4 +92,90 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
 
             </div>
             """);
+
+    [Fact]
+    public Task CSharpUnusedUsings()
+       => VerifyDiagnosticsAsync("""
+            @{|IDE0005_gen:using System|}
+            @using System.Text
+
+            <div></div>
+
+            @code
+            {
+                public void BuildsStrings(StringBuilder b)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task RazorUsingAlsoPresentInImports()
+       => VerifyDiagnosticsAsync("""
+            @using System.Text
+            @{|IDE0005_gen:using Microsoft.AspNetCore.Components.Forms|}
+
+            <div></div>
+
+            <PageTitle></PageTitle>
+
+            @code
+            {
+                public void BuildsStrings(StringBuilder b)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task RazorUsedUsings()
+        => VerifyDiagnosticsAsync(
+           input: """
+                @using System.Text
+                @using My.Fun.Namespace
+
+                <div></div>
+
+                <PageTitle></PageTitle>
+
+                <Component />
+
+                @code
+                {
+                    public void BuildsStrings(StringBuilder b)
+                    {
+                    }
+                }
+                """,
+           additionalFiles: [
+               (FilePath("Component.razor"), """
+               @namespace My.Fun.Namespace
+
+               <div></div>
+               """)]);
+
+    [Fact]
+    public Task RazorUnusedUsings()
+        => VerifyDiagnosticsAsync(
+            input: """
+                @using System.Text
+                @{|IDE0005_gen:using My.Fun.Namespace|}
+                     
+                <div></div>
+
+                <PageTitle></PageTitle>
+
+                @code
+                {
+                    public void BuildsStrings(StringBuilder b)
+                    {
+                    }
+                }
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), """
+                    @namespace My.Fun.Namespace
+
+                    <div></div>
+                    """)]);
 }
