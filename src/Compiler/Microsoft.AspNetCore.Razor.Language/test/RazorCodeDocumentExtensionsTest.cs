@@ -70,7 +70,7 @@ public class RazorCodeDocumentExtensionsTest
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("@using A");
         var usingDirective = GetUsingDirectives(codeDocument).Single();
-        var contribution = new DirectiveTagHelperContribution(usingDirective, TagHelperCollection.Empty);
+        var contribution = new DirectiveTagHelperContribution(usingDirective.SpanStart, TagHelperCollection.Empty);
 
         // Act
         codeDocument = codeDocument.WithDirectiveTagHelperContributions([contribution]);
@@ -78,7 +78,7 @@ public class RazorCodeDocumentExtensionsTest
 
         // Assert
         var stored = Assert.Single(actual);
-        Assert.Same(usingDirective, stored.Directive);
+        Assert.Equal(usingDirective.SpanStart, stored.DirectiveSpanStart);
     }
 
     [Fact]
@@ -89,8 +89,8 @@ public class RazorCodeDocumentExtensionsTest
         var directives = GetUsingDirectives(codeDocument);
         codeDocument = codeDocument.WithDirectiveTagHelperContributions(
         [
-            new(directives[0], TagHelperCollection.Empty),
-            new(directives[1], TagHelperCollection.Empty),
+            new(directives[0].SpanStart, TagHelperCollection.Empty),
+            new(directives[1].SpanStart, TagHelperCollection.Empty),
         ]);
 
         // Act
@@ -98,6 +98,8 @@ public class RazorCodeDocumentExtensionsTest
 
         // Assert
         Assert.Equal(2, unusedDirectives.Length);
+        Assert.Contains(directives[0].SpanStart, unusedDirectives);
+        Assert.Contains(directives[1].SpanStart, unusedDirectives);
     }
 
     [Fact]
@@ -111,8 +113,8 @@ public class RazorCodeDocumentExtensionsTest
         codeDocument = codeDocument
             .WithDirectiveTagHelperContributions(
             [
-                new(directives[0], TagHelperCollection.Create([usedTagHelper])),
-                new(directives[1], TagHelperCollection.Empty),
+                new(directives[0].SpanStart, TagHelperCollection.Create([usedTagHelper])),
+                new(directives[1].SpanStart, TagHelperCollection.Empty),
             ])
             .WithReferencedTagHelpers(TagHelperCollection.Create([usedTagHelper]));
 
@@ -120,8 +122,8 @@ public class RazorCodeDocumentExtensionsTest
         var unusedDirectives = codeDocument.GetUnusedDirectives();
 
         // Assert
-        var unusedDirective = Assert.Single(unusedDirectives);
-        Assert.Same(directives[1], unusedDirective);
+        var unusedDirectiveSpanStart = Assert.Single(unusedDirectives);
+        Assert.Equal(directives[1].SpanStart, unusedDirectiveSpanStart);
     }
 
     [Theory]
@@ -136,7 +138,7 @@ public class RazorCodeDocumentExtensionsTest
             parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, FileKinds.GetFileKindFromPath(filePath)));
 
         var directive = GetUsingDirectives(codeDocument).Single();
-        codeDocument = codeDocument.WithDirectiveTagHelperContributions([new(directive, TagHelperCollection.Empty)]);
+        codeDocument = codeDocument.WithDirectiveTagHelperContributions([new(directive.SpanStart, TagHelperCollection.Empty)]);
 
         // Act
         var unusedDirectives = codeDocument.GetUnusedDirectives();

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -43,7 +42,7 @@ public static class RazorCodeDocumentExtensions
         => codeDocument.FileKind.IsComponentImport() ||
             string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase);
 
-    internal static ImmutableArray<BaseRazorDirectiveSyntax> GetUnusedDirectives(this RazorCodeDocument codeDocument)
+    internal static ImmutableArray<int> GetUnusedDirectives(this RazorCodeDocument codeDocument)
     {
         // Never report unused directives in imports files, as we don't track at that level
         if (codeDocument.IsImportsFile())
@@ -59,18 +58,18 @@ public static class RazorCodeDocumentExtensions
 
         var referencedTagHelpers = codeDocument.GetReferencedTagHelpers();
 
-        using var unusedDirectives = new PooledArrayBuilder<BaseRazorDirectiveSyntax>();
+        using var unusedDirectiveSpanStarts = new PooledArrayBuilder<int>();
         foreach (var contribution in contributions)
         {
             if (referencedTagHelpers is null ||
                 contribution.ContributedTagHelpers.IsEmpty ||
                 !AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers))
             {
-                unusedDirectives.Add(contribution.Directive);
+                unusedDirectiveSpanStarts.Add(contribution.DirectiveSpanStart);
             }
         }
 
-        return unusedDirectives.ToImmutableAndClear();
+        return unusedDirectiveSpanStarts.ToImmutableAndClear();
 
         static bool AnyContributedTagHelperIsReferenced(
             TagHelperCollection contributedTagHelpers,

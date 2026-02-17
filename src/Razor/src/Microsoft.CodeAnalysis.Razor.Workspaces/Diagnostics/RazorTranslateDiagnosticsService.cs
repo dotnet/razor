@@ -532,7 +532,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             syntaxTree.FindInnermostNode(codeDocument.Source.Text, originalRange.Start) is { Parent.Parent: RazorUsingDirectiveSyntax usingDirectiveSyntax })
         {
             var unusedUsings = codeDocument.GetUnusedDirectives();
-            return !unusedUsings.Any(u => u.Span == usingDirectiveSyntax.Span);
+            return !unusedUsings.Contains(usingDirectiveSyntax.SpanStart);
         }
 
         return true;
