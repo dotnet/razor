@@ -39,11 +39,14 @@ public static class RazorCodeDocumentExtensions
         out SourceSpan? namespaceSpan)
         => codeDocument.TryGetNamespace(fallbackToRootNamespace, considerImports: true, out @namespace, out namespaceSpan);
 
+    internal static bool IsImportsFile(this RazorCodeDocument codeDocument)
+        => codeDocument.FileKind.IsComponentImport() ||
+            string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase);
+
     internal static ImmutableArray<BaseRazorDirectiveSyntax> GetUnusedDirectives(this RazorCodeDocument codeDocument)
     {
         // Never report unused directives in imports files, as we don't track at that level
-        if (codeDocument.FileKind.IsComponentImport() ||
-            string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase))
+        if (codeDocument.IsImportsFile())
         {
             return [];
         }
