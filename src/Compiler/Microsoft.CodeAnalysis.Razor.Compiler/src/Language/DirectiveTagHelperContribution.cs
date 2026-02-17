@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.AspNetCore.Razor.Language.Syntax;
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 /// <summary>
@@ -12,5 +10,5 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// In components, this deals with `@using` directives, and for legacy it deals with `@addTagHelper` directives.
 /// </remarks>
 internal readonly record struct DirectiveTagHelperContribution(
-    BaseRazorDirectiveSyntax Directive,
+    int DirectiveSpanStart,
     TagHelperCollection ContributedTagHelpers);

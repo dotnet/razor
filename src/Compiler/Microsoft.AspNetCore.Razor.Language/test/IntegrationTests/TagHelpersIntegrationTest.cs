@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -119,9 +121,10 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
         var unusedDirectives = codeDocument.GetUnusedDirectives();
-        var unusedDirective = Assert.Single(unusedDirectives);
-        Assert.Contains("addTagHelper", unusedDirective.ToString(), StringComparison.OrdinalIgnoreCase);
+        var unusedDirectiveSpanStart = Assert.Single(unusedDirectives);
+        Assert.Equal(addTagHelperDirective.SpanStart, unusedDirectiveSpanStart);
     }
 
     [Fact]
@@ -171,9 +174,10 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
         var contributions = codeDocument.GetDirectiveTagHelperContributions();
         var contribution = Assert.Single(contributions);
-        Assert.Contains("addTagHelper", contribution.Directive.ToString(), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(addTagHelperDirective.SpanStart, contribution.DirectiveSpanStart);
         Assert.NotEmpty(contribution.ContributedTagHelpers);
     }
 

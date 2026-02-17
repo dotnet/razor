@@ -140,7 +140,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             if (IsSourceDocument)
             {
                 _directiveContributions ??= [];
-                _directiveContributions.Add(new(directive, contributedTagHelpers));
+                _directiveContributions.Add(new(directive.SpanStart, contributedTagHelpers));
             }
         }
 

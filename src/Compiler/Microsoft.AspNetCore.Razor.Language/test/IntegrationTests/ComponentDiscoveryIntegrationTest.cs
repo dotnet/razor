@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -194,9 +196,10 @@ namespace Test.AnotherNamespace
             """);
 
         // Assert
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToArray();
         var unusedUsings = result.CodeDocument.GetUnusedDirectives();
-        var unusedUsing = Assert.Single(unusedUsings);
-        Assert.Contains("Some.Unrelated.Namespace", unusedUsing.ToString());
+        var unusedUsingSpanStart = Assert.Single(unusedUsings);
+        Assert.Equal(directives[1].SpanStart, unusedUsingSpanStart);
     }
 
     [Fact]
@@ -225,7 +228,8 @@ namespace Test.AnotherNamespace
         // Assert
         var contributions = result.CodeDocument.GetDirectiveTagHelperContributions();
         Assert.Equal(2, contributions.Length);
-        Assert.All(contributions, c => Assert.Contains("@using", c.Directive.ToString()));
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToArray();
+        Assert.Equal([directives[0].SpanStart, directives[1].SpanStart], contributions.Select(c => c.DirectiveSpanStart));
         Assert.Single(contributions, c => !c.ContributedTagHelpers.IsEmpty);
         Assert.Single(contributions, c => c.ContributedTagHelpers.IsEmpty);
     }
@@ -261,10 +265,11 @@ namespace Test.AnotherNamespace
             """);
 
         // Assert
+        var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToArray();
         var unusedUsings = result.CodeDocument.GetUnusedDirectives();
         Assert.Equal(2, unusedUsings.Length);
-        Assert.Contains(unusedUsings, u => u.ToString().Contains("Components.Library"));
-        Assert.Contains(unusedUsings, u => u.ToString().Contains("Some.Unrelated.Namespace"));
+        Assert.Contains(directives[0].SpanStart, unusedUsings);
+        Assert.Contains(directives[1].SpanStart, unusedUsings);
     }
 
 }
