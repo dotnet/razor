@@ -13,9 +13,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public partial class CohostDocumentPullDiagnosticsTest
 {
-    private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null, bool miscellaneousFile = false)
+    private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null, bool miscellaneousFile = false, (string fileName, string contents)[]? additionalFiles = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, miscellaneousFile: miscellaneousFile);
+        var document = CreateProjectAndRazorDocument(input.Text, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, htmlResponse)]);
