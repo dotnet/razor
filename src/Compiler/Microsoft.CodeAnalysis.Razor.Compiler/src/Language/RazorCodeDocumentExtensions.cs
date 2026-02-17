@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -42,34 +41,32 @@ public static class RazorCodeDocumentExtensions
         => codeDocument.FileKind.IsComponentImport() ||
             string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase);
 
-    internal static ImmutableArray<int> GetUnusedDirectives(this RazorCodeDocument codeDocument)
+    internal static bool IsDirectiveUsed(this RazorCodeDocument codeDocument, BaseRazorDirectiveSyntax directive)
     {
-        // Never report unused directives in imports files, as we don't track at that level
+        // In imports files, all directives are considered used as usage tracking is only for source documents.
         if (codeDocument.IsImportsFile())
         {
-            return [];
+            return true;
         }
 
         var contributions = codeDocument.GetDirectiveTagHelperContributions();
         if (contributions.IsDefaultOrEmpty)
         {
-            return [];
+            return true;
         }
 
         var referencedTagHelpers = codeDocument.GetReferencedTagHelpers();
-
-        using var unusedDirectiveSpanStarts = new PooledArrayBuilder<int>();
         foreach (var contribution in contributions)
         {
-            if (referencedTagHelpers is null ||
-                contribution.ContributedTagHelpers.IsEmpty ||
-                !AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers))
+            if (contribution.DirectiveSpanStart == directive.SpanStart)
             {
-                unusedDirectiveSpanStarts.Add(contribution.DirectiveSpanStart);
+                return referencedTagHelpers is not null &&
+                    !contribution.ContributedTagHelpers.IsEmpty &&
+                    AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers);
             }
         }
 
-        return unusedDirectiveSpanStarts.ToImmutableAndClear();
+        return false;
 
         static bool AnyContributedTagHelperIsReferenced(
             TagHelperCollection contributedTagHelpers,

@@ -100,7 +100,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
     }
 
     [Fact]
-    public void AddTagHelperDirective_TrackedAsUnused_WhenNoTagHelpersReferenced()
+    public void AddTagHelperDirective_IsUnused_WhenNoTagHelpersReferenced()
     {
         // Arrange
         TagHelperCollection tagHelpers =
@@ -122,13 +122,11 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
 
         // Assert
         var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
-        var unusedDirectives = codeDocument.GetUnusedDirectives();
-        var unusedDirectiveSpanStart = Assert.Single(unusedDirectives);
-        Assert.Equal(addTagHelperDirective.SpanStart, unusedDirectiveSpanStart);
+        Assert.False(codeDocument.IsDirectiveUsed(addTagHelperDirective));
     }
 
     [Fact]
-    public void AddTagHelperDirective_NotTrackedAsUnused_WhenTagHelperReferenced()
+    public void AddTagHelperDirective_IsUsed_WhenTagHelperReferenced()
     {
         // Arrange
         TagHelperCollection tagHelpers =
@@ -149,7 +147,8 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        Assert.Empty(codeDocument.GetUnusedDirectives());
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        Assert.True(codeDocument.IsDirectiveUsed(addTagHelperDirective));
     }
 
     [Fact]

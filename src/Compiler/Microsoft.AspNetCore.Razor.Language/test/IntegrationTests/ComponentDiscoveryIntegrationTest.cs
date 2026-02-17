@@ -168,7 +168,7 @@ namespace Test.AnotherNamespace
     }
 
     [Fact]
-    public void UnusedUsingDirectives_TracksUnusedUsings()
+    public void UnusedUsingDirectives_IsDirectiveUsed_ReturnsFalseForUnusedUsing()
     {
         // Arrange
         AdditionalSyntaxTrees.Add(Parse("""
@@ -197,9 +197,8 @@ namespace Test.AnotherNamespace
 
         // Assert
         var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToArray();
-        var unusedUsings = result.CodeDocument.GetUnusedDirectives();
-        var unusedUsingSpanStart = Assert.Single(unusedUsings);
-        Assert.Equal(directives[1].SpanStart, unusedUsingSpanStart);
+        Assert.True(result.CodeDocument.IsDirectiveUsed(directives[0]));
+        Assert.False(result.CodeDocument.IsDirectiveUsed(directives[1]));
     }
 
     [Fact]
@@ -266,10 +265,8 @@ namespace Test.AnotherNamespace
 
         // Assert
         var directives = result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().ToArray();
-        var unusedUsings = result.CodeDocument.GetUnusedDirectives();
-        Assert.Equal(2, unusedUsings.Length);
-        Assert.Contains(directives[0].SpanStart, unusedUsings);
-        Assert.Contains(directives[1].SpanStart, unusedUsings);
+        Assert.False(result.CodeDocument.IsDirectiveUsed(directives[0]));
+        Assert.False(result.CodeDocument.IsDirectiveUsed(directives[1]));
     }
 
 }
