@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -60,6 +62,87 @@ public class RazorCodeDocumentExtensionsTest
 
         // Assert
         Assert.Same(expected, actual);
+    }
+
+    [Fact]
+    public void GetAndSetDirectiveTagHelperContributions_ReturnsContributions()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.Create("@using A");
+        var usingDirective = GetUsingDirectives(codeDocument).Single();
+        var contribution = new DirectiveTagHelperContribution(usingDirective, TagHelperCollection.Empty);
+
+        // Act
+        codeDocument = codeDocument.WithDirectiveTagHelperContributions([contribution]);
+        var actual = codeDocument.GetDirectiveTagHelperContributions();
+
+        // Assert
+        var stored = Assert.Single(actual);
+        Assert.Same(usingDirective, stored.Directive);
+    }
+
+    [Fact]
+    public void GetUnusedDirectives_NoReferencedTagHelpers_ReturnsAllContributions()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.Create("@using A\r\n@using B");
+        var directives = GetUsingDirectives(codeDocument);
+        codeDocument = codeDocument.WithDirectiveTagHelperContributions(
+        [
+            new(directives[0], TagHelperCollection.Empty),
+            new(directives[1], TagHelperCollection.Empty),
+        ]);
+
+        // Act
+        var unusedDirectives = codeDocument.GetUnusedDirectives();
+
+        // Assert
+        Assert.Equal(2, unusedDirectives.Length);
+    }
+
+    [Fact]
+    public void GetUnusedDirectives_MixOfUsedAndUnused_ReturnsOnlyUnused()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.Create("@using A\r\n@using B");
+        var directives = GetUsingDirectives(codeDocument);
+        var usedTagHelper = TagHelperDescriptorBuilder.CreateTagHelper("T", "A").Build();
+
+        codeDocument = codeDocument
+            .WithDirectiveTagHelperContributions(
+            [
+                new(directives[0], TagHelperCollection.Create([usedTagHelper])),
+                new(directives[1], TagHelperCollection.Empty),
+            ])
+            .WithReferencedTagHelpers(TagHelperCollection.Create([usedTagHelper]));
+
+        // Act
+        var unusedDirectives = codeDocument.GetUnusedDirectives();
+
+        // Assert
+        var unusedDirective = Assert.Single(unusedDirectives);
+        Assert.Same(directives[1], unusedDirective);
+    }
+
+    [Theory]
+    [InlineData("_Imports.razor")]
+    [InlineData("_ViewImports.cshtml")]
+    public void GetUnusedDirectives_ImportDocument_ReturnsEmpty(string filePath)
+    {
+        // Arrange
+        var source = TestRazorSourceDocument.Create("@using A", filePath: filePath, relativePath: filePath);
+        var codeDocument = RazorCodeDocument.Create(
+            source,
+            parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, FileKinds.GetFileKindFromPath(filePath)));
+
+        var directive = GetUsingDirectives(codeDocument).Single();
+        codeDocument = codeDocument.WithDirectiveTagHelperContributions([new(directive, TagHelperCollection.Empty)]);
+
+        // Act
+        var unusedDirectives = codeDocument.GetUnusedDirectives();
+
+        // Assert
+        Assert.Empty(unusedDirectives);
     }
 
     [Fact]
@@ -450,5 +533,11 @@ public class RazorCodeDocumentExtensionsTest
 
         // Assert
         Assert.Equal("Base", @namespace);
+    }
+
+    private static RazorUsingDirectiveSyntax[] GetUsingDirectives(RazorCodeDocument codeDocument)
+    {
+        var syntaxTree = RazorSyntaxTree.Parse(codeDocument.Source);
+        return [.. syntaxTree.Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>()];
     }
 }

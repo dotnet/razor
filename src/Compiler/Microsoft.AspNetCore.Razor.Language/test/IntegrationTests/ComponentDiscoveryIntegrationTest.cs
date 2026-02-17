@@ -164,4 +164,107 @@ namespace Test.AnotherNamespace
 
         Assert.Contains(context.TagHelpers, t => t.Name == "Test.UniqueName<TItem1, TItem2, TItem3>");
     }
+
+    [Fact]
+    public void UnusedUsingDirectives_TracksUnusedUsings()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class MyButton : ComponentBase
+                {
+                }
+            }
+
+            namespace Some.Unrelated.Namespace
+            {
+                public class Placeholder { }
+            }
+            """));
+
+        // Act
+        var result = CompileToCSharp("""
+            @using Components.Library
+            @using Some.Unrelated.Namespace
+
+            <MyButton />
+            """);
+
+        // Assert
+        var unusedUsings = result.CodeDocument.GetUnusedDirectives();
+        var unusedUsing = Assert.Single(unusedUsings);
+        Assert.Contains("Some.Unrelated.Namespace", unusedUsing.ToString());
+    }
+
+    [Fact]
+    public void DirectiveTagHelperContributions_AreStoredOnCodeDocument_ForUsings()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class MyButton : ComponentBase
+                {
+                }
+            }
+            """));
+
+        // Act
+        var result = CompileToCSharp("""
+            @using Components.Library
+            @using System.Text
+
+            <MyButton />
+            """);
+
+        // Assert
+        var contributions = result.CodeDocument.GetDirectiveTagHelperContributions();
+        Assert.Equal(2, contributions.Length);
+        Assert.All(contributions, c => Assert.Contains("@using", c.Directive.ToString()));
+        Assert.Single(contributions, c => !c.ContributedTagHelpers.IsEmpty);
+        Assert.Single(contributions, c => c.ContributedTagHelpers.IsEmpty);
+    }
+
+    [Fact]
+    public void UnusedUsingDirectives_FullyQualifiedComponent_AllUsingsUnused()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class MyButton : ComponentBase
+                {
+                }
+            }
+
+            namespace Some.Unrelated.Namespace
+            {
+                public class Placeholder { }
+            }
+            """));
+
+        // Act
+        // When the component is fully qualified, the @using directives are not needed
+        // for resolution — the FQ tag helper descriptor is used instead.
+        var result = CompileToCSharp("""
+            @using Components.Library
+            @using Some.Unrelated.Namespace
+
+            <Components.Library.MyButton />
+            """);
+
+        // Assert
+        var unusedUsings = result.CodeDocument.GetUnusedDirectives();
+        Assert.Equal(2, unusedUsings.Length);
+        Assert.Contains(unusedUsings, u => u.ToString().Contains("Components.Library"));
+        Assert.Contains(unusedUsings, u => u.ToString().Contains("Some.Unrelated.Namespace"));
+    }
+
 }
