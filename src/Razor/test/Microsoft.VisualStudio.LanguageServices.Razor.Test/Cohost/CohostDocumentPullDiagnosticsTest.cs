@@ -3,6 +3,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
@@ -535,9 +536,15 @@ public partial class CohostDocumentPullDiagnosticsTest
             """,
             taskListRequest: true);
 
-    private async Task VerifyDiagnosticsAsync(TestCode input, VSInternalDiagnosticReport[]? htmlResponse = null, bool taskListRequest = false, bool miscellaneousFile = false, (string fileName, string contents)[]? additionalFiles = null)
+    private async Task VerifyDiagnosticsAsync(
+        TestCode input,
+        VSInternalDiagnosticReport[]? htmlResponse = null,
+        RazorFileKind? fileKind = null,
+        bool taskListRequest = false,
+        bool miscellaneousFile = false,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, htmlResponse)]);
