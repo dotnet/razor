@@ -489,4 +489,16 @@ internal static class RazorSyntaxNodeExtensions
         result = node.GetLastToken(includeZeroWidth);
         return result != default;
     }
+
+    public static TextSpan SpanWithoutTrailingNewLines(this SyntaxNode node, SourceText sourceText)
+    {
+        var span = node.Span;
+        var end = span.End;
+        while (end > span.Start && sourceText[end - 1] is '\r' or '\n')
+        {
+            end--;
+        }
+
+        return TextSpan.FromBounds(span.Start, end);
+    }
 }

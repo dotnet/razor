@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -173,9 +174,81 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
                 }
                 """,
             additionalFiles: [
-                (FilePath("Component.razor"), """
-                    @namespace My.Fun.Namespace
+                 (FilePath("Component.razor"), """
+                     @namespace My.Fun.Namespace
 
-                    <div></div>
-                    """)]);
+                     <div></div>
+                     """)]);
+
+    [Fact]
+    public Task LegacyUnusedAddTagHelperDirective()
+        => VerifyDiagnosticsAsync(
+            input: """
+                {|IDE0005_gen:@addTagHelper *, SomeProject|}
+
+                <div></div>
+                """,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task LegacyUsedAddTagHelperDirective_Control()
+        => VerifyDiagnosticsAsync(
+            input: """
+                @addTagHelper *, SomeProject
+
+                <dw:about-box />
+                """,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task LegacySpecificAddTagHelperDirectives_MixedUsage()
+        => VerifyDiagnosticsAsync(
+            input: """
+                @addTagHelper AboutBoxTagHelper, SomeProject
+                {|IDE0005_gen:@addTagHelper FancyBoxTagHelper, SomeProject|}
+
+                <dw:about-box />
+                """,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """),
+                (FilePath("FancyBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:fancy-box")]
+                    public class FancyBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy);
 }
