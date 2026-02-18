@@ -528,6 +528,12 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             return true;
         }
 
+        // In legacy files, using directives don't affect tag helper discovery so they're all "unused" to us.
+        if (codeDocument.FileKind.IsLegacy())
+        {
+            return false;
+        }
+
         // Roslyn reports any usings that aren't used by user code for us. Some of these usings might be
         // used for component tags though, which are always fully qualified by the Razor compiler, so we
         // have to check if the using was actually used by component binding, if so, we need to keep the

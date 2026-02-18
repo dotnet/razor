@@ -185,6 +185,8 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
         => VerifyDiagnosticsAsync(
             input: """
                 {|IDE0005_gen:@addTagHelper *, SomeProject|}
+                @{|IDE0005_gen:using System.Text|}
+                @{|IDE0005_gen:using System.Text.RegularExpressions|}
 
                 <div></div>
                 """,
