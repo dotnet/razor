@@ -77,12 +77,6 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         return mappedDiagnostics;
     }
 
-    private LspDiagnostic[] FilterCSharpDiagnostics(LspDiagnostic[] unmappedDiagnostics, RazorCodeDocument codeDocument)
-    {
-        return unmappedDiagnostics.Where(d =>
-            !ShouldFilterCSharpDiagnostic(d, codeDocument)).ToArray();
-    }
-
     private static LspDiagnostic[] FilterHTMLDiagnostics(
         LspDiagnostic[] unmappedDiagnostics,
         RazorCodeDocument codeDocument)
@@ -477,23 +471,35 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
         }
     }
 
-    private bool ShouldFilterCSharpDiagnostic(LspDiagnostic diagnostic, RazorCodeDocument codeDocument)
+    private LspDiagnostic[] FilterCSharpDiagnostics(LspDiagnostic[] diagnostics, RazorCodeDocument codeDocument)
     {
-        if (diagnostic.Code is not { } code ||
-            !code.TryGetSecond(out var str) ||
-            str is null)
+        using var filteredDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
+
+        foreach (var diagnostic in diagnostics)
         {
-            return false;
+            if (diagnostic.Code is not { } code ||
+                !code.TryGetSecond(out var str) ||
+                str is null)
+            {
+                continue;
+            }
+
+            if (str switch
+            {
+                "CS1525" => ShouldIgnoreCS1525(diagnostic, codeDocument),
+                "IDE0005_gen" => IsUsingDirectiveUsed(diagnostic, codeDocument),
+                // This diagnostics is produced by Roslyn to help its Remove Usings code fixer, so is irrelevant to us
+                "RemoveUnnecessaryImportsFixable" => true,
+                _ => false
+            })
+            {
+                continue;
+            }
+
+            filteredDiagnostics.Add(diagnostic);
         }
 
-        return str switch
-        {
-            "CS1525" => ShouldIgnoreCS1525(diagnostic, codeDocument),
-            "IDE0005_gen" => IsUsingDirectiveUsed(diagnostic, codeDocument),
-            // This diagnostics is produced by Roslyn to help its Remove Usings code fixer, so is irrelevant to us
-            "RemoveUnnecessaryImportsFixable" => true,
-            _ => false
-        };
+        return filteredDiagnostics.ToArrayAndClear();
 
         bool ShouldIgnoreCS1525(LspDiagnostic diagnostic, RazorCodeDocument codeDocument)
         {
