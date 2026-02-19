@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -487,7 +488,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
             if (str switch
             {
                 "CS1525" => ShouldIgnoreCS1525(diagnostic, codeDocument),
-                "IDE0005_gen" => IsUsingDirectiveUsed(diagnostic, codeDocument),
+                Constants.DiagnosticIds.IDE0005_gen => IsUsingDirectiveUsed(diagnostic, codeDocument),
                 // This diagnostics is produced by Roslyn to help its Remove Usings code fixer, so is irrelevant to us
                 "RemoveUnnecessaryImportsFixable" => true,
                 _ => false

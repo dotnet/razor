@@ -97,7 +97,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
     [Fact]
     public Task CSharpUnusedUsings()
        => VerifyDiagnosticsAsync("""
-            @{|IDE0005_gen:using System|}
+            {|RZ0005:@using System|}
             @using System.Text
 
             <div></div>
@@ -114,7 +114,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
     public Task RazorUsingAlsoPresentInImports()
        => VerifyDiagnosticsAsync("""
             @using System.Text
-            @{|IDE0005_gen:using Microsoft.AspNetCore.Components.Forms|}
+            {|RZ0005:@using Microsoft.AspNetCore.Components.Forms|}
 
             <div></div>
 
@@ -160,7 +160,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
         => VerifyDiagnosticsAsync(
             input: """
                 @using System.Text
-                @{|IDE0005_gen:using My.Fun.Namespace|}
+                {|RZ0005:@using My.Fun.Namespace|}
                      
                 <div></div>
 
@@ -184,9 +184,9 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
     public Task LegacyUnusedAddTagHelperDirective()
         => VerifyDiagnosticsAsync(
             input: """
-                {|IDE0005_gen:@addTagHelper *, SomeProject|}
-                @{|IDE0005_gen:using System.Text|}
-                @{|IDE0005_gen:using System.Text.RegularExpressions|}
+                {|RZ0005:@addTagHelper *, SomeProject|}
+                {|RZ0005:@using System.Text|}
+                {|RZ0005:@using System.Text.RegularExpressions|}
 
                 <div></div>
                 """,
@@ -236,7 +236,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
         => VerifyDiagnosticsAsync(
             input: """
                 @addTagHelper AboutBoxTagHelper, SomeProject
-                {|IDE0005_gen:@addTagHelper FancyBoxTagHelper, SomeProject|}
+                {|RZ0005:@addTagHelper FancyBoxTagHelper, SomeProject|}
 
                 <dw:about-box />
                 """,

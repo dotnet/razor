@@ -12,11 +12,13 @@ using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using EAConstants = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Constants;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteDiagnosticsService
 {
+    private const string UnusedDirectiveDiagnosticId = "RZ0005";
     private static readonly DiagnosticTag[] s_unnecessaryDiagnosticTags = [VSDiagnosticTags.HiddenInEditor, DiagnosticTag.Unnecessary];
 
     internal sealed class Factory : FactoryBase<IRemoteDiagnosticsService>
@@ -48,11 +50,32 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         // We've got C# and Html, lets get Razor diagnostics
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        return [
+        ImmutableArray<LspDiagnostic> allDiagnostics = [
             .. GetRazorDiagnostics(context, codeDocument),
             .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, csharpDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false),
             .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, htmlDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false)
         ];
+
+        // Our final pass is to update all unused directive errors to ensure they display how we want in the IDE. Doing it here
+        // means we don't have to duplicate between where we raise our own diagnostics, and filter Roslyns.
+        foreach (var diagnostic in allDiagnostics)
+        {
+            if (diagnostic.Code is { Value: EAConstants.DiagnosticIds.IDE0005_gen })
+            {
+                diagnostic.Severity = LspDiagnosticSeverity.Warning;
+                diagnostic.Tags = s_unnecessaryDiagnosticTags;
+                diagnostic.Code = UnusedDirectiveDiagnosticId;
+
+                // If Roslyn reports the diagnostic, we'll map the C# to Razor, and it will be just the
+                // "using <namespace>" part, and not the "@". Again, its simplest to just adjust that here
+                if (diagnostic.Range.Start.Character > 0)
+                {
+                    diagnostic.Range.Start.Character = 0;
+                }
+            }
+        }
+
+        return allDiagnostics;
     }
 
     private static ImmutableArray<LspDiagnostic> GetRazorDiagnostics(RemoteDocumentContext context, RazorCodeDocument codeDocument)
@@ -80,12 +103,11 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
 
                 diagnostics.Add(new LspDiagnostic
                 {
-                    Code = "IDE0005_gen",
-                    Message = "Directive is unnecessary.",
+                    // We log the same as Roslyn does, so we can have only one post-report cleanup pass, above.
+                    Code = EAConstants.DiagnosticIds.IDE0005_gen,
+                    Message = "@addTagHelper directive is unnecessary.",
                     Source = "Razor",
-                    Severity = LspDiagnosticSeverity.Hint,
                     Range = sourceText.GetRange(directive.SpanWithoutTrailingNewLines(sourceText)),
-                    Tags = s_unnecessaryDiagnosticTags
                 });
             }
         }
