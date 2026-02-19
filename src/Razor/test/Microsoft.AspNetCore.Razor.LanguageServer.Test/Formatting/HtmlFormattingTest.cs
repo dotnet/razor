@@ -640,6 +640,35 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
             allowDiagnostics: true);
     }
 
+    [Fact]
+    public async Task VoidTagHelpers_NotIndented()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                """,
+            htmlFormatted: """
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                """,
+            expected: """
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                <input type="checkbox" asp-for="AllowAuthorizationCodeFlow">
+                """,
+            fileKind: RazorFileKind.Legacy,
+            allowDiagnostics: true);
+    }
+
     private TagHelperCollection GetComponents()
     {
         AdditionalSyntaxTrees.Add(Parse("""
