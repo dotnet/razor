@@ -490,7 +490,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
                 "CS1525" => ShouldIgnoreCS1525(diagnostic, codeDocument),
                 Constants.DiagnosticIds.IDE0005_gen => IsUsingDirectiveUsed(diagnostic, codeDocument),
                 // This diagnostics is produced by Roslyn to help its Remove Usings code fixer, so is irrelevant to us
-                "RemoveUnnecessaryImportsFixable" => true,
+                Constants.DiagnosticIds.RemoveUnnecessaryImportsFixable => true,
                 _ => false
             })
             {
