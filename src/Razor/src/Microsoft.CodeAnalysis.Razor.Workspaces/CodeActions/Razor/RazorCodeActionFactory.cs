@@ -49,6 +49,8 @@ internal static class RazorCodeActionFactory
             Data = JsonSerializer.SerializeToElement(resolutionParams),
             TelemetryId = s_removeUnnecessaryDirectivesTelemetryId,
             Name = LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            // Removing an unused using should be higher than promoting it
+            Order = -100,
         };
 
     public static RazorVSInternalCodeAction CreateAddComponentUsing(string @namespace, string? newTagName, RazorCodeActionResolutionParams resolutionParams)
