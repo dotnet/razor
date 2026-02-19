@@ -2,10 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -26,9 +33,7 @@ public partial class CohostDocumentPullDiagnosticsTest
 
         var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, htmlResponse)]);
 
-        var endpoint = new DocumentPullDiagnosticsEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, ClientCapabilitiesService, NoOpTelemetryReporter.Instance, LoggerFactory);
-
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, DisposalToken);
+        var result = await MakeDiagnosticsRequestAsync(document, taskListRequest: false, requestInvoker, IncompatibleProjectService, RemoteServiceInvoker, ClientSettingsManager, ClientCapabilitiesService, LoggerFactory, DisposalToken);
 
         Assert.NotNull(result);
 
@@ -46,5 +51,23 @@ public partial class CohostDocumentPullDiagnosticsTest
         }
 
         AssertEx.EqualOrDiff(input.OriginalInput, testOutput);
+    }
+
+    internal static Task<LspDiagnostic[]?> MakeDiagnosticsRequestAsync(
+        TextDocument document,
+        bool taskListRequest,
+        TestHtmlRequestInvoker requestInvoker,
+        IIncompatibleProjectService incompatibleProjectService,
+        IRemoteServiceInvoker remoteServiceInvoker,
+        IClientSettingsManager _,
+        IClientCapabilitiesService clientCapabilitiesService,
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken)
+    {
+        Assert.False(taskListRequest, "Not supported.");
+
+        var endpoint = new DocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory);
+
+        return endpoint.GetTestAccessor().HandleRequestAsync(document, cancellationToken);
     }
 }

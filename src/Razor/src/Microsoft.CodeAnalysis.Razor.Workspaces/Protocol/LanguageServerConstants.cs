@@ -58,6 +58,8 @@ internal static class LanguageServerConstants
 
         public const string PromoteUsingDirective = nameof(PromoteUsingDirective);
 
+        public const string RemoveUnnecessaryDirectives = nameof(RemoveUnnecessaryDirectives);
+
         public const string CodeActionFromVSCode = nameof(CodeActionFromVSCode);
 
         public const string WrapAttributes = nameof(WrapAttributes);
