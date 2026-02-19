@@ -1,0 +1,302 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
+
+public class RemoveUnnecessaryDirectiveTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
+{
+    [Fact]
+    public async Task RemoveUnusedUsingDirective()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task NotOfferedWithoutRZ0005()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text
+
+                <div>
+                    Hello World
+                </div>
+
+                @{ var x = new StringBuilder(); }
+
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task NotOfferedWhenCursorIsNotOnDirective()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+
+                <div>
+                    Hello [||]World
+                </div>
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task MultipleUnusedDirectives_RemovesAll()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text
+                @using System.Buffers
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task MultipleDirectives_OnlyUnusedRemoved()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text
+                @using System.Buffers
+                @using System
+
+                <div>
+                    Hello World
+                </div>
+
+                @{ var x = Console.WriteLine(""); }
+
+                """,
+            expected: """
+                @using System
+
+                <div>
+                    Hello World
+                </div>
+
+                @{ var x = Console.WriteLine(""); }
+
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task CursorOnUsedDirective_StillOfferedWhenUnusedExist()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using [||]System
+
+                <div>
+                    Hello World
+                </div>
+
+                @{ var x = Console.WriteLine(""); }
+
+                """,
+            expected: """
+                @using System
+
+                <div>
+                    Hello World
+                </div>
+
+                @{ var x = Console.WriteLine(""); }
+
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task SelectionSpanningDirective()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                [|@using System.Text|]
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task SelectionStartOnDirective_EndOutside()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                [|@using System.Text
+
+                <div>
+                    Hello|] World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task SelectionEndOnDirective_StartOutside()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using System.Buffers
+
+                <div>
+                    [|Hello World
+                </div>
+
+                @using Sy|]stem.IO
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+
+
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task CursorBeforeAtSign()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                [||]@using System.Text
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task CursorAfterAtSign()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @[||]using System.Text
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task CursorAtEndOfDirectiveLine()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text[||]
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task SelectionAcrossTwoUsings()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                [|@using System.Text
+                @using System.Buffers|]
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+}
