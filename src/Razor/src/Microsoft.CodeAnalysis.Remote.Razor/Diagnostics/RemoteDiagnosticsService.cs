@@ -71,7 +71,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
             var syntaxTree = codeDocument.GetRequiredSyntaxTree();
             var sourceText = codeDocument.Source.Text;
 
-            foreach (var directive in syntaxTree.EnumerateDirectives<RazorDirectiveSyntax>())
+            foreach (var directive in syntaxTree.EnumerateAddTagHelperDirectives())
             {
                 if (codeDocument.IsDirectiveUsed(directive))
                 {

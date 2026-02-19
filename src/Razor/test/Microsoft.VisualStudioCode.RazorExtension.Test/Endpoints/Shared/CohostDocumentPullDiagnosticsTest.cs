@@ -210,6 +210,13 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
                 @addTagHelper *, SomeProject
 
                 <dw:about-box />
+
+                @functions
+                {
+                    public void M()
+                    {
+                    }
+                }
                 """,
             additionalFiles:
             [
