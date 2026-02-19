@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -26,6 +27,9 @@ internal static class RazorSyntaxNodeExtensions
         body = null;
         return false;
     }
+
+    internal static bool IsAddTagHelperDirective(this RazorDirectiveSyntax directive)
+        => directive.DirectiveBody.Keyword.GetContent() == SyntaxConstants.CSharp.AddTagHelperKeyword;
 
     internal static bool IsSectionDirective(this SyntaxNode node)
         => (node as RazorDirectiveSyntax)?.IsDirective(SectionDirective.Directive) is true;
