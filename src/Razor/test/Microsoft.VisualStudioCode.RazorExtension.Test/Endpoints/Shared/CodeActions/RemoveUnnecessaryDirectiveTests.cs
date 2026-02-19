@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -297,6 +298,299 @@ public class RemoveUnnecessaryDirectiveTests(ITestOutputHelper testOutputHelper)
                 </div>
                 """,
             codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_UnusedAddTagHelper()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                [||]@addTagHelper *, SomeProject
+
+                <div></div>
+                """,
+            expected: """
+
+                <div></div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_UnusedAddTagHelper_CursorInMiddle()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @addTagHelper [||]*, SomeProject
+
+                <div></div>
+                """,
+            expected: """
+
+                <div></div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_UsedAddTagHelper_NotOffered()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @addTagHelper [||]*, SomeProject
+
+                <dw:about-box />
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_MixedDirectives_OnlyUnusedRemoved()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @addTagHelper AboutBoxTagHelper, SomeProject
+                @addTagHelper [||]FancyBoxTagHelper, SomeProject
+
+                <dw:about-box />
+                """,
+            expected: """
+                @addTagHelper AboutBoxTagHelper, SomeProject
+
+                <dw:about-box />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """),
+                (FilePath("FancyBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:fancy-box")]
+                    public class FancyBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_CursorOnUsedDirective_StillOfferedWhenUnusedExist()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @addTagHelper [||]AboutBoxTagHelper, SomeProject
+                @addTagHelper FancyBoxTagHelper, SomeProject
+
+                <dw:about-box />
+                """,
+            expected: """
+                @addTagHelper AboutBoxTagHelper, SomeProject
+
+                <dw:about-box />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """),
+                (FilePath("FancyBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:fancy-box")]
+                    public class FancyBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_UnusedAddTagHelperAndUsing_RemovesBoth()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @addTagHelper [||]*, SomeProject
+                @using System.Text
+
+                <div></div>
+                """,
+            expected: """
+
+                <div></div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_MixedUsedAndUnused_OnlyUnusedRemoved()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @addTagHelper AboutBoxTagHelper, SomeProject
+                @addTagHelper [||]FancyBoxTagHelper, SomeProject
+                @using System.Text
+                @using System
+
+                <dw:about-box />
+                @{ var x = Console.WriteLine(""); }
+                """,
+            expected: """
+                @addTagHelper AboutBoxTagHelper, SomeProject
+                @using System
+
+                <dw:about-box />
+                @{ var x = Console.WriteLine(""); }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """),
+                (FilePath("FancyBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:fancy-box")]
+                    public class FancyBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_SelectionAcrossAddTagHelperDirectives()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                [|@addTagHelper *, SomeProject
+                @using System.Text|]
+
+                <div></div>
+                """,
+            expected: """
+
+                <div></div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task Legacy_NotOfferedWhenCursorNotOnDirective()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @addTagHelper *, SomeProject
+                @using System.Text
+
+                <div>[||]</div>
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles:
+            [
+                (FilePath("AboutBoxTagHelper.cs"), """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                    [HtmlTargetElement("dw:about-box")]
+                    public class AboutBoxTagHelper : TagHelper
+                    {
+                    }
+                    """)
+            ],
+            fileKind: RazorFileKind.Legacy,
             makeDiagnosticsRequest: true);
     }
 }
