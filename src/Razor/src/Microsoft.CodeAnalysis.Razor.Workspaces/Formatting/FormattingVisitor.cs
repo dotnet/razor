@@ -227,13 +227,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
 
         Visit(node.StartTag);
 
-        var voidElement = node.StartTag.IsVoidElement();
-
-        if (!voidElement)
-        {
-            _currentHtmlIndentationLevel++;
-        }
-
+        _currentHtmlIndentationLevel++;
         if (causesIndentation)
         {
             _currentComponentIndentationLevel += componentIndentationLevels;
@@ -250,10 +244,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
             _currentComponentIndentationLevel -= componentIndentationLevels;
         }
 
-        if (!voidElement)
-        {
-            _currentHtmlIndentationLevel--;
-        }
+        _currentHtmlIndentationLevel--;
 
         Visit(node.EndTag);
 
