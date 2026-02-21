@@ -143,14 +143,13 @@ namespace MyApp.Pages
         public async Task SourceGeneratorEvents_RazorFiles_Works()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var driver = await GetDriverAsync(project);
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(
@@ -212,49 +211,29 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-                e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Index.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Index.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
-            );
+            // Verify all the incremental steps ran as expected for the initial generation
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.New);
+            result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("GeneratedCode", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
         }
 
         [Fact]
         public async Task IncrementalCompilation_DoesNotReexecuteSteps_WhenRazorFilesAreUnchanged()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var driver = await GetDriverAsync(project);
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(@"
@@ -315,22 +294,28 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
-
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Empty(eventListener.Events);
+            // Verify that when nothing changes, all steps are cached/unchanged
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("GeneratedCode", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
         }
 
         [Fact]
         public async Task IncrementalCompilation_WhenRazorFileMarkupChanges()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -399,15 +384,11 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
-
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
-
-            Assert.Empty(eventListener.Events);
 
             var updatedText = new TestAdditionalText("Pages/Counter.razor", SourceText.From("<h2>Counter</h2>", Encoding.UTF8));
             driver = driver.ReplaceAdditionalText(additionalTexts.First(f => f.Path == updatedText.Path), updatedText);
@@ -444,27 +425,12 @@ namespace MyApp.Pages
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
-
-            Assert.Collection(eventListener.Events,
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
-            );
         }
 
         [Fact]
         public async Task IncrementalCompilation_RazorFiles_WhenNewTypeIsAdded()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -533,8 +499,6 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
-
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
 
@@ -559,17 +523,12 @@ namespace MyApp.Pages
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
-
-            Assert.Collection(eventListener.Events,
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName));
         }
 
         [Fact]
         public async Task IncrementalCompilation_RazorFiles_WhenCSharpTypeChanges()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -584,7 +543,7 @@ public class Person
 }"
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -653,8 +612,6 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
-
             result = RunGenerator(compilation!, ref driver, expectedDiagnostics)
                         .VerifyOutputsMatch(result);
 
@@ -675,16 +632,15 @@ public class Person
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName));
+            // When a C# type changes, TagHelpersFromCompilation re-runs but the output is unchanged
+            // because Person is not a component and doesn't affect tag helpers
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged);
         }
 
         [Fact]
         public async Task IncrementalCompilation_RazorFiles_WhenChildComponentsAreAdded()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -753,7 +709,6 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -761,7 +716,6 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Empty(eventListener.Events);
 
             var updatedText = new TestAdditionalText("Pages/Counter.razor", SourceText.From(@"
 <h2>Counter</h2>
@@ -830,28 +784,12 @@ __builder.AddContent(3, count
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
-            );
         }
 
         [Fact]
         public async Task IncrementalCompilation_RazorFiles_WhenNewComponentParameterIsAdded()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -920,7 +858,6 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -928,7 +865,6 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Empty(eventListener.Events);
 
             var updatedText = new TestAdditionalText("Pages/Counter.razor", SourceText.From(@"
 <h2>Counter</h2>
@@ -1000,32 +936,12 @@ __builder.AddContent(3, count
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-               e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
-               e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
-               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
-               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
-            );
         }
 
         [Fact]
         public async Task IncrementalCompilation_RazorFiles_WhenProjectReferencesChange()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] =
@@ -1112,7 +1028,6 @@ namespace MyApp.Pages
             Assert.Equal("RZ10012", diagnostic.Id);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             var surveyPromptAssembly = GetSurveyPromptMetadataReference(compilation!);
             compilation = compilation!.AddReferences(surveyPromptAssembly);
@@ -1158,30 +1073,12 @@ using SurveyPromptRootNamspace;
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-                e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs")
-            );
 
             // Verify caching
-            eventListener.Clear();
             result = RunGenerator(compilation, ref driver);
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
-            Assert.Empty(eventListener.Events);
 
             static MetadataReference GetSurveyPromptMetadataReference(Compilation currentCompilation)
             {
@@ -1240,7 +1137,6 @@ public class SurveyPrompt : ComponentBase
         public async Task SourceGenerator_CshtmlFiles_Works()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.cshtml"] = "<h1>Hello world</h1>",
@@ -1359,31 +1255,6 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-                e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Views/Shared/_Layout.cshtml"),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.cshtml", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_cshtml.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Views/Shared/_Layout_cshtml.g.cs")
-            );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
@@ -1523,7 +1394,6 @@ namespace AspNetCoreGeneratedDocument
         public async Task SourceGenerator_CshtmlFiles_WhenMarkupChanges()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.cshtml"] = "<h1>Hello world</h1>",
@@ -1642,7 +1512,6 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -1650,7 +1519,6 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Empty(eventListener.Events);
 
             var updatedText = new TestAdditionalText("Views/Shared/_Layout.cshtml", SourceText.From("<h2>Updated Layout</h2>", Encoding.UTF8));
             driver = driver.ReplaceAdditionalText(additionalTexts.First(f => f.Path == updatedText.Path), updatedText);
@@ -1713,24 +1581,12 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-               e => e.AssertSingleItem("ParseRazorDocumentStart", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertSingleItem("ParseRazorDocumentStop", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertSingleItem("RewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertSingleItem("RewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
-               e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Views/Shared/_Layout_cshtml.g.cs")
-            );
         }
 
         [Fact]
         public async Task SourceGenerator_CshtmlFiles_CSharpTypeChanges()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.cshtml"] = "<h1>Hello world</h1>",
@@ -1863,7 +1719,6 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver, expectedDiagnostics)
                        .VerifyOutputsMatch(result);
@@ -1885,9 +1740,6 @@ public class Person
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName));
 
         }
 
@@ -1895,7 +1747,6 @@ public class Person
         public async Task SourceGenerator_CshtmlFiles_NewTagHelper()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.cshtml"] =
@@ -2018,7 +1869,6 @@ namespace AspNetCoreGeneratedDocument
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
@@ -2047,17 +1897,6 @@ public class HeaderTagHelper : TagHelper
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Collection(eventListener.Events,
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.cshtml", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_cshtml.g.cs")
-           );
         }
 
         [Fact]
@@ -2613,11 +2452,9 @@ namespace AspNetCoreGeneratedDocument
             RazorCohostingOptions.UseRazorCohostServer = false;
 
             // results should be empty, and no recorded steps should have run
-            using var eventListener = new RazorEventListener();
             var result = RunGenerator(compilation!, ref driver).VerifyPageOutput();
             Assert.DoesNotContain("DocumentsWithSuppression", (IReadOnlyDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>)result.TrackedSteps);
             Assert.DoesNotContain("ImplementationSourceOutput", (IReadOnlyDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>)result.TrackedOutputSteps);
-            Assert.Empty(eventListener.Events);
 
             // Now enable the generator and confirm we get the expected output
             driver = SetSuppressionState(false);
@@ -2697,44 +2534,13 @@ namespace MyApp.Pages
             );
 
             // All required steps should have run
-            Assert.Collection(eventListener.Events,
-                e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Index.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Index.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
-                );
 
             // flip the suppression state back to off
             driver = SetSuppressionState(true);
 
             // results should be empty, and no events recorded
-            eventListener.Clear();
             result = RunGenerator(compilation!, ref driver)
                 .VerifyPageOutput();
-            Assert.Empty(eventListener.Events);
 
             // But there *should* still be data in the caches:
 
@@ -2765,7 +2571,6 @@ namespace MyApp.Pages
 
             result = RunGenerator(compilation!, ref driver)
                 .VerifyPageOutput();
-            Assert.Empty(eventListener.Events);
 
             // Flip suppression off, and check that only the edited page gets updated
             driver = SetSuppressionState(false);
@@ -2833,25 +2638,9 @@ namespace MyApp.Pages
                (o) => Assert.Equal(IncrementalStepRunReason.Cached, Assert.Single(o.Outputs).Reason)
             );
 
-            Assert.Collection(eventListener.Events,
-                e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Index.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Index.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
-            );
 
             // Flip suppression on, change the compilation, no changes
             driver = SetSuppressionState(true);
-            eventListener.Clear();
             RunGenerator(compilation!, ref driver).VerifyPageOutput();
 
             project = project.AddDocument("viewcomponent.cs", """
@@ -2861,65 +2650,22 @@ namespace MyApp.Pages
             compilation = await project.GetCompilationAsync();
             RunGenerator(compilation!, ref driver).VerifyPageOutput();
 
-            Assert.Empty(eventListener.Events);
 
             // Un-suppress, check that tag helper discovery runs for the compilation that changed during suppression
             driver = SetSuppressionState(false);
             result = RunGenerator(compilation!, ref driver).VerifyOutputsMatch(result);
-            Assert.Collection(eventListener.Events,
-               e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
-            );
 
             // Flip suppression on, change the parse options, no changes
             driver = SetSuppressionState(true);
-            eventListener.Clear();
             project = project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.CSharp8));
             compilation = await project.GetCompilationAsync();
             driver = driver.WithUpdatedParseOptions(project.ParseOptions!);
             RunGenerator(compilation!, ref driver).VerifyPageOutput();
 
-            Assert.Empty(eventListener.Events);
 
             // Un-suppress, ensure that we completely re-run as we now have a different language version
             driver = SetSuppressionState(false);
             result = RunGenerator(compilation!, ref driver).VerifyOutputsMatch(result);
-            Assert.Collection(eventListener.Events,
-                e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Index.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Index.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
-                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
-                e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
-            );
 
             GeneratorDriver SetSuppressionState(bool state)
             {
@@ -3208,7 +2954,6 @@ namespace MyApp
         public async Task IncrementalCompilation_NothingRuns_When_AdditionalFiles_HaveSameContent()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -3221,14 +2966,12 @@ namespace MyApp
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                         .VerifyOutputsMatch(result);
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
-            Assert.Empty(eventListener.Events);
 
             project = project.RemoveAdditionalDocument(project.AdditionalDocumentIds[1])
                              .AddAdditionalDocument("Counter.razor", SourceText.From("<h1>Counter</h1>", Encoding.UTF8))
@@ -3242,14 +2985,12 @@ namespace MyApp
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            Assert.Empty(eventListener.Events);
         }
 
         [Fact]
         public async Task IncrementalCompilation_OnlyCompilationRuns_When_MetadataReferences_SameAssembly()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -3263,14 +3004,12 @@ namespace MyApp
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             result = RunGenerator(compilation!, ref driver)
                 .VerifyOutputsMatch(result);
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
-            Assert.Empty(eventListener.Events);
 
             var reference = (PortableExecutableReference)project.MetadataReferences[^1];
 
@@ -3287,10 +3026,6 @@ namespace MyApp
 
             // reference causes the compilation to change so we re-run tag helper discovery there
             // but we didn't re-check the actual reference itself
-            Assert.Collection(eventListener.Events,
-               e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName));
         }
 
         [Theory]
@@ -3448,7 +3183,6 @@ namespace MyApp
         [Fact]
         public async Task UseRazorCohostServer_CanOverride_Suppression()
         {
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Component.Razor"] = "<h1>Hello world</h1>",
@@ -3511,7 +3245,6 @@ namespace MyApp
         public async Task IncrementalCompilation_RerunsGenerator_When_AdditionalFileRenamed()
         {
             // Arrange
-            using var eventListener = new RazorEventListener();
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -3524,7 +3257,6 @@ namespace MyApp
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            eventListener.Clear();
 
             // Verify no changes when re-running
             result = RunGenerator(compilation!, ref driver)
@@ -3532,7 +3264,6 @@ namespace MyApp
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
-            Assert.Empty(eventListener.Events);
 
             // Rename Counter.razor to NewCounter.razor by removing and re-adding with same content
             var counterText = additionalTexts.First(f => f.Path.EndsWith("Counter.razor", StringComparison.OrdinalIgnoreCase));
@@ -3553,25 +3284,6 @@ namespace MyApp
             Assert.Equal(2, result.GeneratedSources.Length);
 
             // Verify the new file was processed
-            Assert.Collection(eventListener.Events,
-                    e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/NewCounter.razor"),
-                    e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/NewCounter.razor"),
-                    e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/NewCounter.razor"),
-                    e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/NewCounter.razor"),
-                    e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                    e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-                    e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/NewCounter.razor"),
-                    e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/NewCounter.razor"),
-                    e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
-                    e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
-                    e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/NewCounter.razor"),
-                    e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/NewCounter.razor"),
-                    e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
-                    e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-                    e => e.AssertPair("RazorCodeGenerateStart", "Pages/NewCounter.razor", "Runtime"),
-                    e => e.AssertPair("RazorCodeGenerateStop", "Pages/NewCounter.razor", "Runtime"),
-                    e => e.AssertSingleItem("AddSyntaxTrees", "Pages/NewCounter_razor.g.cs")
-            );
 
             // Verify the generated source has the correct namespace and class name
             var newCounterSource = result.GeneratedSources.FirstOrDefault(s => s.HintName.Contains("NewCounter"));
@@ -3623,7 +3335,7 @@ namespace MyApp
             mainProject = mainProject.AddMetadataReference(rclReference);
 
             var mainCompilation = await mainProject.GetCompilationAsync();
-            var (mainDriver, mainAdditionalTexts) = await GetDriverWithAdditionalTextAsync(mainProject);
+            var (mainDriver, mainAdditionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(mainProject, trackSteps: true);
             var mainRun = RunGenerator(mainCompilation!, ref mainDriver);
             Assert.Empty(mainRun.Diagnostics);
             Assert.Single(mainRun.GeneratedSources);
@@ -3663,18 +3375,15 @@ namespace MyApp
             Assert.Empty(mainRun.Diagnostics);
             Assert.Single(mainRun.GeneratedSources);
 
-            // Update the compilation, which will cause us to re-run. 
-            RazorEventListener eventListener = new RazorEventListener();
-
+            // Update the compilation, which will cause us to re-run
             mainCompilation = mainCompilation!.WithOptions(mainCompilation.Options.WithModuleName("newMain"));
             mainRun = RunGenerator(mainCompilation!, ref mainDriver);
             Assert.Empty(mainRun.Diagnostics);
             Assert.Single(mainRun.GeneratedSources);
 
             // Confirm that the tag helpers from metadata refs _didn't_ re-run
-            Assert.Collection(eventListener.Events,
-                     e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-                     e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName));
+            // TagHelpersFromCompilation re-runs when compilation changes but output is unchanged
+            mainRun.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged);
         }
     }
 }
