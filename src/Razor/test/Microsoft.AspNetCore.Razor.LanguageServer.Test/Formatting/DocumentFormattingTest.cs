@@ -11388,4 +11388,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             <td>
                     """,
             allowDiagnostics: true);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12807")]
+    public Task TernaryInAttribute()
+        => RunFormattingTestAsync(
+            input: """
+                <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)"/>
+                """,
+            htmlFormatted: """
+                <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)" />
+                """,
+            expected: """
+                <Icon Name="@(expanded ? ParentDataGrid.SelfReferenceCollapseIcon : ParentDataGrid.SelfReferenceExpandIcon)" />
+                """,
+            allowDiagnostics: true);
 }
