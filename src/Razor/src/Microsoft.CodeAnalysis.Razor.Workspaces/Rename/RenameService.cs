@@ -59,25 +59,33 @@ internal class RenameService(
         }
 
         var originComponentDocumentFilePath = originComponentDocumentSnapshot.FilePath;
-        var newPath = MakeNewPath(originComponentDocumentFilePath, newName);
-        if (_fileSystem.FileExists(newPath))
-        {
-            // We found a tag, but the new name would cause a conflict, so we can't proceed with the rename,
-            // even if C# might have worked.
-            return new(Edit: null, FallbackToCSharp: false);
-        }
-
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
 
-        var fileRename = GetRenameFileEdit(originComponentDocumentFilePath, newPath);
-        documentChanges.Add(fileRename);
+        RenameFile? fileRename = null;
+        var originComponentCodeDocument = await originComponentDocumentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
+        // Don't rename the file if it contains an explicit class name (e.g. via @classname). C# will handle renaming that via source mapping.
+        if (!originComponentCodeDocument.HasExplicitClassName())
+        {
+            // Rename the file itself
+            var newPath = MakeNewPath(originComponentDocumentFilePath, newName);
+            if (_fileSystem.FileExists(newPath))
+            {
+                // We found a tag, but the new name would cause a conflict, so we can't proceed with the rename,
+                // even if C# might have worked.
+                return new(Edit: null, FallbackToCSharp: false);
+            }
+
+            fileRename = GetRenameFileEdit(originComponentDocumentFilePath, newPath);
+            documentChanges.Add(fileRename);
+
+            AddAdditionalFileRenames(ref documentChanges.AsRef(), originComponentDocumentFilePath, newPath);
+        }
 
         if (!_languageServerFeatureOptions.UseRazorCohostServer)
         {
             AddEditsForCodeDocument(ref documentChanges.AsRef(), originTagHelpers, newName, new(documentContext.Uri), codeDocument);
         }
-
-        AddAdditionalFileRenames(ref documentChanges.AsRef(), originComponentDocumentFilePath, newPath);
 
         if (!_languageServerFeatureOptions.UseRazorCohostServer)
         {
@@ -98,12 +106,15 @@ internal class RenameService(
             }
         }
 
-        foreach (var documentChange in documentChanges)
+        if (fileRename is not null)
         {
-            if (documentChange.TryGetFirst(out var textDocumentEdit) &&
-                textDocumentEdit.TextDocument.DocumentUri == fileRename.OldDocumentUri)
+            foreach (var documentChange in documentChanges)
             {
-                textDocumentEdit.TextDocument.DocumentUri = fileRename.NewDocumentUri;
+                if (documentChange.TryGetFirst(out var textDocumentEdit) &&
+                    textDocumentEdit.TextDocument.DocumentUri == fileRename.OldDocumentUri)
+                {
+                    textDocumentEdit.TextDocument.DocumentUri = fileRename.NewDocumentUri;
+                }
             }
         }
 
