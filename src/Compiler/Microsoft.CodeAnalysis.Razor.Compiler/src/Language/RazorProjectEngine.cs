@@ -403,6 +403,7 @@ public sealed class RazorProjectEngine
         // Directives (conditional on file kind)
         ComponentCodeDirective.Register(builder);
         ComponentInjectDirective.Register(builder);
+        ComponentKeyedInjectDirective.Register(builder);
         ComponentLayoutDirective.Register(builder);
         ComponentPageDirective.Register(builder);
 

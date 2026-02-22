@@ -1,0 +1,93 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+
+#nullable disable
+
+using System;
+using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
+using static Microsoft.AspNetCore.Razor.Language.Components.ComponentNodeWriter;
+
+namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
+
+public class KeyedInjectTargetExtension(bool considerNullabilityEnforcement) : IKeyedInjectTargetExtension
+{
+    private const string RazorInjectAttribute = "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]";
+    private const string RazorInjectAttributeWithAsterix = "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute*]";
+
+    private string GetRazorInjectAttributeWithKey(string key) {
+
+        // If there is a key write it into inject attribute
+        return string.IsNullOrEmpty(key) ? RazorInjectAttribute : RazorInjectAttributeWithAsterix.Replace("*", $"(Key = {key})");
+    }
+
+    public void WriteKeyedInjectProperty(CodeRenderingContext context, KeyedInjectIntermediateNode node)
+    {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        if (node == null)
+        {
+            throw new ArgumentNullException(nameof(node));
+        }
+
+        if (!context.Options.DesignTime && !string.IsNullOrWhiteSpace(node.TypeSource?.FilePath))
+        {
+            if (node.TypeName == "")
+            {
+                // if we don't even have a type name, just emit an empty mapped region so that intellisense still works
+                using (context.BuildEnhancedLinePragma(node.TypeSource.Value))
+                {
+                }
+            }
+            else
+            {
+                var keyName = node.KeyName;
+                
+                context.CodeWriter.WriteLine(GetRazorInjectAttributeWithKey(keyName));
+
+                var memberName = node.MemberName ?? "Member_" + DefaultTagHelperTargetExtension.GetDeterministicId(context);
+                context.CodeWriter.WriteAutoPropertyDeclaration(["public"], node.TypeName, memberName, node.TypeSource, node.MemberSource, context, privateSetter: true, defaultValue: true);
+            }
+        }
+        else if (!node.IsMalformed)
+        {
+            var property = $"public {node.TypeName} {node.MemberName} {{ get; private set; }}";
+            if (considerNullabilityEnforcement && !context.Options.SuppressNullabilityEnforcement)
+            {
+                property += " = default!;";
+            }
+
+            if (node.Source.HasValue)
+            {
+                using (context.BuildLinePragma(node.Source.Value))
+                {
+                    WriteProperty();
+                }
+            }
+            else
+            {
+                WriteProperty();
+            }
+
+            void WriteProperty()
+            {
+                if (considerNullabilityEnforcement && !context.Options.SuppressNullabilityEnforcement)
+                {
+                    context.CodeWriter.WriteLine("#nullable restore");
+                }
+
+                context.CodeWriter
+                    .WriteLine(GetRazorInjectAttributeWithKey(node.KeyName))
+                    .WriteLine(property);
+
+                if (considerNullabilityEnforcement && !context.Options.SuppressNullabilityEnforcement)
+                {
+                    context.CodeWriter.WriteLine("#nullable disable");
+                }
+            }
+        }
+    }
+}

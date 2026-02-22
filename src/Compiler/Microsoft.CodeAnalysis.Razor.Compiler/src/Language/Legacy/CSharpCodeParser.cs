@@ -1677,6 +1677,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                             break;
 
                         case DirectiveTokenKind.String:
+                            // Either make this a move on if the currenttoken is a semicolon and it is optional or change order.
+                            // Changing order probably simpler
                             if (At(SyntaxKind.StringLiteral) && !CurrentToken.ContainsDiagnostics)
                             {
                                 AcceptAndMoveNext();

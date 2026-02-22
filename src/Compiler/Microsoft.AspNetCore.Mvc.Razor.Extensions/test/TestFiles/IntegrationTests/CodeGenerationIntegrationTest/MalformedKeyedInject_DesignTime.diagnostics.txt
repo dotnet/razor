@@ -1,0 +1,1 @@
+﻿TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MalformedKeyedInject.cshtml(2,35): Error RZ1016: The 'keyedinject' directive expects a string surrounded by double quotes.
