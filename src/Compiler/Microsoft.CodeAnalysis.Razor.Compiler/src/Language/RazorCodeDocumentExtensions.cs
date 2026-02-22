@@ -3,6 +3,9 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -33,4 +36,51 @@ public static class RazorCodeDocumentExtensions
         [NotNullWhen(true)] out string? @namespace,
         out SourceSpan? namespaceSpan)
         => codeDocument.TryGetNamespace(fallbackToRootNamespace, considerImports: true, out @namespace, out namespaceSpan);
+
+    internal static bool IsImportsFile(this RazorCodeDocument codeDocument)
+        => codeDocument.FileKind.IsComponentImport() ||
+            string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase);
+
+    internal static bool IsDirectiveUsed(this RazorCodeDocument codeDocument, BaseRazorDirectiveSyntax directive)
+    {
+        // In imports files, all directives are considered used as usage tracking is only for source documents.
+        if (codeDocument.IsImportsFile())
+        {
+            return true;
+        }
+
+        var contributions = codeDocument.GetDirectiveTagHelperContributions();
+        if (contributions.IsDefaultOrEmpty)
+        {
+            return true;
+        }
+
+        var referencedTagHelpers = codeDocument.GetReferencedTagHelpers();
+        foreach (var contribution in contributions)
+        {
+            if (contribution.DirectiveSpanStart == directive.SpanStart)
+            {
+                return referencedTagHelpers is not null &&
+                    !contribution.ContributedTagHelpers.IsEmpty &&
+                    AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers);
+            }
+        }
+
+        return false;
+
+        static bool AnyContributedTagHelperIsReferenced(
+            TagHelperCollection contributedTagHelpers,
+            TagHelperCollection referencedTagHelpers)
+        {
+            foreach (var contributed in contributedTagHelpers)
+            {
+                if (referencedTagHelpers.Contains(contributed))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 }
