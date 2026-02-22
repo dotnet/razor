@@ -284,6 +284,7 @@ internal partial class CSharpFormattingPass
                     return;
                 }
 
+                additionalLinesBuilder.AppendLine("_ =");
                 additionalLinesBuilder.AppendLine(GetAdditionalLineComment(originalSpan));
                 additionalLinesBuilder.AppendLine(_sourceText.ToString(originalSpan.ToTextSpan()));
                 additionalLinesBuilder.AppendLine(";");
