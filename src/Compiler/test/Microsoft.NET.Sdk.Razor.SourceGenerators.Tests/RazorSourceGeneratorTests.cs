@@ -1015,7 +1015,7 @@ __builder.AddContent(3, count
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver,
                 // Pages/Index.razor(2,8): error CS0246: The type or namespace name 'SurveyPromptRootNamspace' could not be found (are you missing a using directive or an assembly reference?)
@@ -1135,6 +1135,19 @@ using SurveyPromptRootNamspace;
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
+            // Verify that adding a metadata reference triggers tag helper discovery
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Unchanged); // Re-ran but unchanged
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-ran but compilation tag helpers unchanged
+            result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.Modified); // New reference added
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Modified,   // Index - new tag helper discovered  
+                IncrementalStepRunReason.Modified);  // Counter - tag helpers changed, needs recheck
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Modified,   // Index - re-generated with tag helper
+                IncrementalStepRunReason.Modified);  // Counter - re-generated due to tag helper changes
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments",
+                IncrementalStepRunReason.Modified,   // Index - output changed
+                IncrementalStepRunReason.Unchanged); // Counter - output unchanged (doesn't use new tag helper)
 
             // Verify caching
             result = RunGenerator(compilation, ref driver);
@@ -1205,7 +1218,7 @@ public class SurveyPrompt : ComponentBase
                 ["Views/Shared/_Layout.cshtml"] = "<h1>Layout</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var driver = await GetDriverAsync(project);
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(
@@ -1316,6 +1329,16 @@ namespace AspNetCoreGeneratedDocument
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
+
+            // Verify all steps ran for initial generation
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.New);
+            result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("GeneratedCode", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
 
         }
 
@@ -1663,7 +1686,7 @@ public class Person
 }"
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var expectedDiagnostics = new DiagnosticDescription[]
             {
@@ -1802,6 +1825,8 @@ public class Person
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
+            // Verify that when C# type changes, only TagHelpersFromCompilation re-runs
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged);
 
         }
 
@@ -1818,7 +1843,7 @@ public class Person
                 ["Views/Shared/_Layout.cshtml"] = "<h1>Layout</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(
@@ -1958,6 +1983,15 @@ public class HeaderTagHelper : TagHelper
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
+
+            // Verify that when new tag helper is added, tag helper discovery and rewrite steps re-run
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified); // New tag helper discovered
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Modified,   // Index - new tag helper affects h2
+                IncrementalStepRunReason.Unchanged); // Layout - doesn't use h2
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Modified,   // Index - re-generated with tag helper
+                IncrementalStepRunReason.Cached);    // Layout - unchanged
 
         }
 
