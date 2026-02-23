@@ -322,7 +322,7 @@ namespace MyApp.Pages
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(
@@ -390,6 +390,11 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
+            // Verify that when nothing changes, all steps are cached
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("GeneratedCode", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments", IncrementalStepRunReason.Cached, IncrementalStepRunReason.Cached);
+
             var updatedText = new TestAdditionalText("Pages/Counter.razor", SourceText.From("<h2>Counter</h2>", Encoding.UTF8));
             driver = driver.ReplaceAdditionalText(additionalTexts.First(f => f.Path == updatedText.Path), updatedText);
 
@@ -425,6 +430,23 @@ namespace MyApp.Pages
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
+
+            // Verify that when Counter markup changes, only Counter steps re-run
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed
         }
 
         [Fact]
@@ -647,7 +669,7 @@ public class Person
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(
@@ -784,6 +806,26 @@ __builder.AddContent(3, count
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
+            // Verify that when Counter adds code block, only Counter steps re-run
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed
+            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed (new code block)
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-run but no new tag helpers
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers",
+                IncrementalStepRunReason.Cached,    // Index - inputs unchanged
+                IncrementalStepRunReason.Modified); // Counter - document changed even if tag helpers didn't
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Cached,     // Index unchanged
+                IncrementalStepRunReason.Modified);  // Counter changed
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Cached,     // Index unchanged
+                IncrementalStepRunReason.Modified);  // Counter changed
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments",
+                IncrementalStepRunReason.Cached,     // Index unchanged
+                IncrementalStepRunReason.Modified);  // Counter changed
         }
 
         [Fact]
@@ -796,7 +838,7 @@ __builder.AddContent(3, count
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(
@@ -936,6 +978,26 @@ __builder.AddContent(3, count
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
+            // Verify that when Counter adds Parameter, the necessary steps re-run
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed
+            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Counter changed (new Parameter)
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified); // Parameter metadata changed
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers",
+                IncrementalStepRunReason.Cached,    // Index - document didn't change (comparer only checks document)
+                IncrementalStepRunReason.Modified); // Counter - document changed and tag helpers updated
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Modified,   // Index - tag helper collection changed, needs re-check
+                IncrementalStepRunReason.Modified);  // Counter changed
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Modified,   // Index - re-generated with new tag helper metadata
+                IncrementalStepRunReason.Modified);  // Counter changed
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments",
+                IncrementalStepRunReason.Unchanged,  // Index - output unchanged (doesn't use Counter)
+                IncrementalStepRunReason.Modified);  // Counter changed
         }
 
         [Fact]
