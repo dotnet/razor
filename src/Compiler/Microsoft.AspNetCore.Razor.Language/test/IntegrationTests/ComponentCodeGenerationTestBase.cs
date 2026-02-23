@@ -12984,5 +12984,25 @@ Time: @DateTime.Now
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11273")]
+    public void SectionDirective_NotAllowed_VariableNotDefined()
+    {
+        // Verify that @section is not recognized in components when the variable is not defined
+        // Act
+        var generated = CompileToCSharp("""
+            @section One { <p>Content</p> }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+            DesignTime
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,7): error CS0103: The name 'section' does not exist in the current context
+                ? [Diagnostic(ErrorCode.ERR_NameNotInContext, "section").WithArguments("section").WithLocation(1, 7)]
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,2): error CS0103: The name 'section' does not exist in the current context
+                : [Diagnostic(ErrorCode.ERR_NameNotInContext, "section").WithArguments("section").WithLocation(1, 2)]);
+    }
+
     #endregion
 }

@@ -3,6 +3,7 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeAssert;
 
@@ -78,7 +79,7 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         Children(section, c => Html(" <p>Hello World</p> ", c));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11273")]
     public void SectionDirective_IsRecognizedInLegacyFiles()
     {
         // Arrange
@@ -96,9 +97,15 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         // The section directive should be recognized without errors
         var diagnostics = syntaxTree.Diagnostics;
         Assert.Empty(diagnostics);
+
+        // Verify that a RazorDirective node for 'section' exists in the syntax tree
+        var directiveNodes = syntaxTree.Root.DescendantNodes()
+            .OfType<Microsoft.AspNetCore.Razor.Language.Syntax.RazorDirectiveSyntax>();
+
+        Assert.Contains(directiveNodes, d => d.DirectiveDescriptor?.Directive == "section");
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11273")]
     public void SectionDirective_IsNotRecognizedInComponentFiles()
     {
         // Arrange
