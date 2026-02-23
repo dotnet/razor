@@ -818,8 +818,8 @@ __builder.AddContent(3, count
                 IncrementalStepRunReason.Modified); // Counter changed (new code block)
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-run but no new tag helpers
             result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers",
-                IncrementalStepRunReason.Cached,    // Index - inputs unchanged
-                IncrementalStepRunReason.Modified); // Counter - document changed even if tag helpers didn't
+                IncrementalStepRunReason.Cached,    // Index - document and tag helpers unchanged
+                IncrementalStepRunReason.Modified); // Counter - document changed
             result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
                 IncrementalStepRunReason.Cached,     // Index unchanged
                 IncrementalStepRunReason.Modified);  // Counter changed
