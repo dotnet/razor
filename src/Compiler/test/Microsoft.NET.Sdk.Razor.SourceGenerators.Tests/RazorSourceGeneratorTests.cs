@@ -459,7 +459,7 @@ namespace MyApp.Pages
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(
@@ -545,6 +545,9 @@ namespace MyApp.Pages
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
+
+            // Verify that when a new C# type is added, only TagHelpersFromCompilation re-runs
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-ran but no new tag helpers
         }
 
         [Fact]
@@ -1485,7 +1488,7 @@ namespace AspNetCoreGeneratedDocument
                 ["Views/Shared/_Layout.cshtml"] = "<h1>Layout</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver)
                             .VerifyPageOutput(
@@ -1665,6 +1668,23 @@ namespace AspNetCoreGeneratedDocument
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
+
+            // Verify that when Layout markup changes, only Layout steps re-run
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Layout changed
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Layout changed
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Layout changed
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Layout changed
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // Layout changed
 
         }
 
@@ -3093,7 +3113,7 @@ namespace MyApp
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
+            var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver);
 
@@ -3122,6 +3142,8 @@ namespace MyApp
 
             // reference causes the compilation to change so we re-run tag helper discovery there
             // but we didn't re-check the actual reference itself
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Unchanged); // Re-ran but unchanged
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-ran but unchanged
         }
 
         [Theory]
@@ -3347,7 +3369,7 @@ namespace MyApp
                 ["Pages/Counter.razor"] = "<h1>Counter</h1>",
             });
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts, analyzerConfigOptionProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project);
+            var (driver, additionalTexts, analyzerConfigOptionProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             var result = RunGenerator(compilation!, ref driver);
             Assert.Empty(result.Diagnostics);
@@ -3380,6 +3402,22 @@ namespace MyApp
             Assert.Equal(2, result.GeneratedSources.Length);
 
             // Verify the new file was processed
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // NewCounter renamed from Counter
+            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode",
+                IncrementalStepRunReason.Cached,    // Index unchanged
+                IncrementalStepRunReason.Modified); // NewCounter renamed
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified); // Re-discover (removed Counter, added NewCounter)
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Modified,  // Index - tag helpers changed
+                IncrementalStepRunReason.Modified); // NewCounter renamed
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Modified,  // Index - tag helpers changed
+                IncrementalStepRunReason.Modified); // NewCounter renamed
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments",
+                IncrementalStepRunReason.Unchanged, // Index - output unchanged (doesn't use Counter/NewCounter)
+                IncrementalStepRunReason.Modified); // NewCounter renamed
 
             // Verify the generated source has the correct namespace and class name
             var newCounterSource = result.GeneratedSources.FirstOrDefault(s => s.HintName.Contains("NewCounter"));
