@@ -387,8 +387,6 @@ internal static class FormattingUtilities
 
                 if (lineInfo.ProcessIndentation)
                 {
-                    Debug.Assert(originalLine.GetFirstNonWhitespaceOffset().HasValue);
-
                     // First up, we take the indentation from the formatted file, and add on the fixed indentation level from the line info, and
                     // replace whatever was in the original file with it.
                     indentationString = formattedText.ToString(new TextSpan(formattedLine.Start, formattedIndentation))
