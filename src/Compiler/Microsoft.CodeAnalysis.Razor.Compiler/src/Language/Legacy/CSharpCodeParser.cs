@@ -997,7 +997,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                                   not SyntaxKind.LeftBrace and
                                   not SyntaxKind.LeftParenthesis and
                                   not SyntaxKind.LeftBracket and
-                                  not SyntaxKind.RightBrace,
+                                  not SyntaxKind.RightBrace and
+                                  not SyntaxKind.Keyword,
                 ref read.AsRef());
 
             if ((!Context.Options.AllowRazorInAllCodeBlocks && At(SyntaxKind.LeftBrace)) ||
@@ -1005,14 +1006,8 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 At(SyntaxKind.LeftBracket))
             {
                 Accept(in read);
-                if (Balance(builder, BalancingModes.AllowCommentsAndTemplates | BalancingModes.BacktrackOnFailure))
+                if (!TryBalanceBlock(builder))
                 {
-                    TryAccept(SyntaxKind.RightBrace);
-                }
-                else
-                {
-                    // Recovery
-                    AcceptUntil(SyntaxKind.LessThan, SyntaxKind.RightBrace);
                     return;
                 }
             }
@@ -1106,6 +1101,23 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 Accept(in read);
                 return;
             }
+            else if (At(SyntaxKind.Keyword))
+            {
+                Accept(in read);
+                if (CurrentToken.Content == "switch")
+                {
+                    AcceptUntil(SyntaxKind.LeftBrace); // TODO: how do we do error recovery at this point?
+                    if (!TryBalanceBlock(builder))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    // unknown keyword, continue parsing
+                    AcceptAndMoveNext();
+                }
+            }
             else
             {
                 _tokenizer.Reset(bookmark);
@@ -1113,6 +1125,22 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 AcceptUntil(SyntaxKind.LessThan, SyntaxKind.LeftBrace, SyntaxKind.RightBrace);
                 return;
             }
+        }
+
+        bool TryBalanceBlock(SyntaxListBuilder<RazorSyntaxNode> builder)
+        {
+            if (Balance(builder, BalancingModes.AllowCommentsAndTemplates | BalancingModes.BacktrackOnFailure))
+            {
+                TryAccept(SyntaxKind.RightBrace);
+            }
+            else
+            {
+                // Recovery
+                AcceptUntil(SyntaxKind.LessThan, SyntaxKind.RightBrace);
+                return false;
+            }
+
+            return true;
         }
     }
 
@@ -2575,10 +2603,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             }
 
             var usingStatementTokens = TokenBuilder.ToList().Nodes;
-            var usingContentTokens = usingStatementTokens.Skip(1);
-            var parsedNamespaceTokens = usingStatementTokens
-                .Skip(nonNamespaceTokenCount)
-                .Where(s => s.Kind != SyntaxKind.CSharpComment && s.Kind != SyntaxKind.Whitespace && s.Kind != SyntaxKind.NewLine);
 
             SetAcceptedCharacters(AcceptedCharactersInternal.AnyExceptNewline);
 
@@ -2589,16 +2613,37 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 hasExplicitSemicolon = TryAccept(SyntaxKind.Semicolon);
             }
 
+            using var _1 = StringBuilderPool.GetPooledObject(out var usingContentBuilder);
+            using var _2 = StringBuilderPool.GetPooledObject(out var parsedNamespaceBuilder);
+
+            for (var i = 0; i < usingStatementTokens.Length; i++)
+            {
+                var token = usingStatementTokens[i];
+
+                if (i >= 1)
+                {
+                    usingContentBuilder.Append(token.Content);
+                }
+
+                if (i >= nonNamespaceTokenCount &&
+                    token.Kind != SyntaxKind.CSharpComment &&
+                    token.Kind != SyntaxKind.Whitespace &&
+                    token.Kind != SyntaxKind.NewLine)
+                {
+                    parsedNamespaceBuilder.Append(token.Content);
+                }
+            }
+
             chunkGenerator = new AddImportChunkGenerator(
-                string.Concat(usingContentTokens.Select(s => s.Content)),
-                string.Concat(parsedNamespaceTokens.Select(s => s.Content)),
+                usingContentBuilder.ToString(),
+                parsedNamespaceBuilder.ToString(),
                 isStatic,
                 hasExplicitSemicolon);
 
             Debug.Assert(directiveBuilder.Count == 0, "We should not have built any blocks so far.");
             var keywordTokens = OutputTokensAsStatementLiteral();
             var directiveBody = SyntaxFactory.RazorDirectiveBody(keywordTokens, null);
-            builder.Add(SyntaxFactory.RazorDirective(transition, directiveBody));
+            builder.Add(SyntaxFactory.RazorUsingDirective(transition, directiveBody));
 
             if (!Context.DesignTimeMode)
             {

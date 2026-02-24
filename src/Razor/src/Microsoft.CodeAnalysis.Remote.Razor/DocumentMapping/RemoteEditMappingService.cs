@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -17,8 +18,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 [method: ImportingConstructor]
 internal sealed class RemoteEditMappingService(
     IDocumentMappingService documentMappingService,
+    ITelemetryReporter telemetryReporter,
     IFilePathService filePathService,
-    RemoteSnapshotManager snapshotManager) : AbstractEditMappingService(documentMappingService, filePathService)
+    RemoteSnapshotManager snapshotManager) : AbstractEditMappingService(documentMappingService, telemetryReporter, filePathService)
 {
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
@@ -49,13 +51,13 @@ internal sealed class RemoteEditMappingService(
             throw new InvalidOperationException("RemoteEditMappingService can only be used with RemoteDocumentSnapshot instances.");
         }
 
-        var project = originSnapshot.TextDocument.Project;
-        var razorCodeDocument = await _snapshotManager.GetSnapshot(project).TryGetCodeDocumentFromGeneratedDocumentUriAsync(generatedDocumentUri, cancellationToken).ConfigureAwait(false);
+        var solution = originSnapshot.TextDocument.Project.Solution;
+        var razorCodeDocument = await _snapshotManager.TryGetRazorCodeDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
         if (razorCodeDocument is null)
         {
             return null;
         }
 
-        return project.Solution.GetRazorDocumentUri(razorCodeDocument);
+        return solution.GetRazorDocumentUri(razorCodeDocument);
     }
 }

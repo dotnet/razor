@@ -447,7 +447,7 @@ internal sealed class SemanticTokensVisitor : SyntaxWalker
 
     public override void VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-        if (node.Parent is not RazorDirectiveSyntax)
+        if (node.Parent is not BaseRazorDirectiveSyntax)
         {
             using (ColorCSharpBackground())
             {
@@ -490,7 +490,7 @@ internal sealed class SemanticTokensVisitor : SyntaxWalker
     {
         if (node is MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding })
         {
-            var componentDescriptor = binding.Descriptors.FirstOrDefault(static d => d.Kind == TagHelperKind.Component);
+            var componentDescriptor = binding.TagHelpers.FirstOrDefault(static d => d.Kind == TagHelperKind.Component);
             return componentDescriptor is not null;
         }
         else if (node is MarkupTagHelperStartTagSyntax startTag)

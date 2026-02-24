@@ -10,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -238,8 +238,8 @@ namespace MyApp.Pages
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
         }
 
@@ -456,7 +456,7 @@ namespace MyApp.Pages
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
         }
 
@@ -843,7 +843,7 @@ __builder.AddContent(3, count
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
         }
 
@@ -1017,7 +1017,7 @@ __builder.AddContent(3, count
                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
         }
 
@@ -1145,14 +1145,7 @@ using SurveyPromptRootNamspace;
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.AddMarkupContent(0, ""<h1>Hello world</h1>\r\n"");
-            __builder.OpenComponent<global::SurveyPromptRootNamspace.
-#nullable restore
-#line (4,2)-(4,14) ""Pages/Index.razor""
-SurveyPrompt
-#line default
-#line hidden
-#nullable disable
-            >(1);
+            __builder.OpenComponent<global::SurveyPromptRootNamspace.SurveyPrompt>(1);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
@@ -1179,7 +1172,7 @@ SurveyPrompt
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs")
             );
 
             // Verify caching
@@ -1388,8 +1381,8 @@ namespace AspNetCoreGeneratedDocument
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_cshtml.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Views/Shared/_Layout_cshtml.g.cs")
             );
         }
 
@@ -1729,7 +1722,7 @@ namespace AspNetCoreGeneratedDocument
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
                e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
                e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
+               e => e.AssertSingleItem("AddSyntaxTrees", "Views/Shared/_Layout_cshtml.g.cs")
             );
         }
 
@@ -2063,7 +2056,7 @@ public class HeaderTagHelper : TagHelper
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.cshtml", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_cshtml.g.cs")
            );
         }
 
@@ -2611,7 +2604,7 @@ namespace AspNetCoreGeneratedDocument
             });
 
             var compilation = await project.GetCompilationAsync();
-            var (driver, additionalTexts, optionsProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project);
+            var (driver, additionalTexts, optionsProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
 
             // start with the generator suppressed (this is the default state in VS)
             driver = SetSuppressionState(true);
@@ -2730,8 +2723,8 @@ namespace MyApp.Pages
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
                 );
 
             // flip the suppression state back to off
@@ -2852,8 +2845,8 @@ namespace MyApp.Pages
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
 
             // Flip suppression on, change the compilation, no changes
@@ -2881,8 +2874,8 @@ namespace MyApp.Pages
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
 
             // Flip suppression on, change the parse options, no changes
@@ -2924,8 +2917,8 @@ namespace MyApp.Pages
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
-                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages/Counter_razor.g.cs")
             );
 
             GeneratorDriver SetSuppressionState(bool state)
@@ -3108,8 +3101,8 @@ namespace MyApp
             var result = RunGenerator(compilation!, ref driver);
 
             result.Diagnostics.Verify(
-                // error RZ3600: Invalid value '{0}'' for RazorLangVersion. Valid values include 'Latest' or a valid version in range 1.0 to 8.0.
-                Diagnostic("RZ3600").WithArguments(langVersion).WithLocation(1, 1));
+                // error RZ3600: Invalid value '{0}' for RazorLangVersion. Valid values include 'Latest', 'Preview', or a valid version in range 1.0 to {1}.
+                Diagnostic("RZ3600").WithArguments(langVersion, RazorLanguageVersion.Preview.ToString()).WithLocation(1, 1));
             Assert.Single(result.GeneratedSources);
         }
 
@@ -3279,7 +3272,7 @@ namespace MyApp
             Assert.Equal(2, result.GeneratedSources.Length);
             Assert.Empty(eventListener.Events);
 
-            var reference = (PortableExecutableReference) project.MetadataReferences[^1];
+            var reference = (PortableExecutableReference)project.MetadataReferences[^1];
 
             project = project.RemoveMetadataReference(reference)
                              .AddMetadataReference(MetadataReference.CreateFromFile(reference.FilePath!));
@@ -3577,7 +3570,7 @@ namespace MyApp
                     e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
                     e => e.AssertPair("RazorCodeGenerateStart", "Pages/NewCounter.razor", "Runtime"),
                     e => e.AssertPair("RazorCodeGenerateStop", "Pages/NewCounter.razor", "Runtime"),
-                    e => e.AssertSingleItem("AddSyntaxTrees", "Pages_NewCounter_razor.g.cs")
+                    e => e.AssertSingleItem("AddSyntaxTrees", "Pages/NewCounter_razor.g.cs")
             );
 
             // Verify the generated source has the correct namespace and class name

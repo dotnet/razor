@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase, IRazorIntermediateNodeLoweringPhase
 {
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override RazorCodeDocument ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);
@@ -139,7 +139,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
         }
 
-        codeDocument.SetDocumentNode(documentNode);
+        return codeDocument.WithDocumentNode(documentNode);
 
         static bool TryRemoveGlobalPrefixFromDefaultUsing(in UsingReference usingReference, out ReadOnlySpan<char> trimmedNamespace)
         {
@@ -293,10 +293,19 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         public RazorSourceDocument SourceDocument { get; set; }
 
+        public override void VisitRazorUsingDirective(RazorUsingDirectiveSyntax node)
+        {
+            VisitDirective(node, descriptor: null);
+        }
+
         public override void VisitRazorDirective(RazorDirectiveSyntax node)
         {
+            VisitDirective(node, node.DirectiveDescriptor);
+        }
+
+        private void VisitDirective(BaseRazorDirectiveSyntax node, DirectiveDescriptor descriptor)
+        {
             IntermediateNode directiveNode;
-            var descriptor = node.DirectiveDescriptor;
 
             if (descriptor != null)
             {
@@ -1035,7 +1044,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 TagName = tagName,
                 TagMode = info.TagMode,
                 Source = BuildSourceSpanFromNode(node),
-                TagHelpers = info.BindingResult.Descriptors
+                TagHelpers = info.BindingResult.TagHelpers
             };
 
             _builder.Push(tagHelperNode);
@@ -1080,11 +1089,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
 
             var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
+            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
             var attributeName = node.Name.GetContent();
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(descriptors, attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1121,12 +1130,12 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
         {
             var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
+            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
             var attributeName = node.Name.GetContent();
             var attributeValueNode = node.Value;
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(descriptors, attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1167,11 +1176,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             var children = new ChildNodesHelper(node.ChildNodesAndTokens());
             var position = node.Position;
-            if (children.FirstOrDefault().AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
+            SyntaxTokenList escapedAtTokens = default;
+            if (children.FirstOrDefault().AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax literalSyntax, MarkupEphemeralTextLiteralSyntax] })
             {
                 // This is a special case when we have an attribute like attr="@@foo".
-                // In this case, we want the foo to be written out as HtmlContent and not HtmlAttributeValue.
-                Visit(markupBlock);
+                // Extract the literal @ token from the first child so it can be merged with the rest of the attribute value.
+                // The ephemeral @ token is ignored.
+                escapedAtTokens = literalSyntax.LiteralTokens;
                 children = children.Skip(1);
                 position = children.Count > 0 ? children[0].Position : position;
             }
@@ -1179,6 +1190,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
             {
                 using PooledArrayBuilder<SyntaxToken> builder = [];
+
+                if (escapedAtTokens.Count > 0)
+                {
+                    builder.AddRange(escapedAtTokens);
+                }
 
                 foreach (var literal in attributeLiteralArray)
                 {
@@ -1193,6 +1209,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 using PooledArrayBuilder<SyntaxToken> builder = [];
 
+                if (escapedAtTokens.Count > 0)
+                {
+                    builder.AddRange(escapedAtTokens);
+                }
+
                 foreach (var literal in markupLiteralArray)
                 {
                     builder.AddRange(literal.LiteralTokens);
@@ -1204,6 +1225,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             else if (children.TryCast<CSharpExpressionLiteralSyntax>(out var expressionLiteralArray))
             {
                 using PooledArrayBuilder<SyntaxToken> builder = [];
+
+                if (escapedAtTokens.Count > 0)
+                {
+                    builder.AddRange(escapedAtTokens);
+                }
 
                 SpanEditHandler editHandler = null;
                 ISpanChunkGenerator generator = null;
@@ -1219,7 +1245,17 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
             else
             {
-                Visit(node);
+                if (escapedAtTokens.Count > 0)
+                {
+                    // If we have escaped @ tokens but no other content to merge with,
+                    // create a MarkupTextLiteral just for the escaped @ tokens
+                    var rewritten = SyntaxFactory.MarkupTextLiteral(escapedAtTokens).Green.CreateRed(node.Parent, position);
+                    Visit(rewritten);
+                }
+                else
+                {
+                    Visit(node);
+                }
             }
         }
 
@@ -1753,7 +1789,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 TagName = tagName,
                 TagMode = info.TagMode,
                 Source = BuildSourceSpanFromNode(node),
-                TagHelpers = info.BindingResult.Descriptors,
+                TagHelpers = info.BindingResult.TagHelpers,
                 StartTagSpan = node.StartTag.Name.GetSourceSpan(SourceDocument)
             };
 
@@ -1828,11 +1864,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
 
             var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
+            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
             var attributeName = node.Name.GetContent();
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(descriptors, attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1877,11 +1913,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
 
             var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
+            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
             var attributeName = node.FullName;
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(descriptors, attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1930,12 +1966,12 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
         {
             var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
+            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
             var attributeName = node.Name.GetContent();
             var attributeValueNode = node.Value;
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(descriptors, attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -1971,12 +2007,12 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public override void VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
         {
             var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var descriptors = element.TagHelperInfo.BindingResult.Descriptors;
+            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
             var attributeName = node.FullName;
             var attributeValueNode = node.Value;
 
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(descriptors, attributeName, ref matches.AsRef());
+            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
 
             if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
             {
@@ -2031,11 +2067,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             var children = new ChildNodesHelper(node.ChildNodesAndTokens());
             var position = node.Position;
-            if (children.FirstOrDefault().AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax, MarkupEphemeralTextLiteralSyntax] } markupBlock)
+            SyntaxTokenList escapedAtTokens = default;
+            if (children.FirstOrDefault().AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax literalSyntax, MarkupEphemeralTextLiteralSyntax] })
             {
                 // This is a special case when we have an attribute like attr="@@foo".
-                // In this case, we want the foo to be written out as HtmlContent and not HtmlAttributeValue.
-                Visit(markupBlock);
+                // Extract the literal @ token from the first child so it can be merged with the rest of the attribute value.
+                // The ephemeral @ token is ignored.
+                escapedAtTokens = literalSyntax.LiteralTokens;
                 children = children.Skip(1);
                 position = children.Count > 0 ? children[0].Position : position;
             }
@@ -2043,6 +2081,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
             {
                 using PooledArrayBuilder<SyntaxToken> valueTokens = [];
+
+                if (escapedAtTokens.Count > 0)
+                {
+                    valueTokens.AddRange(escapedAtTokens);
+                }
 
                 foreach (var literal in attributeLiteralArray)
                 {
@@ -2057,6 +2100,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 using PooledArrayBuilder<SyntaxToken> builder = [];
 
+                if (escapedAtTokens.Count > 0)
+                {
+                    builder.AddRange(escapedAtTokens);
+                }
+
                 foreach (var literal in markupLiteralArray)
                 {
                     builder.AddRange(literal.LiteralTokens);
@@ -2068,6 +2116,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             else if (children.TryCast<CSharpExpressionLiteralSyntax>(out var expressionLiteralArray))
             {
                 using PooledArrayBuilder<SyntaxToken> builder = [];
+
+                if (escapedAtTokens.Count > 0)
+                {
+                    builder.AddRange(escapedAtTokens);
+                }
 
                 ISpanChunkGenerator generator = null;
                 SpanEditHandler editHandler = null;
@@ -2084,7 +2137,17 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
             else
             {
-                Visit(node);
+                if (escapedAtTokens.Count > 0)
+                {
+                    // If we have escaped @ tokens but no other content to merge with,
+                    // create a MarkupTextLiteral just for the escaped @ tokens
+                    var rewritten = SyntaxFactory.MarkupTextLiteral(escapedAtTokens).Green.CreateRed(node.Parent, position);
+                    Visit(rewritten);
+                }
+                else
+                {
+                    Visit(node);
+                }
             }
         }
 

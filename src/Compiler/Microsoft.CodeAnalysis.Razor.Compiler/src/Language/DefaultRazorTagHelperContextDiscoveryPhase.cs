@@ -3,10 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -17,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePhaseBase
 {
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override RazorCodeDocument ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
         var syntaxTree = codeDocument.GetPreTagHelperSyntaxTree() ?? codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);
@@ -27,10 +25,10 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             if (!Engine.TryGetFeature(out ITagHelperFeature? tagHelperFeature))
             {
                 // No feature, nothing to do.
-                return;
+                return codeDocument;
             }
 
-            tagHelpers = tagHelperFeature.GetDescriptors(cancellationToken);
+            tagHelpers = tagHelperFeature.GetTagHelpers(cancellationToken);
         }
 
         using var _ = GetPooledVisitor(codeDocument, tagHelpers, cancellationToken, out var visitor);
@@ -53,9 +51,10 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         // This will always be null for a component document.
         var tagHelperPrefix = visitor.TagHelperPrefix;
 
-        var context = TagHelperDocumentContext.Create(tagHelperPrefix, visitor.GetResults());
-        codeDocument.SetTagHelperContext(context);
-        codeDocument.SetPreTagHelperSyntaxTree(syntaxTree);
+        var context = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, visitor.GetResults());
+        return codeDocument
+            .WithTagHelperContext(context)
+            .WithPreTagHelperSyntaxTree(syntaxTree);
     }
 
     internal static ReadOnlyMemory<char> GetMemoryWithoutGlobalPrefix(string s)
@@ -79,7 +78,9 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         private RazorSourceDocument? _source;
         private CancellationToken _cancellationToken;
 
-        private readonly HashSet<TagHelperDescriptor> _matches = [];
+        private TagHelperCollection.Builder? _matches;
+
+        private TagHelperCollection.Builder Matches => _matches ??= [];
 
         protected bool IsInitialized => _isInitialized;
         protected RazorSourceDocument Source => _source.AssumeNotNull();
@@ -100,7 +101,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             Visit(tree.Root);
         }
 
-        public ImmutableArray<TagHelperDescriptor> GetResults() => [.. _matches];
+        public TagHelperCollection GetResults() => _matches?.ToCollection() ?? [];
 
         protected void Initialize(string? filePath, CancellationToken cancellationToken)
         {
@@ -111,7 +112,12 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         public virtual void Reset()
         {
-            _matches.Clear();
+            if (_matches is { } matches)
+            {
+                matches.Dispose();
+                _matches = null;
+            }
+
             _filePath = null;
             _source = null;
             _cancellationToken = default;
@@ -121,7 +127,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         protected void AddMatch(TagHelperDescriptor tagHelper)
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            _matches.Add(tagHelper);
+            Matches.Add(tagHelper);
         }
 
         protected void AddMatches(List<TagHelperDescriptor> tagHelpers)
@@ -130,14 +136,14 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
             foreach (var tagHelper in tagHelpers)
             {
-                _matches.Add(tagHelper);
+                Matches.Add(tagHelper);
             }
         }
 
         protected void RemoveMatch(TagHelperDescriptor tagHelper)
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            _matches.Remove(tagHelper);
+            Matches.Remove(tagHelper);
         }
 
         protected void RemoveMatches(List<TagHelperDescriptor> tagHelpers)
@@ -146,13 +152,23 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
             foreach (var tagHelper in tagHelpers)
             {
-                _matches.Remove(tagHelper);
+                Matches.Remove(tagHelper);
             }
         }
 
-        protected abstract void ProcessChunkGenerator(RazorDirectiveSyntax node, ISpanChunkGenerator chunkGenerator);
+        protected abstract void ProcessChunkGenerator(BaseRazorDirectiveSyntax node, ISpanChunkGenerator chunkGenerator);
 
         public override void VisitRazorDirective(RazorDirectiveSyntax node)
+        {
+            VisitDirective(node);
+        }
+
+        public override void VisitRazorUsingDirective(RazorUsingDirectiveSyntax node)
+        {
+            VisitDirective(node);
+        }
+
+        private void VisitDirective(BaseRazorDirectiveSyntax node)
         {
             foreach (var child in node.DescendantNodes())
             {
@@ -180,7 +196,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         /// </summary>
         private readonly Dictionary<string, List<TagHelperDescriptor>> _tagHelperMap = new(StringComparer.Ordinal);
 
-        private IReadOnlyList<TagHelperDescriptor>? _descriptors;
+        private TagHelperCollection? _tagHelpers;
         private bool _tagHelperMapComputed;
         private string? _tagHelperPrefix;
 
@@ -201,13 +217,13 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
                 void ComputeTagHelperMap()
                 {
-                    var tagHelpers = _descriptors.AssumeNotNull();
+                    var tagHelpers = _tagHelpers.AssumeNotNull();
 
                     string? currentAssemblyName = null;
                     List<TagHelperDescriptor>? currentTagHelpers = null;
 
                     // We don't want to consider components in a view document.
-                    foreach (var tagHelper in tagHelpers.AsEnumerable())
+                    foreach (var tagHelper in tagHelpers)
                     {
                         if (!tagHelper.IsAnyComponentDocumentTagHelper())
                         {
@@ -230,13 +246,13 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         }
 
         public void Initialize(
-            IReadOnlyList<TagHelperDescriptor> descriptors,
+            TagHelperCollection tagHelpers,
             string? filePath,
             CancellationToken cancellationToken = default)
         {
             Debug.Assert(!IsInitialized);
 
-            _descriptors = descriptors;
+            _tagHelpers = tagHelpers;
 
             base.Initialize(filePath, cancellationToken);
         }
@@ -250,13 +266,13 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
             _tagHelperMap.Clear();
             _tagHelperMapComputed = false;
-            _descriptors = null;
+            _tagHelpers = null;
             _tagHelperPrefix = null;
 
             base.Reset();
         }
 
-        protected override void ProcessChunkGenerator(RazorDirectiveSyntax node, ISpanChunkGenerator chunkGenerator)
+        protected override void ProcessChunkGenerator(BaseRazorDirectiveSyntax node, ISpanChunkGenerator chunkGenerator)
         {
             switch (chunkGenerator)
             {
@@ -381,14 +397,14 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         private List<TagHelperDescriptor>? _componentsWithoutNamespace;
 
         public void Initialize(
-            IReadOnlyList<TagHelperDescriptor> descriptors,
+            TagHelperCollection tagHelpers,
             string? filePath,
             string? currentNamespace,
             CancellationToken cancellationToken = default)
         {
             Debug.Assert(!IsInitialized);
 
-            foreach (var component in descriptors.AsEnumerable())
+            foreach (var component in tagHelpers)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -451,7 +467,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             base.Reset();
         }
 
-        protected override void ProcessChunkGenerator(RazorDirectiveSyntax node, ISpanChunkGenerator chunkGenerator)
+        protected override void ProcessChunkGenerator(BaseRazorDirectiveSyntax node, ISpanChunkGenerator chunkGenerator)
         {
             switch (chunkGenerator)
             {
@@ -470,7 +486,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             }
         }
 
-        private void ProcessAddTagHelper(RazorDirectiveSyntax node, AddTagHelperChunkGenerator addTagHelper)
+        private void ProcessAddTagHelper(BaseRazorDirectiveSyntax node, AddTagHelperChunkGenerator addTagHelper)
         {
             if (ShouldAddDiagnostics)
             {
@@ -479,7 +495,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             }
         }
 
-        private void ProcessRemoveTagHelper(RazorDirectiveSyntax node, RemoveTagHelperChunkGenerator removeTagHelper)
+        private void ProcessRemoveTagHelper(BaseRazorDirectiveSyntax node, RemoveTagHelperChunkGenerator removeTagHelper)
         {
             if (ShouldAddDiagnostics)
             {
@@ -488,7 +504,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             }
         }
 
-        private void ProcessTagHelperPrefix(RazorDirectiveSyntax node, TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix)
+        private void ProcessTagHelperPrefix(BaseRazorDirectiveSyntax node, TagHelperPrefixDirectiveChunkGenerator tagHelperPrefix)
         {
             if (ShouldAddDiagnostics)
             {

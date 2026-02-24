@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -92,5 +94,34 @@ internal static class SolutionExtensions
     {
         return solution.GetProject(projectKey)
             ?? ThrowHelper.ThrowInvalidOperationException<Project>($"The project {projectKey} did not exist in {solution}.");
+    }
+
+    public static bool TryGetSourceGeneratedDocumentIdentity(this Solution solution, Uri generatedDocumentUri, out RazorGeneratedDocumentIdentity identity)
+    {
+        identity = default;
+        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentUri))
+        {
+            return false;
+        }
+
+        identity = RazorUri.GetIdentityOfGeneratedDocument(solution, generatedDocumentUri);
+
+        if (!identity.IsRazorSourceGeneratedDocument())
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentAsync(this Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
+            !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
+        {
+            return null;
+        }
+
+        return await project.TryGetCSharpDocumentForGeneratedDocumentAsync(identity, cancellationToken).ConfigureAwait(false);
     }
 }

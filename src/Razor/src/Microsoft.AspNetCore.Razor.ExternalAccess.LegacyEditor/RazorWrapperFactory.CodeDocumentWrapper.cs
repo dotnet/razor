@@ -47,7 +47,7 @@ internal static partial class RazorWrapperFactory
             {
                 builder.Add(new TagHelperSpan(
                     ConvertSourceSpan(item.Span),
-                    WrapAll(item.Binding.Descriptors, Wrap)));
+                    WrapAll(item.Binding.TagHelpers, Wrap)));
             }
 
             return builder.ToImmutableAndClear();
@@ -55,7 +55,7 @@ internal static partial class RazorWrapperFactory
 
         public ImmutableArray<RazorSourceMapping> GetSourceMappings()
         {
-            var mappings = Object.GetRequiredCSharpDocument().SourceMappings;
+            var mappings = Object.GetRequiredCSharpDocument().SourceMappingsSortedByGenerated;
 
             return WrapAll<SourceMapping, RazorSourceMapping>(mappings, ConvertSourceMapping);
         }

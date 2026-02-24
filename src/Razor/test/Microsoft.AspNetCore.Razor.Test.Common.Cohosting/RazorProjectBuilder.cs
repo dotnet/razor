@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -39,6 +40,8 @@ internal class RazorProjectBuilder(ProjectId? id = null)
     public bool GenerateGlobalConfigFile { get; set; } = true;
     public bool GenerateMSBuildProjectDirectory { get; set; } = true;
     public bool GenerateAdditionalDocumentMetadata { get; set; } = true;
+
+    public RazorLanguageVersion RazorLanguageVersion { get; set; } = RazorLanguageVersion.Preview;
 
     private readonly List<PortableExecutableReference> _references = [];
     private readonly List<(DocumentId id, string name, SourceText text, string filePath)> _documents = [];
@@ -83,6 +86,7 @@ internal class RazorProjectBuilder(ProjectId? id = null)
                 assemblyName: ProjectName ?? "",
                 LanguageNames.CSharp,
                 ProjectFilePath,
+                parseOptions: CSharpParseOptions.Default.WithFeatures([new("use-roslyn-tokenizer", "true")]),
                 compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             .WithMetadataReferences(_references)
             .WithDefaultNamespace(RootNamespace);
@@ -111,7 +115,7 @@ internal class RazorProjectBuilder(ProjectId? id = null)
             globalConfigContent.AppendLine($"""
                 is_global = true
 
-                build_property.RazorLangVersion = {FallbackRazorConfiguration.Latest.LanguageVersion}
+                build_property.RazorLangVersion = {RazorLanguageVersion}
                 build_property.RazorConfiguration = {FallbackRazorConfiguration.Latest.ConfigurationName}
                 build_property.RootNamespace = {RootNamespace}
 

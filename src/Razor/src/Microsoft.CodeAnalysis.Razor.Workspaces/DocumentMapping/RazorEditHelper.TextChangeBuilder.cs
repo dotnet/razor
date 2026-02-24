@@ -85,6 +85,23 @@ internal static partial class RazorEditHelper
                     NewText = edit.NewText
                 };
                 _builder.Add(mappedEdit);
+
+                if (node is BaseMarkupStartTagSyntax startTagSyntax &&
+                    startTagSyntax.GetEndTag() is { } endTag)
+                {
+                    // We are changing a start tag, and so we have a matching end tag. We have to translate the edit over there too
+                    // as we only map the start tag, but if they got out of sync that would be bad.
+                    var endTagEdit = new RazorTextChange()
+                    {
+                        Span = new RazorTextSpan()
+                        {
+                            Start = mappedSpan.Start + (endTag.Name.SpanStart - startTagSyntax.Name.SpanStart),
+                            Length = mappedSpan.Length
+                        },
+                        NewText = edit.NewText
+                    };
+                    _builder.Add(endTagEdit);
+                }
             }
         }
 
@@ -176,7 +193,7 @@ internal static partial class RazorEditHelper
                 return new TextSpan(start, 0);
             }
 
-            void AddNewUsingsToBlock(ImmutableArray<RazorDirectiveSyntax> existingUsings, ImmutableArray<string> addedUsings)
+            void AddNewUsingsToBlock(ImmutableArray<RazorUsingDirectiveSyntax> existingUsings, ImmutableArray<string> addedUsings)
             {
                 Debug.Assert(existingUsings.Length > 0);
                 using var _ = StringBuilderPool.GetPooledObject(out var builder);
@@ -286,7 +303,7 @@ internal static partial class RazorEditHelper
             }
         }
 
-        private void AddRemoveEdit(RazorDirectiveSyntax node, SourceText text)
+        private void AddRemoveEdit(RazorUsingDirectiveSyntax node, SourceText text)
         {
             var start = node.Span.Start;
             var end = AdjustPositionToEndOfLine(node.Span.End, text);
@@ -326,11 +343,11 @@ internal static partial class RazorEditHelper
         private static string GetUsingsText(string @namespace)
             => $"@using {@namespace}";
 
-        private static string GetUsingsText(ImmutableArray<RazorDirectiveSyntax> usingDirectives, ImmutableArray<string> newUsings, ImmutableArray<string> removedUsings)
+        private static string GetUsingsText(ImmutableArray<RazorUsingDirectiveSyntax> usingDirectives, ImmutableArray<string> newUsings, ImmutableArray<string> removedUsings)
         {
             using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-            var usingsMap = new Dictionary<string, RazorDirectiveSyntax?>(newUsings.Length + usingDirectives.Length);
+            var usingsMap = new Dictionary<string, RazorUsingDirectiveSyntax?>(newUsings.Length + usingDirectives.Length);
             foreach (var @using in newUsings)
             {
                 usingsMap.Add(@using, null);
@@ -359,7 +376,7 @@ internal static partial class RazorEditHelper
 
             return builder.ToString();
 
-            void AddIfNotRemoved(string @namespace, RazorDirectiveSyntax? directive)
+            void AddIfNotRemoved(string @namespace, RazorUsingDirectiveSyntax? directive)
             {
                 if (directive is not null)
                 {
@@ -379,7 +396,7 @@ internal static partial class RazorEditHelper
             }
         }
 
-        private static (ImmutableArray<RazorDirectiveSyntax> firstBlockOfUsings, ImmutableArray<RazorDirectiveSyntax> remainingUsings) GetGroupedUsings(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+        private static (ImmutableArray<RazorUsingDirectiveSyntax> firstBlockOfUsings, ImmutableArray<RazorUsingDirectiveSyntax> remainingUsings) GetGroupedUsings(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
         {
             // It's not guaranteed that usings are continuous so this code has to account for that.
             // The logic is as follows:
@@ -387,16 +404,15 @@ internal static partial class RazorEditHelper
             // All usings outside of the continuous block are checked to see if they need to be removed
 
             var root = codeDocument.GetRequiredSyntaxRoot();
-            using var firstBlockOfUsingsBuilder = new PooledArrayBuilder<RazorDirectiveSyntax>();
-            using var remainingUsingsBuilder = new PooledArrayBuilder<RazorDirectiveSyntax>();
+            using var firstBlockOfUsingsBuilder = new PooledArrayBuilder<RazorUsingDirectiveSyntax>();
+            using var remainingUsingsBuilder = new PooledArrayBuilder<RazorUsingDirectiveSyntax>();
             var allUsingsInSameBlock = true;
 
             foreach (var node in root.DescendantNodes())
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (node is RazorDirectiveSyntax razorDirective
-                    && razorDirective.IsUsingDirective())
+                if (node is RazorUsingDirectiveSyntax razorDirective)
                 {
                     if (!allUsingsInSameBlock)
                     {
