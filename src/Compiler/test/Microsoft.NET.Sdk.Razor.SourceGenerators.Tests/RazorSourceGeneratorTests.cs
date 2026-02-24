@@ -2650,6 +2650,17 @@ namespace MyApp.Pages
             );
 
             // All required steps should have run
+            // Note: RazorSourceGeneratorOptions is Modified because options changed (suppression toggled)
+            // ParsedDocuments and other steps are New since they didn't run during suppression
+            // TagHelper steps are Modified since they ran during suppression but with different options
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
+            result.VerifyIncrementalStepsMultiple("GeneratedCode", IncrementalStepRunReason.New, IncrementalStepRunReason.New);
 
             // flip the suppression state back to off
             driver = SetSuppressionState(true);
@@ -2754,6 +2765,23 @@ namespace MyApp.Pages
                (o) => Assert.Equal(IncrementalStepRunReason.Cached, Assert.Single(o.Outputs).Reason)
             );
 
+            // Verify incremental behavior - only Index.razor was parsed/generated, Counter was cached
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Unchanged);
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments",
+                IncrementalStepRunReason.Modified,  // Index.razor was edited
+                IncrementalStepRunReason.Cached);   // Counter.razor unchanged
+            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode",
+                IncrementalStepRunReason.Unchanged,  // Index.razor - declaration didn't change
+                IncrementalStepRunReason.Cached);   // Counter.razor
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers",
+                IncrementalStepRunReason.Modified,  // Index.razor
+                IncrementalStepRunReason.Cached);   // Counter.razor
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Modified,  // Index.razor
+                IncrementalStepRunReason.Cached);   // Counter.razor
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Modified,  // Index.razor
+                IncrementalStepRunReason.Cached);   // Counter.razor
 
             // Flip suppression on, change the compilation, no changes
             driver = SetSuppressionState(true);
@@ -2771,6 +2799,13 @@ namespace MyApp.Pages
             driver = SetSuppressionState(false);
             result = RunGenerator(compilation!, ref driver).VerifyOutputsMatch(result);
 
+            // Verify tag helper discovery ran due to compilation change
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Unchanged);
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified); // Compilation changed during suppression
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Unchanged,  // Index.razor - no tag helper changes
+                IncrementalStepRunReason.Unchanged); // Counter.razor - no tag helper changes
+
             // Flip suppression on, change the parse options, no changes
             driver = SetSuppressionState(true);
             project = project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.CSharp8));
@@ -2782,6 +2817,29 @@ namespace MyApp.Pages
             // Un-suppress, ensure that we completely re-run as we now have a different language version
             driver = SetSuppressionState(false);
             result = RunGenerator(compilation!, ref driver).VerifyOutputsMatch(result);
+
+            // Verify all steps re-ran due to parse options change
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Modified);
+            result.VerifyIncrementalStepsMultiple("ParsedDocuments",
+                IncrementalStepRunReason.Modified,  // Index.razor
+                IncrementalStepRunReason.Modified); // Counter.razor
+            result.VerifyIncrementalStepsMultiple("GeneratedDeclarationCode",
+                IncrementalStepRunReason.Unchanged,  // Index.razor - declaration unchanged
+                IncrementalStepRunReason.Unchanged); // Counter.razor - declaration unchanged
+            result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged);
+            result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.Unchanged);
+            result.VerifyIncrementalStepsMultiple("RewrittenTagHelpers",
+                IncrementalStepRunReason.Modified,  // Index.razor
+                IncrementalStepRunReason.Modified); // Counter.razor
+            result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
+                IncrementalStepRunReason.Modified,  // Index.razor
+                IncrementalStepRunReason.Modified); // Counter.razor
+            result.VerifyIncrementalStepsMultiple("GeneratedCode",
+                IncrementalStepRunReason.Modified,  // Index.razor
+                IncrementalStepRunReason.Modified); // Counter.razor
+            result.VerifyIncrementalStepsMultiple("CSharpDocuments",
+                IncrementalStepRunReason.Unchanged,  // Index.razor - output unchanged
+                IncrementalStepRunReason.Unchanged); // Counter.razor - output unchanged
 
             GeneratorDriver SetSuppressionState(bool state)
             {
