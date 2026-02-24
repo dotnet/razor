@@ -246,47 +246,32 @@ internal static class UsingDirectiveHelper
     }
 
     /// <summary>
-    /// Determines whether the using directives in the document need sorting or consolidating,
-    /// and if so, returns the sorted and deduplicated namespace list.
+    /// Determines whether the using directives in the document need sorting or consolidating.
     /// </summary>
-    public static bool TryGetSortedAndConsolidatedNamespaces(RazorCodeDocument codeDocument, out ImmutableArray<string> sortedNamespaces)
+    public static bool NeedsSortOrConsolidate(RazorCodeDocument codeDocument)
     {
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
 
         var usingDirectives = syntaxTree.GetUsingDirectives();
         if (usingDirectives.Length <= 1)
         {
-            sortedNamespaces = [];
             return false;
         }
 
         var sourceText = codeDocument.Source.Text;
 
-        // Collect the namespaces from all using directives
-        using var namespaces = new PooledArrayBuilder<string>();
+        // Check if namespaces are already in sorted order
+        string? previousNamespace = null;
         foreach (var directive in usingDirectives)
         {
             if (RazorSyntaxFacts.TryGetNamespaceFromDirective(directive, out var ns))
             {
-                namespaces.Add(ns);
-            }
-        }
+                if (previousNamespace is not null && UsingsStringComparer.Instance.Compare(previousNamespace, ns) > 0)
+                {
+                    return true;
+                }
 
-        if (namespaces.Count < 2)
-        {
-            sortedNamespaces = [];
-            return false;
-        }
-
-        // Sort the namespaces using the standard comparer (System first, then alphabetical)
-        sortedNamespaces = namespaces.ToImmutableOrdered(UsingsStringComparer.Instance);
-
-        // Check if namespaces are already in sorted order
-        for (var i = 0; i < namespaces.Count; i++)
-        {
-            if (!string.Equals(namespaces[i], sortedNamespaces[i], StringComparison.Ordinal))
-            {
-                return true;
+                previousNamespace = ns;
             }
         }
 
@@ -307,62 +292,57 @@ internal static class UsingDirectiveHelper
 
     /// <summary>
     /// Returns the text edits to sort and consolidate the using directives in the document
-    /// into one group at the location of the first group.
+    /// into one group at the location of the first group. Each directive's original source
+    /// text is preserved (including semicolons or other trailing content on the directive node).
+    /// Any non-directive content that follows a using directive on the same line is left in place.
     /// </summary>
-    public static ImmutableArray<TextEdit> GetSortAndConsolidateEdits(RazorCodeDocument codeDocument, ImmutableArray<string> sortedNamespaces)
+    public static ImmutableArray<TextEdit> GetSortAndConsolidateEdits(RazorCodeDocument codeDocument)
     {
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
         var usingDirectives = syntaxTree.GetUsingDirectives();
         var sourceText = codeDocument.Source.Text;
 
+        // Sort the directive nodes by namespace and build consolidated text from original source
+        var sorted = usingDirectives.Sort(UsingsNodeComparer.Instance);
+
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        foreach (var ns in sortedNamespaces)
+        foreach (var directive in sorted)
         {
-            builder.Append("@using ");
-            builder.AppendLine(ns);
+            // Append the full directive text, so (optional) semi-colons are preserved
+            builder.AppendLine(sourceText.ToString(directive.Span));
         }
-
-        // Replace the range from the first using to the last using in the first group
-        // with all sorted usings, then remove all subsequent using directives and their lines
-        var firstDirective = usingDirectives[0];
-        var firstDirectiveLine = sourceText.GetLinePosition(firstDirective.Span.Start).Line;
-
-        // Find the end of the first group of consecutive usings
-        var firstGroupEndIndex = 0;
-        for (var i = 1; i < usingDirectives.Length; i++)
-        {
-            var prevLine = sourceText.GetLinePosition(usingDirectives[i - 1].Span.End).Line;
-            var currentLine = sourceText.GetLinePosition(usingDirectives[i].Span.Start).Line;
-
-            if (currentLine > prevLine + 1)
-            {
-                break;
-            }
-
-            firstGroupEndIndex = i;
-        }
-
-        var lastDirectiveInFirstGroup = usingDirectives[firstGroupEndIndex];
-
-        // Replace the first group with all sorted usings
-        var firstGroupStartLine = sourceText.Lines[firstDirectiveLine];
-        var lastGroupLine = sourceText.GetLinePosition(lastDirectiveInFirstGroup.Span.End).Line;
-        var lastGroupEndLine = sourceText.Lines[lastGroupLine];
 
         using var editBuilder = new PooledArrayBuilder<TextEdit>();
-        var replaceRange = sourceText.GetRange(firstGroupStartLine.Start, lastGroupEndLine.EndIncludingLineBreak);
-        editBuilder.Add(LspFactory.CreateTextEdit(replaceRange, builder.ToString()));
 
-        // Remove all subsequent groups (usings after the first group)
-        for (var i = firstGroupEndIndex + 1; i < usingDirectives.Length; i++)
+        // Remove every using directive. If the directive is the only content on its line,
+        // remove the entire line (including the newline). Otherwise, only remove the
+        // directive span so any trailing content on the line is preserved.
+        for (var i = 0; i < usingDirectives.Length; i++)
         {
             var directive = usingDirectives[i];
-            var directiveLine = sourceText.GetLinePosition(directive.Span.Start).Line;
-            var line = sourceText.Lines[directiveLine];
+            var directiveLineNumber = sourceText.GetLinePosition(directive.Span.Start).Line;
+            var line = sourceText.Lines[directiveLineNumber];
 
-            var removeRange = sourceText.GetRange(line.Start, line.EndIncludingLineBreak);
-            editBuilder.Add(LspFactory.CreateTextEdit(removeRange, string.Empty));
+            var lineText = sourceText.ToString(TextSpan.FromBounds(line.Start, line.End));
+            if (lineText.Trim() == sourceText.ToString(directive.Span).Trim())
+            {
+                // Directive is the only thing on the line, remove the whole line
+                var removeRange = sourceText.GetRange(line.Start, line.EndIncludingLineBreak);
+                editBuilder.Add(LspFactory.CreateTextEdit(removeRange, string.Empty));
+            }
+            else
+            {
+                // There's other content on the line, only remove the directive span
+                var removeRange = sourceText.GetRange(directive.Span.Start, directive.Span.End);
+                editBuilder.Add(LspFactory.CreateTextEdit(removeRange, string.Empty));
+            }
         }
+
+        // Insert all sorted usings at the position of the first directive's line
+        var firstDirectiveLine = sourceText.GetLinePosition(usingDirectives[0].Span.Start).Line;
+        var insertPosition = sourceText.Lines[firstDirectiveLine].Start;
+        var insertRange = sourceText.GetRange(insertPosition, insertPosition);
+        editBuilder.Add(LspFactory.CreateTextEdit(insertRange, builder.ToString()));
 
         return editBuilder.ToImmutableAndClear();
     }

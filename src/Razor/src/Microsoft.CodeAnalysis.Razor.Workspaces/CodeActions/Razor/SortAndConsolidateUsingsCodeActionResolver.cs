@@ -18,12 +18,12 @@ internal class SortAndConsolidateUsingsCodeActionResolver : IRazorCodeActionReso
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        if (!UsingDirectiveHelper.TryGetSortedAndConsolidatedNamespaces(codeDocument, out var sorted))
+        if (!UsingDirectiveHelper.NeedsSortOrConsolidate(codeDocument))
         {
             return null;
         }
 
-        var edits = UsingDirectiveHelper.GetSortAndConsolidateEdits(codeDocument, sorted);
+        var edits = UsingDirectiveHelper.GetSortAndConsolidateEdits(codeDocument);
 
         var documentChanges = new TextDocumentEdit[]
         {

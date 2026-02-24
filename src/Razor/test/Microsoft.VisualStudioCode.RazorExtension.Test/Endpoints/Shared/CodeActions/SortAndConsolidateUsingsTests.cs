@@ -182,4 +182,117 @@ public class SortAndConsolidateUsingsTests(ITestOutputHelper testOutputHelper) :
                 """,
             codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
     }
+
+    [Fact]
+    public async Task ThreeGroups_AllConsolidated_Semicolons()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Microsoft.AspNetCore
+
+                @using System;
+                <div></div>
+                @using Zebra;
+
+                <div>Hello</div>
+                """,
+            expected: """
+                @using System;
+                @using Microsoft.AspNetCore
+                @using Zebra;
+
+                <div></div>
+
+                <div>Hello</div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
+
+    [Fact]
+    public async Task ThreeGroups_AllConsolidated_ExtraContent()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Microsoft.AspNetCore
+
+                @using System hi there welcome
+                <div></div>
+                @using Zebra;
+
+                <div>Hello</div>
+                """,
+            expected: """
+                @using System
+                @using Microsoft.AspNetCore
+                @using Zebra;
+
+                 hi there welcome
+                <div></div>
+
+                <div>Hello</div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
+
+    [Fact]
+    public async Task ThreeGroups_AllConsolidated_ExtraContentInFirstGroup()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Microsoft.AspNetCore
+                @using System;hi there welcome
+                @using Zebra
+
+                <div></div>
+
+                @using System.Text;<div>Hello</div>
+
+                <div>World</div>
+                """,
+            expected: """
+                @using System;
+                @using System.Text;
+                @using Microsoft.AspNetCore
+                @using Zebra
+                hi there welcome
+
+                <div></div>
+
+                <div>Hello</div>
+
+                <div>World</div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
+
+    [Fact]
+    public async Task ThreeGroups_AllConsolidated_ExtraContentOnFirstUsing()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System;hi there welcome
+                @using [||]Microsoft.AspNetCore
+                @using Zebra
+
+                <div></div>
+
+                @using System.Text;<div>Hello</div>
+
+                <div>World</div>
+                """,
+            expected: """
+                @using System;
+                @using System.Text;
+                @using Microsoft.AspNetCore
+                @using Zebra
+                hi there welcome
+
+                <div></div>
+
+                <div>Hello</div>
+
+                <div>World</div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
 }
