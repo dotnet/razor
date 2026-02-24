@@ -87,8 +87,7 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         var source = TestRazorSourceDocument.Create(content, filePath: "test.cshtml", relativePath: "test.cshtml");
         
         // Act
-        var codeDocument = ProjectEngine.CreateCodeDocument(source, RazorFileKind.Legacy);
-        ProjectEngine.Engine.Process(codeDocument);
+        var codeDocument = ProjectEngine.Process(source, RazorFileKind.Legacy, [], tagHelpers: null);
 
         // Assert
         var syntaxTree = codeDocument.GetSyntaxTree();
@@ -113,8 +112,7 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         var source = TestRazorSourceDocument.Create(content, filePath: "test.razor", relativePath: "test.razor");
         
         // Act
-        var codeDocument = ProjectEngine.CreateCodeDocument(source, RazorFileKind.Component);
-        ProjectEngine.Engine.Process(codeDocument);
+        var codeDocument = ProjectEngine.Process(source, RazorFileKind.Component, [], tagHelpers: null);
 
         // Assert
         var syntaxTree = codeDocument.GetSyntaxTree();
