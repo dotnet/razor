@@ -25,7 +25,7 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal static class AddUsingsHelper
+internal static class UsingDirectiveHelper
 {
     private static readonly Regex s_addUsingVSCodeAction = new Regex("@?using ([^;]+);?$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 

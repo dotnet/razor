@@ -35,7 +35,7 @@ internal class SortAndConsolidateUsingsCodeActionProvider : IRazorCodeActionProv
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (!AddUsingsHelper.TryGetSortedAndConsolidatedNamespaces(context.CodeDocument, out _))
+        if (!UsingDirectiveHelper.TryGetSortedAndConsolidatedNamespaces(context.CodeDocument, out _))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
