@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -242,5 +243,127 @@ internal static class AddUsingsHelper
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether the using directives in the document need sorting or consolidating,
+    /// and if so, returns the sorted and deduplicated namespace list.
+    /// </summary>
+    public static bool TryGetSortedAndConsolidatedNamespaces(RazorCodeDocument codeDocument, out ImmutableArray<string> sortedNamespaces)
+    {
+        var syntaxTree = codeDocument.GetRequiredSyntaxTree();
+
+        var usingDirectives = syntaxTree.GetUsingDirectives();
+        if (usingDirectives.Length <= 1)
+        {
+            sortedNamespaces = [];
+            return false;
+        }
+
+        var sourceText = codeDocument.Source.Text;
+
+        // Collect the namespaces from all using directives
+        using var namespaces = new PooledArrayBuilder<string>();
+        foreach (var directive in usingDirectives)
+        {
+            if (RazorSyntaxFacts.TryGetNamespaceFromDirective(directive, out var ns))
+            {
+                namespaces.Add(ns);
+            }
+        }
+
+        if (namespaces.Count < 2)
+        {
+            sortedNamespaces = [];
+            return false;
+        }
+
+        // Sort the namespaces using the standard comparer (System first, then alphabetical)
+        sortedNamespaces = namespaces.ToImmutableOrdered(UsingsStringComparer.Instance);
+
+        // Check if namespaces are already in sorted order
+        for (var i = 0; i < namespaces.Count; i++)
+        {
+            if (!string.Equals(namespaces[i], sortedNamespaces[i], StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        // Check if usings are in multiple groups (non-consecutive lines)
+        for (var i = 1; i < usingDirectives.Length; i++)
+        {
+            var prevLine = sourceText.GetLinePosition(usingDirectives[i - 1].Span.End).Line;
+            var currentLine = sourceText.GetLinePosition(usingDirectives[i].Span.Start).Line;
+
+            if (currentLine > prevLine + 1)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Returns the text edits to sort and consolidate the using directives in the document
+    /// into one group at the location of the first group.
+    /// </summary>
+    public static ImmutableArray<TextEdit> GetSortAndConsolidateEdits(RazorCodeDocument codeDocument, ImmutableArray<string> sortedNamespaces)
+    {
+        var syntaxTree = codeDocument.GetRequiredSyntaxTree();
+        var usingDirectives = syntaxTree.GetUsingDirectives();
+        var sourceText = codeDocument.Source.Text;
+
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        foreach (var ns in sortedNamespaces)
+        {
+            builder.Append("@using ");
+            builder.AppendLine(ns);
+        }
+
+        // Replace the range from the first using to the last using in the first group
+        // with all sorted usings, then remove all subsequent using directives and their lines
+        var firstDirective = usingDirectives[0];
+        var firstDirectiveLine = sourceText.GetLinePosition(firstDirective.Span.Start).Line;
+
+        // Find the end of the first group of consecutive usings
+        var firstGroupEndIndex = 0;
+        for (var i = 1; i < usingDirectives.Length; i++)
+        {
+            var prevLine = sourceText.GetLinePosition(usingDirectives[i - 1].Span.End).Line;
+            var currentLine = sourceText.GetLinePosition(usingDirectives[i].Span.Start).Line;
+
+            if (currentLine > prevLine + 1)
+            {
+                break;
+            }
+
+            firstGroupEndIndex = i;
+        }
+
+        var lastDirectiveInFirstGroup = usingDirectives[firstGroupEndIndex];
+
+        // Replace the first group with all sorted usings
+        var firstGroupStartLine = sourceText.Lines[firstDirectiveLine];
+        var lastGroupLine = sourceText.GetLinePosition(lastDirectiveInFirstGroup.Span.End).Line;
+        var lastGroupEndLine = sourceText.Lines[lastGroupLine];
+
+        using var editBuilder = new PooledArrayBuilder<TextEdit>();
+        var replaceRange = sourceText.GetRange(firstGroupStartLine.Start, lastGroupEndLine.EndIncludingLineBreak);
+        editBuilder.Add(LspFactory.CreateTextEdit(replaceRange, builder.ToString()));
+
+        // Remove all subsequent groups (usings after the first group)
+        for (var i = firstGroupEndIndex + 1; i < usingDirectives.Length; i++)
+        {
+            var directive = usingDirectives[i];
+            var directiveLine = sourceText.GetLinePosition(directive.Span.Start).Line;
+            var line = sourceText.Lines[directiveLine];
+
+            var removeRange = sourceText.GetRange(line.Start, line.EndIncludingLineBreak);
+            editBuilder.Add(LspFactory.CreateTextEdit(removeRange, string.Empty));
+        }
+
+        return editBuilder.ToImmutableAndClear();
     }
 }
