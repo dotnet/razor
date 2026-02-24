@@ -126,6 +126,25 @@ public class SortAndConsolidateUsingsTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Fact]
+    public async Task Selection()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [|Zebra|]
+                @using Apple
+
+                <div>Hello</div>
+                """,
+            expected: """
+                @using Apple
+                @using Zebra
+
+                <div>Hello</div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
+
+    [Fact]
     public async Task CursorNotOnUsing_NotOffered()
     {
         await VerifyCodeActionAsync(

@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
@@ -18,19 +17,18 @@ internal class SortAndConsolidateUsingsCodeActionProvider : IRazorCodeActionProv
 {
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
-        if (context.HasSelection)
-        {
-            return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
-        }
-
         if (!context.CodeDocument.TryGetSyntaxRoot(out var root))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Only offer when cursor is on a using directive
-        var owner = root.FindNode(TextSpan.FromBounds(context.StartAbsoluteIndex, context.EndAbsoluteIndex));
-        if (owner?.FirstAncestorOrSelf<RazorUsingDirectiveSyntax>() is null)
+        // Trigger if the selection start or end is inside any using directive
+        var startDirective = root.FindToken(context.StartAbsoluteIndex).Parent?.FirstAncestorOrSelf<RazorUsingDirectiveSyntax>();
+        var endDirective = context.HasSelection
+            ? root.FindToken(context.EndAbsoluteIndex).Parent?.FirstAncestorOrSelf<RazorUsingDirectiveSyntax>()
+            : startDirective;
+
+        if (startDirective is null && endDirective is null)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
