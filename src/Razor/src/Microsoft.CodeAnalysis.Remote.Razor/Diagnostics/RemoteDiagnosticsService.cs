@@ -101,7 +101,8 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
 
         // First, RZ diagnostics. Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
         var razorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics;
-        diagnostics.AddRange(RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot));
+        var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot);
+        diagnostics.AddRange(convertedDiagnostics);
 
         // For legacy files, that aren't imports, we also want to raise unused directive diagnostics. We only do this for
         // legacy (ie, @addTagHelper directives) because for .razor files we get the diagnostics from Roslyn, and filter
@@ -127,6 +128,12 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
                     Range = sourceText.GetRange(directive.SpanWithoutTrailingNewLines(sourceText)),
                 });
             }
+        }
+
+        if (diagnostics.Count == convertedDiagnostics.Length)
+        {
+            // No need to create a new array if we didn't add any additional diagnostics
+            return convertedDiagnostics.ToImmutableArray();
         }
 
         return diagnostics.ToImmutableAndClear();
