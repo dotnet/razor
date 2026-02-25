@@ -123,7 +123,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
                 {
                     // We log the same as Roslyn does, so we can have only one post-report cleanup pass, above.
                     Code = EAConstants.DiagnosticIds.IDE0005_gen,
-                    Message = "@addTagHelper directive is unnecessary.",
+                    Message = SR.AddTagHelper_directive_is_unnecessary,
                     Source = "Razor",
                     Range = sourceText.GetRange(directive.SpanWithoutTrailingNewLines(sourceText)),
                 });
