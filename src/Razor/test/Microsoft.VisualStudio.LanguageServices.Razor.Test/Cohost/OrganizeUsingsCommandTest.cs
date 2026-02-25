@@ -567,6 +567,23 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
             fileKind: RazorFileKind.Legacy);
 
     [Fact]
+    public Task Legacy_AddTagHelper_NotRemoved()
+      => VerifyRemoveAndSortUsingsAsync(
+          input: """
+                @using System.Text.RegularExpressions;
+                @addTagHelper *, UnusedAssembly
+                @using System
+
+                <div></div>
+                """,
+          expected: """
+                @addTagHelper *, UnusedAssembly
+
+                <div></div>
+                """,
+          fileKind: RazorFileKind.Legacy);
+
+    [Fact]
     public Task DuplicateUsings_Removed()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
