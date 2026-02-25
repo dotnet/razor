@@ -6,11 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
@@ -24,12 +26,13 @@ internal class RemoveUnnecessaryDirectivesCodeActionProvider : IRazorCodeActionP
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        if (!context.CodeDocument.TryGetSyntaxRoot(out var root))
+        if (!context.CodeDocument.TryGetSyntaxTree(out var tree))
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
         // Trigger if the selection start or end is inside any directive
+        var root = tree.Root;
         var startToken = root.FindToken(context.StartAbsoluteIndex);
         var endToken = context.StartAbsoluteIndex != context.EndAbsoluteIndex
             ? root.FindToken(context.EndAbsoluteIndex)
@@ -43,9 +46,24 @@ internal class RemoveUnnecessaryDirectivesCodeActionProvider : IRazorCodeActionP
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
+        // Resolve directive spans from cached line numbers by finding directives on those lines
+        var sourceText = context.CodeDocument.Source.Text;
+        using var _ = HashSetPool<int>.GetPooledObject(out var unusedDirectiveLineSet);
+        unusedDirectiveLineSet.UnionWith(unusedDirectiveLines);
+
+        using var unusedDirectiveSpans = new PooledArrayBuilder<RazorTextSpan>();
+        foreach (var node in tree.EnumerateDirectives<BaseRazorDirectiveSyntax>())
+        {
+            var line = sourceText.GetLinePosition(node.Span.Start).Line;
+            if (unusedDirectiveLineSet.Contains(line))
+            {
+                unusedDirectiveSpans.Add(node.Span.ToRazorTextSpan());
+            }
+        }
+
         var data = new RemoveUnnecessaryDirectivesCodeActionParams
         {
-            UnusedDirectiveLines = unusedDirectiveLines
+            UnusedDirectiveSpans = unusedDirectiveSpans.ToArrayAndClear()
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()

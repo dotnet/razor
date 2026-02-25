@@ -302,6 +302,72 @@ public class RemoveUnnecessaryDirectiveTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task UnusedDirectiveWithSemicolon()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text;
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task UnusedDirectiveWithExtraContent()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text;hello there
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+                hello there
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task MultipleUnusedDirectives_OneWithExtraContent()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text;extra stuff
+                @using System.Buffers
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+                extra stuff
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
     public async Task Legacy_UnusedAddTagHelper()
     {
         await VerifyCodeActionAsync(

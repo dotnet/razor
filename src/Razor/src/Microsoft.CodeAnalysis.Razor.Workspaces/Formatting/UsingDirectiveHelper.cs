@@ -319,17 +319,7 @@ internal static class UsingDirectiveHelper
         // directive span so any trailing content on the line is preserved.
         foreach (var directive in usingDirectives)
         {
-            var directiveLineNumber = sourceText.GetLinePosition(directive.Span.Start).Line;
-            var lineSpan = sourceText.Lines[directiveLineNumber].SpanIncludingLineBreak;
-            var directiveSpan = directive.Span;
-
-            // If the non-whitespace content of the line and the directive match, then the directive is the only thing on the line
-            // so we remove the whole line. Otherwise, just remove the directive.
-            var removeSpan = sourceText.NonWhitespaceContentEquals(sourceText, lineSpan.Start, lineSpan.End, directiveSpan.Start, directiveSpan.End)
-                ? lineSpan
-                : directiveSpan;
-            var removeRange = sourceText.GetRange(removeSpan);
-            editBuilder.Add(LspFactory.CreateTextEdit(removeRange, string.Empty));
+            editBuilder.Add(GetRemoveDirectiveEdit(sourceText, directive.Span));
         }
 
         // Insert all sorted usings at the position of the first directive's line
@@ -339,5 +329,24 @@ internal static class UsingDirectiveHelper
         editBuilder.Add(LspFactory.CreateTextEdit(insertRange, builder.ToString()));
 
         return editBuilder.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// Creates a text edit to remove a directive from its line. If the directive is the only
+    /// non-whitespace content on the line, the entire line including the line break is removed.
+    /// Otherwise, only the directive span is removed.
+    /// </summary>
+    public static TextEdit GetRemoveDirectiveEdit(SourceText sourceText, TextSpan directiveSpan)
+    {
+        var directiveLineNumber = sourceText.GetLinePosition(directiveSpan.Start).Line;
+        var lineSpan = sourceText.Lines[directiveLineNumber].SpanIncludingLineBreak;
+
+        // If the non-whitespace content of the line and the directive match, then the directive is the only thing on the line
+        // so we remove the whole line. Otherwise, just remove the directive.
+        var removeSpan = sourceText.NonWhitespaceContentEquals(sourceText, lineSpan.Start, lineSpan.End, directiveSpan.Start, directiveSpan.End)
+            ? lineSpan
+            : directiveSpan;
+
+        return LspFactory.CreateTextEdit(sourceText.GetRange(removeSpan), string.Empty);
     }
 }

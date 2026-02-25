@@ -4,6 +4,7 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,24 +26,22 @@ internal class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCodeActionR
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
-        var edits = new SumType<TextEdit, AnnotatedTextEdit>[actionParams.UnusedDirectiveLines.Length];
-        for (var i = 0; i < actionParams.UnusedDirectiveLines.Length; i++)
+        using var _ = ListPool<TextEdit>.GetPooledObject(out var edits);
+        foreach (var directiveSpan in actionParams.UnusedDirectiveSpans)
         {
-            var line = sourceText.Lines[actionParams.UnusedDirectiveLines[i]];
-            var removeRange = sourceText.GetRange(line.Start, line.EndIncludingLineBreak);
-            edits[i] = LspFactory.CreateTextEdit(removeRange, string.Empty);
+            edits.Add(UsingDirectiveHelper.GetRemoveDirectiveEdit(sourceText, directiveSpan.ToTextSpan()));
         }
 
         return new WorkspaceEdit
         {
-            DocumentChanges = new SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]>(
-            [
+            DocumentChanges = new TextDocumentEdit[]
+            {
                 new TextDocumentEdit
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
-                    Edits = edits,
+                    Edits = [.. edits],
                 }
-            ])
+            }
         };
     }
 }
