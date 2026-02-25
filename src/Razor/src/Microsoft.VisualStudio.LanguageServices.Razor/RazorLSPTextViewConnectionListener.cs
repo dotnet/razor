@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -37,15 +38,25 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(ITextViewConnectionListener))]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
-internal sealed partial class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
+[method: ImportingConstructor]
+internal sealed partial class RazorLSPTextViewConnectionListener(
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+    IVsEditorAdaptersFactoryService editorAdaptersFactory,
+    ILspEditorFeatureDetector editorFeatureDetector,
+    IEditorOptionsFactoryService editorOptionsFactory,
+    IClientSettingsManager editorSettingsManager,
+    LanguageServerFeatureOptions featureOptions,
+    JoinableTaskContext joinableTaskContext,
+    [ImportMany] IEnumerable<IInterceptedCommand> interceptedCommands) : ITextViewConnectionListener
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-    private readonly ILspEditorFeatureDetector _editorFeatureDetector;
-    private readonly IEditorOptionsFactoryService _editorOptionsFactory;
-    private readonly IClientSettingsManager _editorSettingsManager;
-    private readonly LanguageServerFeatureOptions _featureOptions;
-    private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory = editorAdaptersFactory;
+    private readonly ILspEditorFeatureDetector _editorFeatureDetector = editorFeatureDetector;
+    private readonly IEditorOptionsFactoryService _editorOptionsFactory = editorOptionsFactory;
+    private readonly IClientSettingsManager _editorSettingsManager = editorSettingsManager;
+    private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
+    private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
+    private readonly ImmutableArray<IInterceptedCommand> _interceptedCommands = [.. interceptedCommands];
     private IVsTextManager4? _textManager;
 
     /// <summary>
@@ -55,29 +66,10 @@ internal sealed partial class RazorLSPTextViewConnectionListener : ITextViewConn
     private readonly object _lock = new();
 
     #region protected by _lock
-    private readonly List<ITextView> _activeTextViews = new();
+    private readonly List<ITextView> _activeTextViews = [];
 
     private ITextBuffer? _textBuffer;
     #endregion
-
-    [ImportingConstructor]
-    public RazorLSPTextViewConnectionListener(
-        [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-        IVsEditorAdaptersFactoryService editorAdaptersFactory,
-        ILspEditorFeatureDetector editorFeatureDetector,
-        IEditorOptionsFactoryService editorOptionsFactory,
-        IClientSettingsManager editorSettingsManager,
-        LanguageServerFeatureOptions featureOptions,
-        JoinableTaskContext joinableTaskContext)
-    {
-        _serviceProvider = serviceProvider;
-        _editorAdaptersFactory = editorAdaptersFactory;
-        _editorFeatureDetector = editorFeatureDetector;
-        _editorOptionsFactory = editorOptionsFactory;
-        _editorSettingsManager = editorSettingsManager;
-        _featureOptions = featureOptions;
-        _joinableTaskContext = joinableTaskContext;
-    }
 
     /// <summary>
     /// Gets instance of <see cref="IVsTextManager4"/>. This accesses COM object and requires to be called on the UI thread.
@@ -117,7 +109,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener : ITextViewConn
             vsBuffer.SetLanguageServiceID(RazorConstants.RazorLanguageServiceGuid);
         }
 
-        RazorLSPTextViewFilter.CreateAndRegister(vsTextView);
+        RazorLSPTextViewFilter.CreateAndRegister(vsTextView, textView, _joinableTaskContext.Factory, _interceptedCommands);
 
         if (!textView.TextBuffer.IsRazorLSPBuffer())
         {
