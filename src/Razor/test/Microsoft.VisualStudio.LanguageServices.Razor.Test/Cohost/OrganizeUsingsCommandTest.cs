@@ -1,19 +1,16 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-public class RemoveAndSortUsingsServiceTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
     public Task SortOnly_NoUnused()
@@ -606,24 +603,12 @@ public class RemoveAndSortUsingsServiceTest(ITestOutputHelper testOutputHelper) 
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, additionalFiles: additionalFiles);
 
-        // Always make a diagnostics request first, to populate the UnusedDirectiveCache
-        var requestInvoker = new TestHtmlRequestInvoker();
-        await CohostDocumentPullDiagnosticsTest.MakeDiagnosticsRequestAsync(
-            document,
-            taskListRequest: false,
-            requestInvoker,
-            IncompatibleProjectService,
-            RemoteServiceInvoker,
-            ClientSettingsManager,
-            ClientCapabilitiesService,
-            LoggerFactory,
-            DisposalToken);
+        var command = new OrganizeUsingsCommand(RemoteServiceInvoker);
+        var accessor = command.GetTestAccessor();
 
-        // Now invoke the remove and sort usings service
-        var edits = await RemoteServiceInvoker.TryInvokeAsync<IRemoteRemoveAndSortUsingsService, ImmutableArray<TextChange>>(
-            document.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetRemoveAndSortUsingsEditsAsync(solutionInfo, document.Id, cancellationToken),
-            DisposalToken);
+        Assert.NotEqual(0, (int)accessor.QueryRemoveAndSortUsings());
+
+        var edits = await accessor.ExecuteRemoveAndSortUsingsAsync(document.Project.Solution, document.Id, DisposalToken);
 
         var sourceText = await document.GetTextAsync(DisposalToken);
         var result = sourceText.WithChanges(edits).ToString();
@@ -635,10 +620,12 @@ public class RemoveAndSortUsingsServiceTest(ITestOutputHelper testOutputHelper) 
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, additionalFiles: additionalFiles);
 
-        var edits = await RemoteServiceInvoker.TryInvokeAsync<IRemoteRemoveAndSortUsingsService, ImmutableArray<TextChange>>(
-            document.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetSortUsingsEditsAsync(solutionInfo, document.Id, cancellationToken),
-            DisposalToken);
+        var command = new OrganizeUsingsCommand(RemoteServiceInvoker);
+        var accessor = command.GetTestAccessor();
+
+        Assert.NotEqual(0, (int)accessor.QuerySortUsings());
+
+        var edits = await accessor.ExecuteSortUsingsAsync(document.Project.Solution, document.Id, DisposalToken);
 
         var sourceText = await document.GetTextAsync(DisposalToken);
         var result = sourceText.WithChanges(edits).ToString();

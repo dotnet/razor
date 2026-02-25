@@ -88,4 +88,21 @@ internal sealed class OrganizeUsingsCommand(IRemoteServiceInvoker remoteServiceI
             (service, solutionInfo, ct) => service.GetRemoveAndSortUsingsEditsAsync(solutionInfo, documentId, ct),
             cancellationToken).ConfigureAwait(false);
     }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal class TestAccessor(OrganizeUsingsCommand command)
+    {
+        public OLECMDF QueryRemoveAndSortUsings()
+            => command.QueryStatus(s_cSharpGroupGuid, RemoveAndSortUsingsCommandId);
+
+        public OLECMDF QuerySortUsings()
+            => command.QueryStatus(s_cSharpGroupGuid, SortUsingsCommandId);
+
+        public Task<ImmutableArray<TextChange>> ExecuteRemoveAndSortUsingsAsync(Solution solution, DocumentId documentId, CancellationToken cancellationToken)
+            => command.ExecuteAsync(solution, documentId, RemoveAndSortUsingsCommandId, cancellationToken);
+
+        public Task<ImmutableArray<TextChange>> ExecuteSortUsingsAsync(Solution solution, DocumentId documentId, CancellationToken cancellationToken)
+            => command.ExecuteAsync(solution, documentId, SortUsingsCommandId, cancellationToken);
+    }
 }
