@@ -261,71 +261,61 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
                 .Combine(razorSourceGeneratorOptions);
 
-            // Currently unused. See https://github.com/dotnet/roslyn/issues/71024.
-            var razorHostOutputsEnabled = analyzerConfigOptions.CheckGlobalFlagSet("EnableRazorHostOutputs");
-            var withOptionsDesignTime = withOptions.EmptyOrCachedWhen(razorHostOutputsEnabled, false);
+            var csharpDocuments = withOptions
+                .Select((pair, cancellationToken) =>
+                {
+                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
 
-            IncrementalValuesProvider<(string, SourceGeneratorRazorCodeDocument)> processed(bool designTime)
-            {
-                return (designTime ? withOptionsDesignTime : withOptions)
-                    .Select((pair, cancellationToken) =>
-                    {
-                        var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
 
-                        RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
+                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
 
-                        var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
+                    var document = projectEngine.ProcessInitialParse(sourceItem, cancellationToken);
 
-                        var document = projectEngine.ProcessInitialParse(sourceItem, designTime, cancellationToken);
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
+                    return (projectEngine, sourceItem.RelativePhysicalPath, document);
+                })
+                .WithTrackingName("ParsedDocuments")
 
-                        RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
-                        return (projectEngine, sourceItem.RelativePhysicalPath, document);
-                    })
-                    .WithTrackingName(designTime ? "ParsedDocuments_DesignTime" : "ParsedDocuments")
+                // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
+                .Combine(allTagHelpers)
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left))
+                .Select(static (pair, cancellationToken) =>
+                {
+                    var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
+                    RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStart(filePath);
 
-                    // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
-                    .Combine(allTagHelpers)
-                    .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left))
-                    .Select(static (pair, cancellationToken) =>
-                    {
-                        var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
-                        RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStart(filePath);
+                    codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false, cancellationToken);
 
-                        codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false, cancellationToken);
+                    RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStop(filePath);
+                    return (projectEngine, filePath, codeDocument);
+                })
+                .WithTrackingName("RewrittenTagHelpers")
 
-                        RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStop(filePath);
-                        return (projectEngine, filePath, codeDocument);
-                    })
-                    .WithTrackingName(designTime ? "RewrittenTagHelpers_DesignTime" : "RewrittenTagHelpers")
+                // next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-writing them
+                .Combine(allTagHelpers)
+                .Select(static (pair, cancellationToken) =>
+                {
+                    var ((projectEngine, filePath, document), allTagHelpers) = pair;
+                    RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
 
-                    // next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-writing them
-                    .Combine(allTagHelpers)
-                    .Select(static (pair, cancellationToken) =>
-                    {
-                        var ((projectEngine, filePath, document), allTagHelpers) = pair;
-                        RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
+                    document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true, cancellationToken);
 
-                        document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true, cancellationToken);
+                    RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStop(filePath);
+                    return (projectEngine, filePath, document);
+                })
+                .WithTrackingName("CheckedAndRewrittenTagHelpers")
+                .Select((pair, cancellationToken) =>
+                {
+                    var (projectEngine, filePath, document) = pair;
 
-                        RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStop(filePath);
-                        return (projectEngine, filePath, document);
-                    })
-                    .WithTrackingName(designTime ? "CheckedAndRewrittenTagHelpers_DesignTime" : "CheckedAndRewrittenTagHelpers")
-                    .Select((pair, cancellationToken) =>
-                    {
-                        var (projectEngine, filePath, document) = pair;
+                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath);
+                    document = projectEngine.ProcessRemaining(document, cancellationToken);
 
-                        var kind = designTime ? "DesignTime" : "Runtime";
-                        RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath, kind);
-                        document = projectEngine.ProcessRemaining(document, cancellationToken);
-
-                        RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath, kind);
-                        return (filePath, document);
-                    })
-                    .WithTrackingName(designTime ? "GeneratedCode_DesignTime" : "GeneratedCode");
-            }
-
-            var csharpDocuments = processed(designTime: false)
+                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath);
+                    return (filePath, document);
+                })
+                .WithTrackingName("GeneratedCode")
                 .Select(static (pair, _) =>
                 {
                     var (filePath, document) = pair;
