@@ -39,7 +39,7 @@ public static class RazorCodeDocumentExtensions
 
     internal static bool IsImportsFile(this RazorCodeDocument codeDocument)
         => codeDocument.FileKind.IsComponentImport() ||
-            string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase);
+           (codeDocument.FileKind.IsLegacy() && string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase));
 
     internal static bool IsDirectiveUsed(this RazorCodeDocument codeDocument, BaseRazorDirectiveSyntax directive)
     {
