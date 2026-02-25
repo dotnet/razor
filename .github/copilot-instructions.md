@@ -56,6 +56,16 @@ Razor documents contain multiple languages:
 - **Editor integration**: Consider both Visual Studio and VS Code experiences
 - **Backwards compatibility**: Maintain compatibility with existing Razor syntax
 
+### Adding OOP (Out-of-Process) Remote Services
+
+When adding a new OOP brokered service (i.e., a new `IRemote*Service` interface and its `Remote*Service` implementation):
+
+1. Add the service interface to `src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\`
+2. Add the implementation to `src\Razor\src\Microsoft.CodeAnalysis.Remote.Razor\`
+3. Register the service in `RazorServices.cs`
+4. **Add an entry to `eng\targets\Services.props`** — this is required for ServiceHub registration. The `Include` must follow the pattern `Microsoft.VisualStudio.Razor.{ShortName}` and the `ClassName` must be `{FullServiceTypeName}+Factory`.
+5. Run `RazorServicesTest` in `Microsoft.CodeAnalysis.Remote.Razor.Test` to validate the registration is correct: `dotnet test src\Razor\test\Microsoft.CodeAnalysis.Remote.Razor.Test --filter "FullyQualifiedName~RazorServicesTest"`
+
 ## Build and Development
 
 ### Prerequisites
