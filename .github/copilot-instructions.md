@@ -39,6 +39,7 @@ Razor documents contain multiple languages:
 - Use `using` statements for disposable resources
 - Ensure proper async/await patterns, avoid `Task.Wait()`
 - Use GetRequiredAbsoluteIndex for converting positions to absolute indexes
+- In remote services, the public stub method (calling `RunServiceAsync`) should be placed directly above its private implementation method
 
 ### Testing Patterns
 
@@ -48,6 +49,8 @@ Razor documents contain multiple languages:
 - Ideally we test the end user scenario, not implementation details
 - Consider cross-platform compatibility by testing path handling and case sensitivity where applicable
 - For tooling, "Cohosting" is the new architecture we're moving towards, so always create tests in the src\Razor\test\Microsoft.VisualStudioCode.RazorExtension.Test project
+- Verify/helper methods go at the bottom of test files. New test methods should always be added above verify methods.
+- Integration tests that add components via `AdditionalSyntaxTrees` and expect them discovered as tag helpers must use `UseTwoPhaseCompilation => true`. `ComponentDiscoveryIntegrationTest` has this; `ComponentDirectiveIntegrationTest` does not.
 
 ### Architecture Considerations
 
@@ -55,6 +58,12 @@ Razor documents contain multiple languages:
 - **Cross-platform**: Code should work on Windows, macOS, and Linux
 - **Editor integration**: Consider both Visual Studio and VS Code experiences
 - **Backwards compatibility**: Maintain compatibility with existing Razor syntax
+- Razor documents are stored as **additional documents** in Roslyn. To resolve one from a file path, use `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`
+- `RazorCodeDocument` is an immutable record-like class. Every `With*` method creates a new instance passing ALL fields through the constructor. When adding a new field, you must thread it through every existing `With*` method.
+- Before writing new utility methods, review existing helpers (e.g., `UsingDirectiveHelper`, `AddUsingsHelper`). Consolidate shared functionality rather than duplicating logic.
+- Prefer computing derived data via extension methods on `RazorCodeDocument` (e.g., `GetUnusedDirectives()`) rather than storing computed results as fields. Store only the source data on the code document.
+- `sourceText.GetTextChange(textEdit)` converts LSP `TextEdit` to Roslyn `TextChange`. The reverse is `sourceText.GetTextEdit(change)`. Both are in `LspExtensions_SourceText.cs`.
+- The codebase pools lists via `ListPool<T>.Default.Get()` and `.Return()`, and uses `PooledArrayBuilder<T>` for building immutable arrays. Follow these patterns rather than allocating new collections.
 
 ### Adding OOP (Out-of-Process) Remote Services
 
@@ -81,6 +90,7 @@ When adding a new OOP brokered service (i.e., a new `IRemote*Service` interface 
 ### Testing
 - `./build.sh -test` - Build and run tests
 - DO NOT USE `dotnet test` directly — running it at the repo root will include integration tests (e.g., Playwright-based VS Code tests) that require external dependencies and waste significant time. Use `build.cmd -test` (or `build.sh -test`) instead, or target a specific test project with `dotnet test path/to/Project.csproj`.
+- Never kill dotnet processes by name (e.g., `Stop-Process -Name` or `taskkill /IM`) to get unblocked — other work may be running on the machine.
 
 ## VS Code Local Validation
 
