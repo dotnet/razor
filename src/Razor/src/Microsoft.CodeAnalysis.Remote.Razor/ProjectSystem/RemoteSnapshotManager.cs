@@ -19,17 +19,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 internal sealed class RemoteSnapshotManager(IFilePathService filePathService, ITelemetryReporter telemetryReporter)
 {
     private static readonly ConditionalWeakTable<Solution, RemoteSolutionSnapshot> s_solutionToSnapshotMap = new();
-    private static readonly object s_gate = new();
 
     public IFilePathService FilePathService { get; } = filePathService;
     public ITelemetryReporter TelemetryReporter { get; } = telemetryReporter;
 
     public RemoteSolutionSnapshot GetSnapshot(Solution solution)
     {
-        lock (s_gate)
-        {
-            return s_solutionToSnapshotMap.GetValue(solution, s => new RemoteSolutionSnapshot(s, this));
-        }
+        return s_solutionToSnapshotMap.GetValue(solution, s => new RemoteSolutionSnapshot(s, this));
     }
 
     public RemoteProjectSnapshot GetSnapshot(Project project)
