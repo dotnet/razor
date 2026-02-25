@@ -317,25 +317,19 @@ internal static class UsingDirectiveHelper
         // Remove every using directive. If the directive is the only content on its line,
         // remove the entire line (including the newline). Otherwise, only remove the
         // directive span so any trailing content on the line is preserved.
-        for (var i = 0; i < usingDirectives.Length; i++)
+        foreach (var directive in usingDirectives)
         {
-            var directive = usingDirectives[i];
             var directiveLineNumber = sourceText.GetLinePosition(directive.Span.Start).Line;
-            var line = sourceText.Lines[directiveLineNumber];
+            var lineSpan = sourceText.Lines[directiveLineNumber].SpanIncludingLineBreak;
+            var directiveSpan = directive.Span;
 
-            var lineText = sourceText.ToString(TextSpan.FromBounds(line.Start, line.End));
-            if (lineText.Trim() == sourceText.ToString(directive.Span).Trim())
-            {
-                // Directive is the only thing on the line, remove the whole line
-                var removeRange = sourceText.GetRange(line.Start, line.EndIncludingLineBreak);
-                editBuilder.Add(LspFactory.CreateTextEdit(removeRange, string.Empty));
-            }
-            else
-            {
-                // There's other content on the line, only remove the directive span
-                var removeRange = sourceText.GetRange(directive.Span.Start, directive.Span.End);
-                editBuilder.Add(LspFactory.CreateTextEdit(removeRange, string.Empty));
-            }
+            // If the non-whitespace content of the line and the directive match, then the directive is the only thing on the line
+            // so we remove the whole line. Otherwise, just remove the directive.
+            var removeSpan = sourceText.NonWhitespaceContentEquals(sourceText, lineSpan.Start, lineSpan.End, directiveSpan.Start, directiveSpan.End)
+                ? lineSpan
+                : directiveSpan;
+            var removeRange = sourceText.GetRange(removeSpan);
+            editBuilder.Add(LspFactory.CreateTextEdit(removeRange, string.Empty));
         }
 
         // Insert all sorted usings at the position of the first directive's line
