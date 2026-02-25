@@ -368,6 +368,61 @@ public class RemoveUnnecessaryDirectiveTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task UnusedDirective_MultipleUsings1()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text;hello there @using System
+
+                @{ Console.WriteLine("hi"); }
+                """,
+            expected: """
+                hello there @using System
+
+                @{ Console.WriteLine("hi"); }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task UnusedDirective_MultipleUsings2()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System;hello there @using System.Text
+
+                @{ Console.WriteLine("hi"); }
+                """,
+            expected: """
+                @using System;hello there 
+
+                @{ Console.WriteLine("hi"); }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task UnusedDirective_MultipleUsings3()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System @using System.Text
+
+                @{ Console.WriteLine("hi"); }
+                """,
+            expected: """
+                @using System 
+
+                @{ Console.WriteLine("hi"); }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+
+    [Fact]
     public async Task Legacy_UnusedAddTagHelper()
     {
         await VerifyCodeActionAsync(

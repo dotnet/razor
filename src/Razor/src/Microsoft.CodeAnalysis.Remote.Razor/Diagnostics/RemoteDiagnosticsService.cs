@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 using EAConstants = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Constants;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -58,15 +59,23 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
 
         // Our final pass is to update all unused directive errors to ensure they display how we want in the IDE. Doing it here
         // means we don't have to duplicate between where we raise our own diagnostics, and filter Roslyns. We also capture the
-        // line numbers of the unused directives here so we can use that information for code fixes, without having to compute
+        // spans of the unused directives here so we can use that information for code fixes, without having to compute
         // it on demand every time.
-        using var unusedDirectiveLines = new PooledArrayBuilder<int>();
+        var sourceText = codeDocument.Source.Text;
+        var tree = codeDocument.GetRequiredSyntaxTree();
+        using var unusedDirectiveSpans = new PooledArrayBuilder<TextSpan>();
 
         foreach (var diagnostic in allDiagnostics)
         {
             if (diagnostic.Code is { Value: EAConstants.DiagnosticIds.IDE0005_gen })
             {
-                unusedDirectiveLines.Add(diagnostic.Range.Start.Line);
+                var absoluteIndex = sourceText.GetRequiredAbsoluteIndex(diagnostic.Range.Start.Line, diagnostic.Range.Start.Character);
+                var token = tree.Root.FindToken(absoluteIndex);
+                var directive = token.Parent?.FirstAncestorOrSelf<BaseRazorDirectiveSyntax>();
+                if (directive is not null)
+                {
+                    unusedDirectiveSpans.Add(directive.Span);
+                }
 
                 diagnostic.Severity = LspDiagnosticSeverity.Warning;
                 diagnostic.Tags = s_unnecessaryDiagnosticTags;
@@ -81,7 +90,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
             }
         }
 
-        UnusedDirectiveCache.Set(codeDocument, unusedDirectiveLines.ToArrayAndClear());
+        UnusedDirectiveCache.Set(codeDocument, unusedDirectiveSpans.ToArrayAndClear());
 
         return allDiagnostics;
     }
