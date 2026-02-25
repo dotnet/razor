@@ -295,15 +295,19 @@ internal static class UsingDirectiveHelper
     /// into one group at the location of the first group. Each directive's original source
     /// text is preserved (including semicolons or other trailing content on the directive node).
     /// Any non-directive content that follows a using directive on the same line is left in place.
+    /// If <paramref name="directivesToKeep"/> is provided, only those directives appear in the
+    /// sorted output; all others are removed. If null, all directives are kept.
     /// </summary>
-    public static ImmutableArray<TextEdit> GetSortAndConsolidateEdits(RazorCodeDocument codeDocument)
+    public static ImmutableArray<TextEdit> GetSortAndConsolidateEdits(
+        RazorCodeDocument codeDocument,
+        ImmutableArray<RazorUsingDirectiveSyntax>? directivesToKeep = null)
     {
         var syntaxTree = codeDocument.GetRequiredSyntaxTree();
         var usingDirectives = syntaxTree.GetUsingDirectives();
         var sourceText = codeDocument.Source.Text;
 
         // Sort the directive nodes by namespace and build consolidated text from original source
-        var sorted = usingDirectives.Sort(UsingsNodeComparer.Instance);
+        var sorted = (directivesToKeep ?? usingDirectives).Sort(UsingsNodeComparer.Instance);
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
         foreach (var directive in sorted)
