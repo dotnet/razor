@@ -482,6 +482,7 @@ internal class RazorTranslateDiagnosticsService(IDocumentMappingService document
                 !code.TryGetSecond(out var str) ||
                 str is null)
             {
+                filteredDiagnostics.Add(diagnostic);
                 continue;
             }
 
