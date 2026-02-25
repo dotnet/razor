@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Razor.Extensions;
 using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Shell;
@@ -38,7 +37,7 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(ITextViewConnectionListener))]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
-internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
+internal sealed partial class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
@@ -312,62 +311,6 @@ internal class RazorLSPTextViewConnectionListener : ITextViewConnectionListener
         optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
 
         return (new ClientSpaceSettings(IndentWithTabs: !insertSpaces, tabSize), new ClientCompletionSettings(autoShowCompletion, autoListParams));
-    }
-
-    private class RazorLSPTextViewFilter : IOleCommandTarget, IVsTextViewFilter
-    {
-        private RazorLSPTextViewFilter()
-        {
-        }
-
-        private IOleCommandTarget? _next;
-
-        private IOleCommandTarget Next
-        {
-            get
-            {
-                if (_next is null)
-                {
-                    throw new InvalidOperationException($"{nameof(Next)} called before being set.");
-                }
-
-                return _next;
-            }
-            set
-            {
-                _next = value;
-            }
-        }
-
-        public static void CreateAndRegister(IVsTextView textView)
-        {
-            var viewFilter = new RazorLSPTextViewFilter();
-            textView.AddCommandFilter(viewFilter, out var next);
-
-            viewFilter.Next = next;
-        }
-
-        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
-        {
-            var queryResult = Next.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
-            return queryResult;
-        }
-
-        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
-        {
-            var execResult = Next.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-            return execResult;
-        }
-
-        public int GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan) => VSConstants.E_NOTIMPL;
-
-        public int GetDataTipText(TextSpan[] pSpan, out string pbstrText)
-        {
-            pbstrText = null!;
-            return VSConstants.E_NOTIMPL;
-        }
-
-        public int GetPairExtents(int iLine, int iIndex, TextSpan[] pSpan) => VSConstants.E_NOTIMPL;
     }
 
     private record RazorEditorOptionsTracker(ITextView TrackedView, IEditorOptions ViewOptions, IEditorOptions BufferOptions);
