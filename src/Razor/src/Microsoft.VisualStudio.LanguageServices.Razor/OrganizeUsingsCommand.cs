@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.OLE.Interop;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.VisualStudio.Razor;
@@ -26,17 +25,12 @@ internal sealed class OrganizeUsingsCommand(IRemoteServiceInvoker remoteServiceI
 
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
 
-    public OLECMDF QueryStatus(Guid pguidCmdGroup, uint nCmdID)
+    public bool QueryStatus(Guid pguidCmdGroup, uint nCmdID)
     {
-        if (pguidCmdGroup == s_cSharpGroupGuid &&
+        return pguidCmdGroup == s_cSharpGroupGuid &&
             (nCmdID == RemoveAndSortUsingsCommandId ||
              nCmdID == ContextRemoveAndSortUsingsCommandId ||
-             nCmdID == SortUsingsCommandId))
-        {
-            return OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED;
-        }
-
-        return 0;
+             nCmdID == SortUsingsCommandId);
     }
 
     public Task<ImmutableArray<TextChange>> ExecuteAsync(
@@ -93,10 +87,10 @@ internal sealed class OrganizeUsingsCommand(IRemoteServiceInvoker remoteServiceI
 
     internal class TestAccessor(OrganizeUsingsCommand command)
     {
-        public OLECMDF QueryRemoveAndSortUsings()
+        public bool QueryRemoveAndSortUsings()
             => command.QueryStatus(s_cSharpGroupGuid, RemoveAndSortUsingsCommandId);
 
-        public OLECMDF QuerySortUsings()
+        public bool QuerySortUsings()
             => command.QueryStatus(s_cSharpGroupGuid, SortUsingsCommandId);
 
         public Task<ImmutableArray<TextChange>> ExecuteRemoveAndSortUsingsAsync(Solution solution, DocumentId documentId, CancellationToken cancellationToken)

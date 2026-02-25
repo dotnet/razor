@@ -623,7 +623,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
         var command = new OrganizeUsingsCommand(RemoteServiceInvoker);
         var accessor = command.GetTestAccessor();
 
-        Assert.NotEqual(0, (int)accessor.QueryRemoveAndSortUsings());
+        Assert.True(accessor.QueryRemoveAndSortUsings());
 
         var edits = await accessor.ExecuteRemoveAndSortUsingsAsync(document.Project.Solution, document.Id, DisposalToken);
 
@@ -640,7 +640,7 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
         var command = new OrganizeUsingsCommand(RemoteServiceInvoker);
         var accessor = command.GetTestAccessor();
 
-        Assert.NotEqual(0, (int)accessor.QuerySortUsings());
+        Assert.True(accessor.QuerySortUsings());
 
         var edits = await accessor.ExecuteSortUsingsAsync(document.Project.Solution, document.Id, DisposalToken);
 

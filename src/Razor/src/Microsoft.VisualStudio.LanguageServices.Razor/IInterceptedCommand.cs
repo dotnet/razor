@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.Razor;
 
@@ -16,7 +15,7 @@ namespace Microsoft.VisualStudio.Razor;
 /// </summary>
 internal interface IInterceptedCommand
 {
-    OLECMDF QueryStatus(Guid pguidCmdGroup, uint nCmdID);
+    bool QueryStatus(Guid pguidCmdGroup, uint nCmdID);
 
     Task<ImmutableArray<TextChange>> ExecuteAsync(Solution solution, DocumentId documentId, uint nCmdID, CancellationToken cancellationToken);
 }

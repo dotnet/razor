@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -62,10 +61,9 @@ internal sealed partial class RazorLSPTextViewConnectionListener
 
             foreach (var command in _interceptedCommands)
             {
-                var status = command.QueryStatus(pguidCmdGroup, prgCmds[0].cmdID);
-                if (status != 0)
+                if (command.QueryStatus(pguidCmdGroup, prgCmds[0].cmdID))
                 {
-                    prgCmds[0].cmdf = (uint)status;
+                    prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
                     return VSConstants.S_OK;
                 }
             }
@@ -77,50 +75,37 @@ internal sealed partial class RazorLSPTextViewConnectionListener
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            foreach (var command in _interceptedCommands)
+            var textBuffer = _textView.TextBuffer;
+
+            if (textBuffer.TryGetTextDocument(out var razorDocument))
             {
-                if (command.QueryStatus(pguidCmdGroup, nCmdID) == 0)
+                foreach (var command in _interceptedCommands)
                 {
-                    continue;
+                    if (!command.QueryStatus(pguidCmdGroup, nCmdID))
+                    {
+                        continue;
+                    }
+
+                    var edits = _jtf.Run(() => command.ExecuteAsync(razorDocument.Project.Solution, razorDocument.Id, nCmdID, CancellationToken.None));
+
+                    if (edits.IsDefaultOrEmpty)
+                    {
+                        break;
+                    }
+
+                    using var edit = textBuffer.CreateEdit();
+                    foreach (var change in edits)
+                    {
+                        edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
+                    }
+
+                    edit.Apply();
+
+                    return VSConstants.S_OK;
                 }
-
-                _jtf.Run(() => ExecuteCommandAsync(nCmdID, command, CancellationToken.None));
-
-                return VSConstants.S_OK;
             }
 
             return Next.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
-        }
-
-        private async Task ExecuteCommandAsync(uint nCmdID, IInterceptedCommand command, CancellationToken cancellationToken)
-        {
-            var textBuffer = _textView.TextBuffer;
-
-            if (!textBuffer.TryGetTextDocument(out var razorDocument))
-            {
-                return;
-            }
-
-            var edits = await command.ExecuteAsync(
-                razorDocument.Project.Solution,
-                razorDocument.Id,
-                nCmdID,
-                cancellationToken).ConfigureAwait(false);
-
-            if (edits.IsDefaultOrEmpty)
-            {
-                return;
-            }
-
-            await _jtf.SwitchToMainThreadAsync();
-
-            using var edit = textBuffer.CreateEdit();
-            foreach (var change in edits)
-            {
-                edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-            }
-
-            edit.Apply();
         }
 
         public int GetWordExtent(int iLine, int iIndex, uint dwFlags, TextSpan[] pSpan) => VSConstants.E_NOTIMPL;
