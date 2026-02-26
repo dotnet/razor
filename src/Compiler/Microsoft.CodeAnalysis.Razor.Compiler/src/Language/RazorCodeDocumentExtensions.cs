@@ -49,6 +49,7 @@ public static class RazorCodeDocumentExtensions
             return true;
         }
 
+        // If we couldn't calculate any contributions for some reason, assume the directive is used so we don't fade everything out.
         var contributions = codeDocument.GetDirectiveTagHelperContributions();
         if (contributions.IsDefaultOrEmpty)
         {
