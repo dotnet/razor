@@ -50,7 +50,7 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
         }
 
         // Determine unused directive lines from cache. We assume diagnostics will have run before this command
-        if (!UnusedDirectiveCache.TryGet(codeDocument, out var unusedLines))
+        if (!UnusedDirectiveCache.TryGet(codeDocument, out var unusedDirectiveSpans))
         {
             return [];
         }
@@ -60,8 +60,7 @@ internal sealed class RemoteRemoveAndSortUsingsService(in ServiceArgs args) : Ra
         using var usedDirectives = new PooledArrayBuilder<RazorUsingDirectiveSyntax>();
         foreach (var directive in allUsingDirectives)
         {
-            var line = sourceText.Lines.GetLinePosition(directive.SpanStart).Line;
-            if (!unusedLines.Contains(line))
+            if (!unusedDirectiveSpans.Contains(directive.Span))
             {
                 usedDirectives.Add(directive);
             }
