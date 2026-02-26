@@ -421,7 +421,6 @@ public class RemoveUnnecessaryDirectiveTests(ITestOutputHelper testOutputHelper)
             makeDiagnosticsRequest: true);
     }
 
-
     [Fact]
     public async Task Legacy_UnusedAddTagHelper()
     {
