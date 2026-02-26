@@ -43,7 +43,7 @@ public static class RazorCodeDocumentExtensions
            (codeDocument.FileKind.IsLegacy() && string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
-    /// Returns whether the directve specified was involved in tag helper binding
+    /// Returns whether the directive specified was involved in tag helper binding
     /// </summary>
     /// <remarks>
     /// If passed a directive that has no effect on tag helper binding at all, like `@if` or `@code`,
