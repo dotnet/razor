@@ -1,12 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
@@ -21,7 +20,7 @@ internal class RemoveUnnecessaryDirectivesCodeActionProvider : IRazorCodeActionP
     public Task<ImmutableArray<RazorVSInternalCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         // We can only provide this code action if diagnostics has ran and filled in our cache with the info we need
-        if (!UnusedDirectiveCache.TryGet(context.CodeDocument, out var unusedDirectiveLines) || unusedDirectiveLines.Length == 0)
+        if (!UnusedDirectiveCache.TryGet(context.CodeDocument, out var unusedDirectiveSpans) || unusedDirectiveSpans.Length == 0)
         {
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
@@ -46,24 +45,9 @@ internal class RemoveUnnecessaryDirectivesCodeActionProvider : IRazorCodeActionP
             return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
         }
 
-        // Resolve directive spans from cached line numbers by finding directives on those lines
-        var sourceText = context.CodeDocument.Source.Text;
-        using var _ = HashSetPool<int>.GetPooledObject(out var unusedDirectiveLineSet);
-        unusedDirectiveLineSet.UnionWith(unusedDirectiveLines);
-
-        using var unusedDirectiveSpans = new PooledArrayBuilder<RazorTextSpan>();
-        foreach (var node in tree.EnumerateDirectives<BaseRazorDirectiveSyntax>())
-        {
-            var line = sourceText.GetLinePosition(node.Span.Start).Line;
-            if (unusedDirectiveLineSet.Contains(line))
-            {
-                unusedDirectiveSpans.Add(node.Span.ToRazorTextSpan());
-            }
-        }
-
         var data = new RemoveUnnecessaryDirectivesCodeActionParams
         {
-            UnusedDirectiveSpans = unusedDirectiveSpans.ToArrayAndClear()
+            UnusedDirectiveSpans = Array.ConvertAll(unusedDirectiveSpans, static s => s.ToRazorTextSpan())
         };
 
         var resolutionParams = new RazorCodeActionResolutionParams()

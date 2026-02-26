@@ -60,7 +60,7 @@ public sealed partial class RazorCodeDocument
         _tagHelperContext = tagHelperContext;
         _documentNode = documentNode;
         _csharpDocument = csharpDocument;
-        _directiveTagHelperContributions = directiveTagHelperContributions;
+        _directiveTagHelperContributions = directiveTagHelperContributions.NullToEmpty();
     }
 
     public static RazorCodeDocument Create(
@@ -273,11 +273,11 @@ public sealed partial class RazorCodeDocument
     }
 
     internal ImmutableArray<DirectiveTagHelperContribution> GetDirectiveTagHelperContributions()
-        => _directiveTagHelperContributions.NullToEmpty();
+        => _directiveTagHelperContributions;
 
     internal RazorCodeDocument WithDirectiveTagHelperContributions(ImmutableArray<DirectiveTagHelperContribution> value)
     {
-        if (ReferenceEquals(ImmutableCollectionsMarshal.AsArray(value), ImmutableCollectionsMarshal.AsArray(_directiveTagHelperContributions)))
+        if (value == _directiveTagHelperContributions)
         {
             return this;
         }

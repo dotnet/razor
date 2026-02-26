@@ -324,51 +324,42 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
             // We only record directives if we're visiting the source document, so no point collecting them either.
             var contributed = IsSourceDocument ? ListPool<TagHelperDescriptor>.Default.Get() : null;
-            try
+            switch (GetMemoryWithoutGlobalPrefix(addTagHelper.TypePattern).Span)
             {
-                switch (GetMemoryWithoutGlobalPrefix(addTagHelper.TypePattern).Span)
-                {
-                    case ['*']:
-                        AddMatches(tagHelpers);
-                        contributed?.AddRange(tagHelpers);
-                        break;
+                case ['*']:
+                    AddMatches(tagHelpers);
+                    contributed?.AddRange(tagHelpers);
+                    break;
 
-                    case [.. var pattern, '*']:
-                        foreach (var tagHelper in tagHelpers)
+                case [.. var pattern, '*']:
+                    foreach (var tagHelper in tagHelpers)
+                    {
+                        if (tagHelper.Name.AsSpan().StartsWith(pattern, StringComparison.Ordinal))
                         {
-                            if (tagHelper.Name.AsSpan().StartsWith(pattern, StringComparison.Ordinal))
-                            {
-                                AddMatch(tagHelper);
-                                contributed?.Add(tagHelper);
-                            }
+                            AddMatch(tagHelper);
+                            contributed?.Add(tagHelper);
                         }
+                    }
 
-                        break;
+                    break;
 
-                    case var pattern:
-                        foreach (var tagHelper in tagHelpers)
+                case var pattern:
+                    foreach (var tagHelper in tagHelpers)
+                    {
+                        if (tagHelper.Name.AsSpan().Equals(pattern, StringComparison.Ordinal))
                         {
-                            if (tagHelper.Name.AsSpan().Equals(pattern, StringComparison.Ordinal))
-                            {
-                                AddMatch(tagHelper);
-                                contributed?.Add(tagHelper);
-                            }
+                            AddMatch(tagHelper);
+                            contributed?.Add(tagHelper);
                         }
+                    }
 
-                        break;
-                }
-
-                if (contributed is not null)
-                {
-                    RecordDirectiveTagHelperContribution(node, TagHelperCollection.Create(contributed));
-                }
+                    break;
             }
-            finally
+
+            if (contributed is not null)
             {
-                if (contributed is not null)
-                {
-                    ListPool<TagHelperDescriptor>.Default.Return(contributed);
-                }
+                RecordDirectiveTagHelperContribution(node, TagHelperCollection.Create(contributed));
+                ListPool<TagHelperDescriptor>.Default.Return(contributed);
             }
         }
 

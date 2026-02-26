@@ -26,7 +26,7 @@ internal class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCodeActionR
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _ = ListPool<TextEdit>.GetPooledObject(out var edits);
+        using var edits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
         foreach (var directiveSpan in actionParams.UnusedDirectiveSpans)
         {
             edits.Add(UsingDirectiveHelper.GetRemoveDirectiveEdit(sourceText, directiveSpan.ToTextSpan()));
@@ -39,7 +39,7 @@ internal class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCodeActionR
                 new TextDocumentEdit
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
-                    Edits = [.. edits],
+                    Edits = edits.ToArrayAndClear(),
                 }
             }
         };

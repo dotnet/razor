@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -39,10 +40,19 @@ public static class RazorCodeDocumentExtensions
 
     internal static bool IsImportsFile(this RazorCodeDocument codeDocument)
         => codeDocument.FileKind.IsComponentImport() ||
-            string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase);
+           (codeDocument.FileKind.IsLegacy() && string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>
+    /// Returns whether the directve specified was involved in tag helper binding
+    /// </summary>
+    /// <remarks>
+    /// If passed a directive that has no effect on tag helper binding at all, like `@if` or `@code`,
+    /// this method will return false, correctly identifying that the tag helper didn't contribute.
+    /// </remarks>
     internal static bool IsDirectiveUsed(this RazorCodeDocument codeDocument, BaseRazorDirectiveSyntax directive)
     {
+        Debug.Assert(directive is RazorUsingDirectiveSyntax || directive.DirectiveBody.Keyword.GetContent() == "addTagHelper");
+
         // In imports files, all directives are considered used as usage tracking is only for source documents.
         if (codeDocument.IsImportsFile())
         {
@@ -50,19 +60,23 @@ public static class RazorCodeDocumentExtensions
         }
 
         var contributions = codeDocument.GetDirectiveTagHelperContributions();
+        // No contributions, means no directives contributed, so no directives are used
         if (contributions.IsDefaultOrEmpty)
         {
-            return true;
+            return false;
         }
 
-        var referencedTagHelpers = codeDocument.GetReferencedTagHelpers();
+        // No tag helpers referenced, so no directives are used
+        if (!codeDocument.TryGetReferencedTagHelpers(out var referencedTagHelpers))
+        {
+            return false;
+        }
+
         foreach (var contribution in contributions)
         {
             if (contribution.DirectiveSpanStart == directive.SpanStart)
             {
-                return referencedTagHelpers is not null &&
-                    !contribution.ContributedTagHelpers.IsEmpty &&
-                    AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers);
+                return AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers);
             }
         }
 

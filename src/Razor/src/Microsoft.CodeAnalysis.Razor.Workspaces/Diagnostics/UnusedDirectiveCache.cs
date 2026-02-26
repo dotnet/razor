@@ -3,21 +3,22 @@
 
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
 
 internal static class UnusedDirectiveCache
 {
-    private static readonly ConditionalWeakTable<RazorCodeDocument, int[]> s_cache = new();
+    private static readonly ConditionalWeakTable<RazorCodeDocument, TextSpan[]> s_cache = new();
 
-    public static void Set(RazorCodeDocument codeDocument, int[] lines)
+    public static void Set(RazorCodeDocument codeDocument, TextSpan[] spans)
     {
         s_cache.Remove(codeDocument);
-        s_cache.Add(codeDocument, lines);
+        s_cache.Add(codeDocument, spans);
     }
 
-    public static bool TryGet(RazorCodeDocument codeDocument, out int[] lines)
+    public static bool TryGet(RazorCodeDocument codeDocument, out TextSpan[] spans)
     {
-        return s_cache.TryGetValue(codeDocument, out lines!);
+        return s_cache.TryGetValue(codeDocument, out spans!);
     }
 }
