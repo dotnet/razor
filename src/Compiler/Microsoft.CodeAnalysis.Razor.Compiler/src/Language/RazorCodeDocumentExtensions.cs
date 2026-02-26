@@ -61,8 +61,9 @@ public static class RazorCodeDocumentExtensions
         {
             if (contribution.DirectiveSpanStart == directive.SpanStart)
             {
+                // We can't check referencedTagHelpers outside of the loop, because it only matters for directives that could possibly
+                // have contributed to tag helpers. This method gets called for _all_ directives, including `@if` and `@page` etc.
                 return referencedTagHelpers is not null &&
-                    !contribution.ContributedTagHelpers.IsEmpty &&
                     AnyContributedTagHelperIsReferenced(contribution.ContributedTagHelpers, referencedTagHelpers);
             }
         }
