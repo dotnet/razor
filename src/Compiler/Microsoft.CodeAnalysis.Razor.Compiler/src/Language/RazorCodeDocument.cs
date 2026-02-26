@@ -277,7 +277,7 @@ public sealed partial class RazorCodeDocument
 
     internal RazorCodeDocument WithDirectiveTagHelperContributions(ImmutableArray<DirectiveTagHelperContribution> value)
     {
-        if (ReferenceEquals(ImmutableCollectionsMarshal.AsArray(value), ImmutableCollectionsMarshal.AsArray(_directiveTagHelperContributions)))
+        if (value == _directiveTagHelperContributions)
         {
             return this;
         }
