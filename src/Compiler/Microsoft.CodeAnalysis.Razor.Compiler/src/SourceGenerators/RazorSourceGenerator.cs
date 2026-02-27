@@ -38,19 +38,16 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var analyzerConfigOptions = context.AnalyzerConfigOptionsProvider;
             var parseOptions = context.ParseOptionsProvider;
             var compilation = context.CompilationProvider;
+            var additionalTexts = context.AdditionalTextsProvider;
+            var metadataRefs = context.MetadataReferencesProvider;
 
             // We might get initialized before razor tooling has a chance to set this, so check it any time something changes. It's extremely cheap and we'll stop propagating directly below if it didn't changed.
             var useRazorCohostServer = context.AdditionalTextsProvider.Collect().Combine(context.CompilationProvider).Select((_, _) => RazorCohostingOptions.UseRazorCohostServer);
 
-            // determine if we should suppress this run and filter out all the additional files and references if so
-            var isGeneratorSuppressed = analyzerConfigOptions.CheckGlobalFlagSet("SuppressRazorSourceGenerator").Combine(useRazorCohostServer).Select((suppress, _) => !suppress.Right && suppress.Left);
-            var additionalTexts = context.AdditionalTextsProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
-            var metadataRefs = context.MetadataReferencesProvider.EmptyOrCachedWhen(isGeneratorSuppressed, true);
 
             var razorSourceGeneratorOptions = analyzerConfigOptions
                 .Combine(parseOptions)
                 .Combine(metadataRefs.Collect())
-                .SuppressIfNeeded(isGeneratorSuppressed)
                 .Select(ComputeRazorSourceGeneratorOptions)
                 .WithTrackingName("RazorSourceGeneratorOptions")
                 .ReportDiagnostics(context);
@@ -123,14 +120,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var tagHelpersFromCompilation = declCompilation
                 .Combine(razorSourceGeneratorOptions)
-                .SuppressIfNeeded(isGeneratorSuppressed)
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var ((compilation, razorSourceGeneratorOptions), isGeneratorSuppressed) = pair;
-                    if (isGeneratorSuppressed)
-                    {
-                        return [];
-                    }
+                    var (compilation, razorSourceGeneratorOptions) = pair;
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
@@ -336,54 +328,41 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .WithTrackingName("CSharpDocuments");
 
-            var csharpDocumentsWithSuppressionFlag = csharpDocuments
-                // Explicitly combine with the suppression state. We *do* want this to run even if we're in the latched state
-                .Combine(isGeneratorSuppressed)
-                .WithTrackingName("DocumentsWithSuppression");
-
-            context.RegisterImplementationSourceOutput(csharpDocumentsWithSuppressionFlag, static (context, pair) =>
+            context.RegisterImplementationSourceOutput(csharpDocuments, static (context, pair) =>
             {
-                var ((hintName, _, csharpDocument), isGeneratorSuppressed) = pair;
+                var (hintName, _, csharpDocument) = pair;
 
-                // When the generator is suppressed, we may still have a lot of cached data for perf, but we don't want to actually add any of the files to the output
-                if (!isGeneratorSuppressed)
+                RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
+                foreach (var razorDiagnostic in csharpDocument.Diagnostics)
                 {
-                    RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
-                    foreach (var razorDiagnostic in csharpDocument.Diagnostics)
-                    {
-                        var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
-                        context.ReportDiagnostic(csharpDiagnostic);
-                    }
-
-                    context.AddSource(hintName, csharpDocument.Text);
+                    var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
+                    context.ReportDiagnostic(csharpDiagnostic);
                 }
+
+                context.AddSource(hintName, csharpDocument.Text);
             });
 
             var hostOutputs = csharpDocuments
                 .Collect()
                 .Combine(allTagHelpers)
-                .Combine(isGeneratorSuppressed)
                 .WithTrackingName("HostOutputs");
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             context.RegisterHostOutput(hostOutputs, (context, pair) =>
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             {
-                var ((documents, tagHelpers), isGeneratorSuppressed) = pair;
+                var (documents, tagHelpers) = pair;
 
-                if (!isGeneratorSuppressed)
+                using var filePathToDocument = new PooledDictionaryBuilder<string, (string, RazorCodeDocument)>();
+                using var hintNameToFilePath = new PooledDictionaryBuilder<string, string>();
+
+                foreach (var (hintName, codeDocument, _) in documents)
                 {
-                    using var filePathToDocument = new PooledDictionaryBuilder<string, (string, RazorCodeDocument)>();
-                    using var hintNameToFilePath = new PooledDictionaryBuilder<string, string>();
-
-                    foreach (var (hintName, codeDocument, _) in documents)
-                    {
-                        filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, codeDocument));
-                        hintNameToFilePath.Add(hintName, codeDocument.Source.FilePath!);
-                    }
-
-                    context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, filePathToDocument.ToImmutable(), hintNameToFilePath.ToImmutable()));
+                    filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, codeDocument));
+                    hintNameToFilePath.Add(hintName, codeDocument.Source.FilePath!);
                 }
+
+                context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, filePathToDocument.ToImmutable(), hintNameToFilePath.ToImmutable()));
             });
         }
     }
