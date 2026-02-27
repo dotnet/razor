@@ -60,14 +60,14 @@ internal class SnippetService
         _serviceProvider = serviceProvider;
         _snippetCache = snippetCache;
         _advancedSettingsStorage = advancedSettingsStorage;
-        _joinableTaskFactory.RunAsync(InitializeAsync).FileAndForget("SnippetService_Initialize");
+        _joinableTaskFactory.RunAsync(InitializeAsync).FileAndForget(faultEventName: "dotnet/razor/SnippetService_Initialize");
     }
 
     private async Task InitializeAsync()
     {
         await _advancedSettingsStorage.OnChangedAsync(_ =>
         {
-            PopulateAsync().FileAndForget("SnippetService_Populate");
+            PopulateAsync().FileAndForget(faultEventName: "dotnet/razor/SnippetService_Populate");
         }).ConfigureAwait(false);
 
         await _joinableTaskFactory.SwitchToMainThreadAsync();
