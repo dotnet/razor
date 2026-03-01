@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Formatters;
 
 internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfiguration>
 {
-    private const int SerializerPropertyCount = 7;
+    private const int SerializerPropertyCount = 8;
 
     public static readonly ValueFormatter<RazorConfiguration> Instance = new RazorConfigurationFormatter();
 
@@ -31,6 +31,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         var suppressAddComponentParameter = reader.ReadBoolean();
         var useConsolidatedMvcViews = reader.ReadBoolean();
         var useRoslynTokenizer = reader.ReadBoolean();
+        var suppressMvcRazorImports = reader.ReadBoolean();
         var preprocessorSymbols = reader.Deserialize<ImmutableArray<string>>(options);
 
         count -= SerializerPropertyCount;
@@ -57,6 +58,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
             UseConsolidatedMvcViews: useConsolidatedMvcViews,
             SuppressAddComponentParameter: suppressAddComponentParameter,
             UseRoslynTokenizer: useRoslynTokenizer,
+            SuppressMvcRazorImports: suppressMvcRazorImports,
             PreprocessorSymbols: preprocessorSymbols);
     }
 
@@ -83,6 +85,7 @@ internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfigur
         writer.Write(value.SuppressAddComponentParameter);
         writer.Write(value.UseConsolidatedMvcViews);
         writer.Write(value.UseRoslynTokenizer);
+        writer.Write(value.SuppressMvcRazorImports);
         writer.Serialize(value.PreprocessorSymbols, options);
 
         count -= SerializerPropertyCount;

@@ -28,6 +28,7 @@ internal static partial class ObjectReaders
         var suppressAddComponentParameter = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.SuppressAddComponentParameter));
         var useConsolidatedMvcViews = reader.ReadBooleanOrTrue(nameof(RazorConfiguration.UseConsolidatedMvcViews));
         var useRoslynTokenizer = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.UseRoslynTokenizer));
+        var suppressMvcRazorImports = reader.ReadBooleanOrFalse(nameof(RazorConfiguration.SuppressMvcRazorImports));
         var preprocessorSymbols = reader.ReadImmutableArrayOrEmpty(nameof(RazorConfiguration.PreprocessorSymbols), r => r.ReadNonNullString());
         var extensions = reader.ReadImmutableArrayOrEmpty(nameof(RazorConfiguration.Extensions),
             static r =>
@@ -48,6 +49,7 @@ internal static partial class ObjectReaders
             UseConsolidatedMvcViews: useConsolidatedMvcViews,
             SuppressAddComponentParameter: suppressAddComponentParameter,
             UseRoslynTokenizer: useRoslynTokenizer,
+            SuppressMvcRazorImports: suppressMvcRazorImports,
             PreprocessorSymbols: preprocessorSymbols);
     }
 

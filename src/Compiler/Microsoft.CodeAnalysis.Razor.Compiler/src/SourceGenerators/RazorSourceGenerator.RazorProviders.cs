@@ -33,6 +33,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
             globalOptions.TryGetValue("build_property.SupportLocalizedComponentNames", out var supportLocalizedComponentNames);
             globalOptions.TryGetValue("build_property.GenerateRazorMetadataSourceChecksumAttributes", out var generateMetadataSourceChecksumAttributes);
+            globalOptions.TryGetValue("build_property.SuppressMvcRazorImports", out var suppressMvcRazorImports);
 
             Diagnostic? diagnostic = null;
             if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
@@ -54,7 +55,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 ? false
                 : CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
 
-            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
+            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported, SuppressMvcRazorImports: suppressMvcRazorImports == "true");
 
             // We use the new tokenizer only when requested for now.
             var useRoslynTokenizer = parseOptions.UseRoslynTokenizer();
