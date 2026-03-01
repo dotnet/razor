@@ -926,6 +926,43 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         CompileToAssembly(generated, throwOnFailure: false, ignoreRazorDiagnostics: true);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public void Utf8HtmlLiterals_Runtime()
+    {
+        // Arrange
+        _configuration = new(RazorLanguageVersion.Preview, "MVC-3.0", Extensions: []);
+
+        AddCSharpSyntaxTree("""
+
+            using System;
+            using System.Threading.Tasks;
+            using Microsoft.AspNetCore.Mvc.Razor;
+
+            public abstract class MyUtf8PageBase : RazorPage
+            {
+                public void WriteLiteral(ReadOnlySpan<byte> value)
+                {
+                    WriteLiteral(System.Text.Encoding.UTF8.GetString(value));
+                }
+            }
+
+            """);
+
+        var projectItem = CreateProjectItemFromFile();
+
+        // Act
+        var compiled = CompileToAssembly(projectItem, designTime: false);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertLinePragmas(compiled.CodeDocument);
+
+        // Verify that the generated code contains UTF-8 string literals
+        var generatedCode = compiled.CodeDocument.GetCSharpDocument().Text.ToString();
+        Assert.Contains("u8)", generatedCode);
+    }
+
     #endregion
 
     #region DesignTime

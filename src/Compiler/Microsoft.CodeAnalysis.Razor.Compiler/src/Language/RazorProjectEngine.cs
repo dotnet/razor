@@ -314,6 +314,11 @@ public sealed class RazorProjectEngine
             builder.Features.Add(new ViewCssScopePass());
         }
 
+        if (configuration.LanguageVersion >= RazorLanguageVersion.Version_11_0)
+        {
+            Utf8HtmlLiteralsDirective.Register(builder);
+        }
+
         if (configuration.LanguageVersion >= RazorLanguageVersion.Version_3_0)
         {
             FunctionsDirective.Register(builder);

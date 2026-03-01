@@ -1,0 +1,47 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Utf8HtmlLiterals - MyUtf8PageBase - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper - __Microsoft_AspNetCore_Mvc_Razor_TagHelpers_BodyTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (50:2,0 [10] Utf8HtmlLiterals.cshtml)
+                    LazyIntermediateToken - (50:2,0 [2] Utf8HtmlLiterals.cshtml) - Html - \n
+                    LazyIntermediateToken - (52:3,0 [5] Utf8HtmlLiterals.cshtml) - Html - <html
+                    LazyIntermediateToken - (57:3,5 [1] Utf8HtmlLiterals.cshtml) - Html - >
+                    LazyIntermediateToken - (58:3,6 [2] Utf8HtmlLiterals.cshtml) - Html - \n
+                TagHelper - (60:4,0 [89] Utf8HtmlLiterals.cshtml) - body - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (66:4,6 [76] Utf8HtmlLiterals.cshtml)
+                            LazyIntermediateToken - (66:4,6 [6] Utf8HtmlLiterals.cshtml) - Html - \n    
+                            LazyIntermediateToken - (72:5,4 [3] Utf8HtmlLiterals.cshtml) - Html - <h1
+                            LazyIntermediateToken - (75:5,7 [1] Utf8HtmlLiterals.cshtml) - Html - >
+                            LazyIntermediateToken - (76:5,8 [11] Utf8HtmlLiterals.cshtml) - Html - Hello World
+                            LazyIntermediateToken - (87:5,19 [5] Utf8HtmlLiterals.cshtml) - Html - </h1>
+                            LazyIntermediateToken - (92:5,24 [6] Utf8HtmlLiterals.cshtml) - Html - \n    
+                            LazyIntermediateToken - (98:6,4 [2] Utf8HtmlLiterals.cshtml) - Html - <p
+                            LazyIntermediateToken - (100:6,6 [1] Utf8HtmlLiterals.cshtml) - Html - >
+                            LazyIntermediateToken - (101:6,7 [35] Utf8HtmlLiterals.cshtml) - Html - This is UTF-8 encoded HTML content.
+                            LazyIntermediateToken - (136:6,42 [4] Utf8HtmlLiterals.cshtml) - Html - </p>
+                            LazyIntermediateToken - (140:6,46 [2] Utf8HtmlLiterals.cshtml) - Html - \n
+                    DefaultTagHelperCreate -  - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper
+                    DefaultTagHelperExecute - 
+                HtmlContent - (149:7,7 [11] Utf8HtmlLiterals.cshtml)
+                    LazyIntermediateToken - (149:7,7 [2] Utf8HtmlLiterals.cshtml) - Html - \n
+                    LazyIntermediateToken - (151:8,0 [7] Utf8HtmlLiterals.cshtml) - Html - </html>
+                    LazyIntermediateToken - (158:8,7 [2] Utf8HtmlLiterals.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
