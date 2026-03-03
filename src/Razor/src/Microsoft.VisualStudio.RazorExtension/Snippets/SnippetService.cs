@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Razor.Extensions;
 using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
-using Microsoft.VisualStudio.Razor.Telemetry;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -61,14 +60,14 @@ internal class SnippetService
         _serviceProvider = serviceProvider;
         _snippetCache = snippetCache;
         _advancedSettingsStorage = advancedSettingsStorage;
-        _joinableTaskFactory.RunAsync(InitializeAsync).FileAndForget(TelemetryReporter.GetEventName("SnippetService_Initialize"));
+        _joinableTaskFactory.RunAsync(InitializeAsync).FileAndForget("SnippetService_Initialize");
     }
 
     private async Task InitializeAsync()
     {
         await _advancedSettingsStorage.OnChangedAsync(_ =>
         {
-            PopulateAsync().FileAndForget(TelemetryReporter.GetEventName("SnippetService_Populate"));
+            PopulateAsync().FileAndForget("SnippetService_Populate");
         }).ConfigureAwait(false);
 
         await _joinableTaskFactory.SwitchToMainThreadAsync();
