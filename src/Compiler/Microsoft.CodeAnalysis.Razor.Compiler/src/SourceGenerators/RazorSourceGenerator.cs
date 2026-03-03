@@ -50,6 +50,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var razorSourceGeneratorOptions = analyzerConfigOptions
                 .Combine(parseOptions)
                 .Combine(metadataRefs.Collect())
+                .Combine(compilation)
                 .SuppressIfNeeded(isGeneratorSuppressed)
                 .Select(ComputeRazorSourceGeneratorOptions)
                 .WithTrackingName("RazorSourceGeneratorOptions")

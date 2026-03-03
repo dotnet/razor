@@ -2,7 +2,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
@@ -31,6 +33,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         internal string? TestSuppressUniqueIds { get; set; }
 
         internal bool UseRoslynTokenizer { get; set; } = true;
+
+        internal ImmutableArray<MetadataReference> MetadataReferences { get; set; } = [];
 
         public override int GetHashCode() => Configuration.GetHashCode();
     }

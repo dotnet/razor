@@ -26,8 +26,6 @@ internal static class SyntaxConstants
         public const string ElseIfKeyword = "else if";
         public const string NamespaceKeyword = "namespace";
         public const string ClassKeyword = "class";
-        public const string Utf8HtmlLiteralsKeyword = "utf8HtmlLiterals";
-
         // Not supported. Only used for error cases.
         public const string HelperKeyword = "helper";
     }

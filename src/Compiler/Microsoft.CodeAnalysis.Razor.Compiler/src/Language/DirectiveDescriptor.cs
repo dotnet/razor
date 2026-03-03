@@ -202,14 +202,14 @@ public abstract class DirectiveDescriptor
 
         public DirectiveDescriptor Build()
         {
-            if (Directive.Length == 0 || !char.IsLetter(Directive[0]))
+            if (Directive.Length == 0)
             {
                 throw new InvalidOperationException(Resources.FormatDirectiveDescriptor_InvalidDirectiveKeyword(Directive));
             }
 
-            for (var i = 1; i < Directive.Length; i++)
+            for (var i = 0; i < Directive.Length; i++)
             {
-                if (!char.IsLetterOrDigit(Directive[i]))
+                if (!char.IsLetter(Directive[i]))
                 {
                     throw new InvalidOperationException(Resources.FormatDirectiveDescriptor_InvalidDirectiveKeyword(Directive));
                 }

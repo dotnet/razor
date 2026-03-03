@@ -177,7 +177,7 @@
     <value>The document type '{0}' does not support the extension '{1}'.</value>
   </data>
   <data name="DirectiveDescriptor_InvalidDirectiveKeyword" xml:space="preserve">
-    <value>Invalid directive keyword '{0}'. Directives must have a non-empty keyword that starts with a letter and consists only of letters and digits.</value>
+    <value>Invalid directive keyword '{0}'. Directives must have a non-empty keyword that consists only of letters.</value>
   </data>
   <data name="DirectiveDescriptor_InvalidNonOptionalToken" xml:space="preserve">
     <value>A non-optional directive token cannot follow an optional directive token.</value>
@@ -618,14 +618,5 @@
   </data>
   <data name="Parent_has_not_been_set" xml:space="preserve">
     <value>Parent has not been set.</value>
-  </data>
-  <data name="Utf8HtmlLiteralsDirective_Description" xml:space="preserve">
-    <value>Opt-in to HTML literals being emitted as C# UTF-8 string literals for this page.</value>
-  </data>
-  <data name="Utf8HtmlLiteralsDirective_BooleanToken_Name" xml:space="preserve">
-    <value>Utf8HtmlLiterals</value>
-  </data>
-  <data name="Utf8HtmlLiteralsDirective_BooleanToken_Description" xml:space="preserve">
-    <value>Whether the current page should emit HTML literals as C# UTF-8 string literals.</value>
   </data>
 </root>

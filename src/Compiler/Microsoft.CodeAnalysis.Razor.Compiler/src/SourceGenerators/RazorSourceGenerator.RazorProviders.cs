@@ -17,9 +17,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
-        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((((AnalyzerConfigOptionsProvider, ParseOptions), ImmutableArray<MetadataReference>), bool) pair, CancellationToken ct)
+        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions(((((AnalyzerConfigOptionsProvider, ParseOptions), ImmutableArray<MetadataReference>), Compilation), bool) pair, CancellationToken ct)
         {
-            var (((options, parseOptions), references), isSuppressed) = pair;
+            var ((((options, parseOptions), references), compilation), isSuppressed) = pair;
             var globalOptions = options.GlobalOptions;
 
             if (isSuppressed)
@@ -68,6 +68,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 CSharpParseOptions = (CSharpParseOptions)parseOptions,
                 TestSuppressUniqueIds = _testSuppressUniqueIds,
                 UseRoslynTokenizer = useRoslynTokenizer,
+                MetadataReferences = references.Add(compilation.ToMetadataReference()),
             };
 
             return (razorSourceGenerationOptions, diagnostic);

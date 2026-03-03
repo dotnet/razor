@@ -125,7 +125,7 @@ public class DirectiveDescriptorTest
         var ex = Assert.Throws<InvalidOperationException>(() => DirectiveDescriptor.CreateSingleLineDirective(""));
 
         // Assert
-        Assert.Equal("Invalid directive keyword ''. Directives must have a non-empty keyword that starts with a letter and consists only of letters and digits.", ex.Message);
+        Assert.Equal("Invalid directive keyword ''. Directives must have a non-empty keyword that consists only of letters.", ex.Message);
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class DirectiveDescriptorTest
         var ex = Assert.Throws<InvalidOperationException>(() => DirectiveDescriptor.CreateSingleLineDirective("test_directive"));
 
         // Assert
-        Assert.Equal("Invalid directive keyword 'test_directive'. Directives must have a non-empty keyword that starts with a letter and consists only of letters and digits.", ex.Message);
+        Assert.Equal("Invalid directive keyword 'test_directive'. Directives must have a non-empty keyword that consists only of letters.", ex.Message);
     }
 
     [Fact]
