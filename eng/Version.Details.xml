@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="e069e8eee8566d7b1aa6f8f34833f8db7a0eb018" BarId="297688" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="3451f7f9d9c3c10f9a8e623985e573b2ff4d3361" BarId="304338" />
   <ProductDependencies>
     <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.5.0-2.26118.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
@@ -107,17 +107,17 @@
     <!-- Necessary for source-build. This allows Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages
          to be retrieved from live source-build and their content consumed by packages produced by razor.
          Without these entries, due to PVP flow work, SBRP packages would be consumed causing runtime issue. -->
-    <Dependency Name="Microsoft.Extensions.ObjectPool" Version="8.0.0">
+    <Dependency Name="Microsoft.Extensions.ObjectPool" Version="10.0.1">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>3f1acb59718cadf111a0a796681e3d3509bb3381</Sha>
+      <Sha>373d4826c58ac2f1c8d49fdaf31bc9eddf9e7437</Sha>
     </Dependency>
-    <Dependency Name="System.Collections.Immutable" Version="9.0.0">
+    <Dependency Name="System.Collections.Immutable" Version="10.0.1">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+      <Sha>138d5fe8f32e954a3a834be6360a834688130d4f</Sha>
     </Dependency>
-    <Dependency Name="System.Reflection.Metadata" Version="9.0.0">
+    <Dependency Name="System.Reflection.Metadata" Version="10.0.1">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+      <Sha>138d5fe8f32e954a3a834be6360a834688130d4f</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
