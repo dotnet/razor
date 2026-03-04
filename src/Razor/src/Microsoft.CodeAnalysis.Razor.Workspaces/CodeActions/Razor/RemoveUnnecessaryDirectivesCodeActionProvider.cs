@@ -64,7 +64,7 @@ internal class RemoveUnnecessaryDirectivesCodeActionProvider : IRazorCodeActionP
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([action]);
     }
 
-    private static bool ShouldOffer(BaseRazorDirectiveSyntax directive)
+    private static bool ShouldOffer(BaseRazorDirectiveSyntax? directive)
     {
         if (directive is null)
         {
