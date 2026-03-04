@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -78,6 +79,6 @@ internal class RemoveUnnecessaryDirectivesCodeActionProvider : IRazorCodeActionP
 
         // We offer for any single line directive on the assumption that the user has a block of directives
         // at the top of their file that they want to clear up.
-        return ((RazorDirectiveSyntax)directive).DirectiveDescriptor.Kind == DirectiveKind.SingleLine;
+        return directive.DirectiveBody.Keyword.GetContent() == SyntaxConstants.CSharp.AddTagHelperKeyword;
     }
 }
