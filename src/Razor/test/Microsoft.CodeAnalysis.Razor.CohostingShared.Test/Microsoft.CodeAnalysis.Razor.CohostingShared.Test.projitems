@@ -47,6 +47,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CascadingTypeParameterFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest_Generator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\HtmlFormattingPassTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\HtmlFormattingTest.cs" />

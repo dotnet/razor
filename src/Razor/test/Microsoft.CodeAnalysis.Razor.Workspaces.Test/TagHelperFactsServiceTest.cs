@@ -6,20 +6,21 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelperServiceTestBase(testOutput)
+public class TagHelperFactsServiceTest
 {
+    private static TagHelperCollection DefaultTagHelpers => SimpleTagHelpers.Default;
+
     [Fact]
     public void StringifyAttributes_DirectiveAttribute()
     {
         // Arrange
-        var codeDocument = CreateComponentDocument($"<TestElement @test='abc' />", [.. DefaultTagHelpers]);
+        var codeDocument = CreateCodeDocument($"<TestElement @test='abc' />", RazorFileKind.Component, TagHelperCollection.Create(DefaultTagHelpers));
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupTagHelperStartTagSyntax)root.FindInnermostNode(3);
 
@@ -40,7 +41,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     public void StringifyAttributes_DirectiveAttributeWithParameter()
     {
         // Arrange
-        var codeDocument = CreateComponentDocument($"<TestElement @test:something='abc' />", [.. DefaultTagHelpers]);
+        var codeDocument = CreateCodeDocument($"<TestElement @test:something='abc' />", RazorFileKind.Component, TagHelperCollection.Create(DefaultTagHelpers));
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupTagHelperStartTagSyntax)root.FindInnermostNode(3);
 
@@ -61,7 +62,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     public void StringifyAttributes_MinimizedDirectiveAttribute()
     {
         // Arrange
-        var codeDocument = CreateComponentDocument($"<TestElement @minimized />", [.. DefaultTagHelpers]);
+        var codeDocument = CreateCodeDocument($"<TestElement @minimized />", RazorFileKind.Component, [.. DefaultTagHelpers]);
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupTagHelperStartTagSyntax)root.FindInnermostNode(3);
 
@@ -82,7 +83,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
     public void StringifyAttributes_MinimizedDirectiveAttributeWithParameter()
     {
         // Arrange
-        var codeDocument = CreateComponentDocument($"<TestElement @minimized:something />", [.. DefaultTagHelpers]);
+        var codeDocument = CreateCodeDocument($"<TestElement @minimized:something />", RazorFileKind.Component, [.. DefaultTagHelpers]);
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupTagHelperStartTagSyntax)root.FindInnermostNode(3);
 
@@ -115,7 +116,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         var codeDocument = CreateCodeDocument("""
             @addTagHelper *, TestAssembly
             <test bound='true' />
-            """, isRazorFile: false, tagHelper.Build());
+            """, RazorFileKind.Legacy, TagHelperCollection.Create(tagHelper.Build()));
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupTagHelperStartTagSyntax)root.FindInnermostNode(30 + Environment.NewLine.Length);
 
@@ -148,7 +149,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         var codeDocument = CreateCodeDocument("""
             @addTagHelper *, TestAssembly
             <test bound />
-            """, isRazorFile: false, tagHelper.Build());
+            """, RazorFileKind.Legacy, TagHelperCollection.Create(tagHelper.Build()));
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupTagHelperStartTagSyntax)root.FindInnermostNode(30 + Environment.NewLine.Length);
 
@@ -172,7 +173,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         var codeDocument = CreateCodeDocument("""
             @addTagHelper *, TestAssembly
             <input unbound='hello world' />
-            """, isRazorFile: false, DefaultTagHelpers);
+            """, RazorFileKind.Legacy, DefaultTagHelpers);
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupStartTagSyntax)root.FindInnermostNode(30 + Environment.NewLine.Length);
 
@@ -196,7 +197,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         var codeDocument = CreateCodeDocument("""
             @addTagHelper *, TestAssembly
             <input unbound />
-            """, isRazorFile: false, DefaultTagHelpers);
+            """, RazorFileKind.Legacy, DefaultTagHelpers);
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupStartTagSyntax)root.FindInnermostNode(30 + Environment.NewLine.Length);
 
@@ -220,7 +221,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
         var codeDocument = CreateCodeDocument("""
             @addTagHelper *, TestAssembly
             <input unbound @DateTime.Now />
-            """, isRazorFile: false, DefaultTagHelpers);
+            """, RazorFileKind.Legacy, DefaultTagHelpers);
         var root = codeDocument.GetRequiredSyntaxRoot();
         var startTag = (MarkupStartTagSyntax)root.FindInnermostNode(30 + Environment.NewLine.Length);
 
@@ -237,7 +238,7 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
             });
     }
 
-    private static RazorCodeDocument CreateComponentDocument(string text, TagHelperCollection tagHelpers)
+    private static RazorCodeDocument CreateCodeDocument(string text, RazorFileKind fileKind, TagHelperCollection tagHelpers)
     {
         tagHelpers ??= [];
         var sourceDocument = TestRazorSourceDocument.Create(text);
@@ -249,6 +250,6 @@ public class TagHelperFactsServiceTest(ITestOutputHelper testOutput) : TagHelper
             });
         });
 
-        return projectEngine.Process(sourceDocument, RazorFileKind.Component, importSources: default, tagHelpers);
+        return projectEngine.Process(sourceDocument, fileKind, importSources: default, tagHelpers);
     }
 }

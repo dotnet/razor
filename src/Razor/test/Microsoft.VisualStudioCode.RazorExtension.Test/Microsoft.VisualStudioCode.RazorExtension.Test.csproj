@@ -15,10 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Test\Formatting\DocumentFormattingTest.cs" Link="Endpoints\Formatting\DocumentFormattingTest.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
