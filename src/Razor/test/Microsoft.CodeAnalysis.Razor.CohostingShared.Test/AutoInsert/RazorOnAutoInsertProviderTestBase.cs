@@ -3,16 +3,16 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-public abstract class RazorOnAutoInsertProviderTestBase(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public abstract class RazorOnAutoInsertProviderTestBase(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
     private protected abstract IOnAutoInsertProvider CreateProvider();
 

@@ -16,7 +16,7 @@ public class RazorSemanticTokensLegendServiceTest(ITestOutputHelper testOutput) 
     public void RazorModifiers_MustStartAfterRoslyn()
     {
         var clientCapabilitiesService = new TestClientCapabilitiesService(new VSInternalClientCapabilities());
-        var service = new RazorSemanticTokensLegendService(clientCapabilitiesService);
+        var service = new TestRazorSemanticTokensLegendService(clientCapabilitiesService);
 
         var expected = Math.Pow(2, RazorSemanticTokensAccessor.GetTokenModifiers().Length);
 

@@ -9,6 +9,10 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Razor.CohostingShared.Test</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\AutoClosingTagOnAutoInsertProviderTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\CloseTextTagOnAutoInsertProviderTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\PreferHtmlInAttributeValuesDocumentPositionInfoStrategyTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\RazorOnAutoInsertProviderTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\AddUsingTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CohostCodeActionsEndpointTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CreateComponentFromTagTests.cs" />
@@ -17,6 +21,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToComponentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCssTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateEventHandlerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionProviderTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionResolverTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\PromoteUsingDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\RemoveUnnecessaryDirectiveTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\SimplifyFullyQualifiedComponentTests.cs" />
@@ -26,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\UnboundDirectiveAttributeAddUsingTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\WrapAttributeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ComputedTargetPathTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\RazorDiagnosticHelperTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentCompletionEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentCompletionResolveEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentHighlightEndpointTest.cs" />
@@ -45,12 +52,19 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSignatureHelpEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostWillRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CascadingTypeParameterFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CodeDirectiveFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest_Generator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingContentValidationPassTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingDiagnosticValidationPassTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\HtmlFormattingPassTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\HtmlFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\MoreHtmlFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\RazorFormattingServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditHelperTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetCompletionItemResolveProvider.cs" />
   </ItemGroup>
 </Project>

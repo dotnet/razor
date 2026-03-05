@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
@@ -45,7 +46,7 @@ public class RazorFormattingServiceTest(ITestOutputHelper testOutput) : ToolingT
     {
         foreach (var character in RazorFormattingService.TestAccessor.GetCSharpTriggerCharacterSet())
         {
-            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet);
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet.ToList());
         }
     }
 
@@ -54,7 +55,7 @@ public class RazorFormattingServiceTest(ITestOutputHelper testOutput) : ToolingT
     {
         foreach (var character in RazorFormattingService.TestAccessor.GetHtmlTriggerCharacterSet())
         {
-            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet);
+            Assert.Contains(character, RazorFormattingService.AllTriggerCharacterSet.ToList());
         }
     }
 }

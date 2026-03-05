@@ -5,15 +5,13 @@
 
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-public class RazorDiagnosticHelperTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class RazorDiagnosticHelperTest
 {
     [Fact]
     public void Convert_Converts()

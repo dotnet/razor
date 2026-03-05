@@ -9,29 +9,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
-public class RazorEditHelperTest : LanguageServerTestBase
+public class RazorEditHelperTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
-    private readonly IDocumentMappingService _documentMappingService;
+    private IDocumentMappingService? _documentMappingService;
 
-    public RazorEditHelperTest(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    protected async override Task InitializeAsync()
     {
-        _documentMappingService = new LspDocumentMappingService(
-            FilePathService,
-            new TestDocumentContextFactory(),
-            LoggerFactory);
+        await base.InitializeAsync();
+
+        _documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
     }
 
     [Fact]
@@ -732,7 +732,11 @@ public class RazorEditHelperTest : LanguageServerTestBase
         var newCSharpSourceText = SourceText.From(newCSharpSource);
         var changes = GetChanges(csharpSource.Text, newCSharpSource);
 
-        var codeDocument = CreateCodeDocument(razorSource.Text, tagHelpers: [], filePath: razorPath);
+        var document = CreateProjectAndRazorDocument(razorSource.Text, documentFilePath: razorPath);
+
+        var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
+        var codeDocument = await snapshotManager.GetSnapshot(document).GetGeneratedOutputAsync(DisposalToken);
+
         var csharpDocument = TestRazorCSharpDocument.Create(
             codeDocument,
             csharpSource.Text,
@@ -744,7 +748,7 @@ public class RazorEditHelperTest : LanguageServerTestBase
         var mappedChanges = await RazorEditHelper.MapCSharpEditsAsync(
             changes.SelectAsArray(c => c.ToRazorTextChange()),
             snapshot,
-            _documentMappingService,
+            _documentMappingService.AssumeNotNull(),
             FailingTelemetryReporter.Instance,
             CancellationToken.None);
 

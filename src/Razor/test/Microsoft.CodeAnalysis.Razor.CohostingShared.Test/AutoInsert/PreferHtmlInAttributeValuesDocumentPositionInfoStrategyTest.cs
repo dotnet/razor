@@ -4,14 +4,16 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.AutoInsert;
 
-public class PreferHtmlInAttributeValuesDocumentPositionInfoStrategyTest(ITestOutputHelper testOutput) : SingleServerDelegatingEndpointTestBase(testOutput)
+public class PreferHtmlInAttributeValuesDocumentPositionInfoStrategyTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
     [Theory]
     [InlineData(
@@ -39,13 +41,18 @@ public class PreferHtmlInAttributeValuesDocumentPositionInfoStrategyTest(ITestOu
     {
         // Arrange
         TestFileMarkupParser.GetPosition(documentText, out documentText, out var cursorPosition);
-        var razorFilePath = "file://path/test.razor";
-        var codeDocument = CreateCodeDocument(documentText, filePath: razorFilePath);
+
+        var document = CreateProjectAndRazorDocument(documentText);
+
+        var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
+        var codeDocument = await snapshotManager.GetSnapshot(document).GetGeneratedOutputAsync(DisposalToken);
+
         var position = codeDocument.Source.Text.GetPosition(cursorPosition);
-        await using var _ = await CreateLanguageServerAsync(codeDocument, razorFilePath);
+
+        var documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
 
         // Act
-        var result = PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance.GetPositionInfo(DocumentMappingService, codeDocument, cursorPosition);
+        var result = PreferHtmlInAttributeValuesDocumentPositionInfoStrategy.Instance.GetPositionInfo(documentMappingService, codeDocument, cursorPosition);
 
         // Assert
         Assert.NotEqual(default, result);

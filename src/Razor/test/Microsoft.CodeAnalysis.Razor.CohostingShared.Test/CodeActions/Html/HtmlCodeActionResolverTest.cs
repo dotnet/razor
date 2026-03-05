@@ -5,23 +5,24 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
     [Fact]
     public async Task ResolveAsync_RemapsAndFixesEdits()
@@ -32,9 +33,8 @@ public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : Language
 
         var documentPath = "c:/Test.razor";
         var documentUri = new Uri(documentPath);
-        var documentContextFactory = CreateDocumentContextFactory(documentUri, contents);
-        Assert.True(documentContextFactory.TryCreate(documentUri, out var context));
-        var sourceText = await context.GetSourceTextAsync(DisposalToken);
+        var document = CreateProjectAndRazorDocument(contents);
+        var sourceText = await document.GetTextAsync(DisposalToken);
 
         var editMappingServiceMock = new StrictMock<IEditMappingService>();
         editMappingServiceMock
@@ -67,6 +67,10 @@ public class HtmlCodeActionResolverTest(ITestOutputHelper testOutput) : Language
                 }
             }
         };
+
+        var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
+        var snapshot = snapshotManager.GetSnapshot(document);
+        var context = new RemoteDocumentContext(documentUri, snapshot);
 
         // Act
         var action = await resolver.ResolveAsync(context, codeAction, DisposalToken);

@@ -6,16 +6,17 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
     [Fact]
     public async Task ExecuteAsync_NonDestructiveEdit_Allowed()
@@ -26,7 +27,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
             [||]public class Foo { }
             }
             """;
-        var context = CreateFormattingContext(source);
+        var context = await CreateFormattingContextAsync(source);
         var edits = ImmutableArray.Create(new TextChange(source.Span, "    "));
         var pass = GetPass();
 
@@ -47,15 +48,11 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
             public class Foo { }
             }
             """;
-        var context = CreateFormattingContext(source);
+        var context = await CreateFormattingContextAsync(source);
         var badEdit = new TextChange(source.Span, "@ "); // Creates a diagnostic
         var pass = GetPass();
 
-        // Act
-        var result = await pass.IsValidAsync(context, [badEdit], DisposalToken);
-
-        // Assert
-        Assert.False(result);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => pass.IsValidAsync(context, [badEdit], DisposalToken));
     }
 
     private FormattingDiagnosticValidationPass GetPass()
@@ -68,7 +65,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         return pass;
     }
 
-    private static FormattingContext CreateFormattingContext(
+    private async Task<FormattingContext> CreateFormattingContextAsync(
         TestCode input,
         int tabSize = 4,
         bool insertSpaces = true,
@@ -77,7 +74,7 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         var source = SourceText.From(input.Text);
         var path = "file:///path/to/document.razor";
         var uri = new Uri(path);
-        var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(source, uri.AbsolutePath, fileKind: fileKind);
+        var (codeDocument, documentSnapshot) = await CreateCodeDocumentAndSnapshotAsync(source, uri.AbsolutePath, fileKind: fileKind);
         var options = new RazorFormattingOptions()
         {
             TabSize = tabSize,
@@ -92,29 +89,18 @@ public class FormattingDiagnosticValidationPassTest(ITestOutputHelper testOutput
         return context;
     }
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(
+    private async Task<(RazorCodeDocument, IDocumentSnapshot)> CreateCodeDocumentAndSnapshotAsync(
         SourceText text,
         string path,
-        TagHelperCollection? tagHelpers = null,
         RazorFileKind? fileKind = null)
     {
         var fileKindValue = fileKind ?? RazorFileKind.Component;
-        tagHelpers ??= [];
 
-        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
-        var projectEngine = RazorProjectEngine.Create(builder =>
-        {
-            builder.SetRootNamespace("Test");
+        var document = CreateProjectAndRazorDocument(text.ToString(), fileKind: fileKindValue, documentFilePath: path);
 
-            builder.ConfigureParserOptions(builder =>
-            {
-                builder.UseRoslynTokenizer = true;
-            });
-        });
-        var codeDocument = projectEngine.Process(sourceDocument, fileKindValue, importSources: default, tagHelpers);
-
-        var documentSnapshot = FormattingTestBase.CreateDocumentSnapshot(
-            path, fileKindValue, codeDocument, projectEngine, imports: [], importDocuments: [], tagHelpers, inGlobalNamespace: false);
+        var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
+        var documentSnapshot = snapshotManager.GetSnapshot(document);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(DisposalToken);
 
         return (codeDocument, documentSnapshot);
     }

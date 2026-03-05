@@ -7,17 +7,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
+public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
     [Fact]
     public async Task Execute_NonDestructiveEdit_Allowed()
@@ -53,11 +53,7 @@ public class FormattingContentValidationPassTest(ITestOutputHelper testOutput) :
         var input = edits;
         var pass = GetPass();
 
-        // Act
-        var result = await pass.IsValidAsync(context, input, DisposalToken);
-
-        // Assert
-        Assert.False(result);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => pass.IsValidAsync(context, input, DisposalToken));
     }
 
     private FormattingContentValidationPass GetPass()

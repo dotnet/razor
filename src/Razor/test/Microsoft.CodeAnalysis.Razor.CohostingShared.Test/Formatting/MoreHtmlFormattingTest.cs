@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
+public class MoreHtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     [Fact]
     public async Task FormatsComponentTags()
     {
-        var tagHelpers = GetComponents();
         await RunFormattingTestAsync(
             input: """
                        <PageTitle>
@@ -69,7 +69,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                         }
                     </GridTable>
                     """,
-            tagHelpers: [.. tagHelpers]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                         </GridRow>
                     </GridTable>
                     """,
-            tagHelpers: [.. tagHelpers]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                         </GridRow>
                     </GridTable>
                     """,
-            tagHelpers: [.. tagHelpers]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                         </GridRow>
                     </GridTable>
                     """,
-            tagHelpers: [.. tagHelpers]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                         </GridRow>
                     </GridTable>
                     """,
-            tagHelpers: [.. tagHelpers]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -262,7 +262,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                         </ChildContent>
                     </GridTable>
                     """,
-            tagHelpers: [.. GetComponents()]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -351,7 +351,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                     </a_really_long_tag_name>
                     }
                     """,
-            tagHelpers: [.. GetComponents()]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                     </Component1>;
                     }
                     """,
-            tagHelpers: [.. GetComponents()]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -421,7 +421,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                         }
                     </Component1>
                     """,
-            tagHelpers: [.. GetComponents()]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -489,7 +489,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                         </ChildContent>
                     </GridTable>
                     """,
-            tagHelpers: [.. GetComponents()]);
+            additionalFiles: [(FilePath("Components.cs"), GetComponents())]);
     }
 
     [Fact]
@@ -499,54 +499,51 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
         await RunFormattingTestAsync(
             input: """
 
-                    <div>
-                        @foreach ( var i in new int[] { 1, 23 } )
-                        {
-                            <div></div>
-                        }
-                    </div>
-                    <Select TValue="string">
-                        @foreach ( var i in new int[] { 1, 23 } )
-                        {
-                            <SelectItem Value="@i">@i</SelectItem>
-                        }
-                    </Select>
-                    """,
+                <div>
+                    @foreach ( var i in new int[] { 1, 23 } )
+                    {
+                        <div></div>
+                    }
+                </div>
+                <Select TValue="string">
+                    @foreach ( var i in new int[] { 1, 23 } )
+                    {
+                        <SelectItem Value="@i">@i</SelectItem>
+                    }
+                </Select>
+                """,
             expected: """
 
-                    <div>
-                        @foreach (var i in new int[] { 1, 23 })
-                        {
-                            <div></div>
-                        }
-                    </div>
-                    <Select TValue="string">
-                        @foreach (var i in new int[] { 1, 23 })
-                        {
-                            <SelectItem Value="@i">@i</SelectItem>
-                        }
-                    </Select>
-                    """,
+                <div>
+                    @foreach (var i in new int[] { 1, 23 })
+                    {
+                        <div></div>
+                    }
+                </div>
+                <Select TValue="string">
+                    @foreach (var i in new int[] { 1, 23 })
+                    {
+                        <SelectItem Value="@i">@i</SelectItem>
+                    }
+                </Select>
+                """,
             htmlFormatted: """
 
-                    <div>
-                        @foreach ( var i in new int[] { 1, 23 } )
-                        {
-                        <div></div>
-                        }
-                    </div>
-                    <Select TValue="string">
-                        @foreach ( var i in new int[] { 1, 23 } )
-                        {
-                        <SelectItem Value="@i">@i</SelectItem>
-                        }
-                    </Select>
-                    """,
-            tagHelpers: [.. CreateTagHelpers()]);
-
-        ImmutableArray<TagHelperDescriptor> CreateTagHelpers()
-        {
-            var select = """
+                <div>
+                    @foreach ( var i in new int[] { 1, 23 } )
+                    {
+                    <div></div>
+                    }
+                </div>
+                <Select TValue="string">
+                    @foreach ( var i in new int[] { 1, 23 } )
+                    {
+                    <SelectItem Value="@i">@i</SelectItem>
+                    }
+                </Select>
+                """,
+            additionalFiles: [
+                (FilePath("Select.razor"), """
                     @typeparam TValue
                     @attribute [CascadingTypeParameter(nameof(TValue))]
                     <CascadingValue Value="@this" IsFixed>
@@ -559,8 +556,8 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
                     {
                         [Parameter] public TValue SelectedValue { get; set; }
                     }
-                    """;
-            var selectItem = """
+                    """),
+                (FilePath("SelectItem.razor"), """
                     @typeparam TValue
                     <option value="@StringValue">@ChildContent</option>
 
@@ -571,17 +568,7 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
 
                         protected string StringValue => Value?.ToString();
                     }
-                    """;
-
-            var selectComponent = CompileToCSharp("Select.razor", select, throwOnFailure: true, fileKind: RazorFileKind.Component);
-            var selectItemComponent = CompileToCSharp("SelectItem.razor", selectItem, throwOnFailure: true, fileKind: RazorFileKind.Component);
-
-            using var _ = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var tagHelpers);
-            tagHelpers.AddRange(selectComponent.CodeDocument.GetRequiredTagHelperContext().TagHelpers);
-            tagHelpers.AddRange(selectItemComponent.CodeDocument.GetRequiredTagHelperContext().TagHelpers);
-
-            return tagHelpers.ToImmutable();
-        }
+                    """)]);
     }
 
     [Fact]
@@ -640,46 +627,39 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
             allowDiagnostics: true);
     }
 
-    private TagHelperCollection GetComponents()
-    {
-        AdditionalSyntaxTrees.Add(Parse("""
-                using Microsoft.AspNetCore.Components;
-                namespace Test
-                {
-                    public class GridTable : ComponentBase
-                    {
-                        [Parameter]
-                        public RenderFragment ChildContent { get; set; }
-                    }
+    private string GetComponents() => """
+        using Microsoft.AspNetCore.Components;
+        namespace Test
+        {
+            public class GridTable : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
 
-                    public class GridRow : ComponentBase
-                    {
-                        [Parameter]
-                        public RenderFragment ChildContent { get; set; }
-                    }
+            public class GridRow : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
 
-                    public class GridCell : ComponentBase
-                    {
-                        [Parameter]
-                        public RenderFragment ChildContent { get; set; }
-                    }
+            public class GridCell : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
 
-                    public class Component1 : ComponentBase
-                    {
-                        [Parameter]
-                        public string Id { get; set; }
+            public class Component1 : ComponentBase
+            {
+                [Parameter]
+                public string Id { get; set; }
 
-                        [Parameter]
-                        public string Caption { get; set; }
+                [Parameter]
+                public string Caption { get; set; }
 
-                        [Parameter]
-                        public RenderFragment Frag {get;set;}
-                    }
-                }
-                """));
-
-        var generated = CompileToCSharp("Test.razor", string.Empty, throwOnFailure: false, fileKind: RazorFileKind.Component);
-
-        return generated.CodeDocument.GetRequiredTagHelperContext().TagHelpers;
-    }
+                [Parameter]
+                public RenderFragment Frag {get;set;}
+            }
+        }
+        """;
 }
