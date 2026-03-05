@@ -90,6 +90,7 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<MetadataAttributePass>(feature),
             feature => Assert.IsType<PreallocatedTagHelperAttributeOptimizationPass>(feature),
             feature => Assert.IsType<TagHelperDiscoveryService>(feature),
+            feature => Assert.IsType<Utf8WriteLiteralDetectionPass>(feature),
             feature => Assert.IsType<ViewCssScopePass>(feature));
     }
 
