@@ -17,9 +17,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
-        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions(((((AnalyzerConfigOptionsProvider, ParseOptions), ImmutableArray<MetadataReference>), Compilation), bool) pair, CancellationToken ct)
+        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((((AnalyzerConfigOptionsProvider, ParseOptions), ImmutableArray<MetadataReference>), Compilation) pair, CancellationToken ct)
         {
-            var ((((options, parseOptions), references), compilation), isSuppressed) = pair;
+            var (((options, parseOptions), references), compilation) = pair;
             var globalOptions = options.GlobalOptions;
 
             Log.ComputeRazorSourceGeneratorOptions();

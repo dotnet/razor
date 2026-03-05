@@ -1139,7 +1139,7 @@ using SurveyPromptRootNamspace;
             Assert.Equal(2, result.GeneratedSources.Length);
 
             // Verify that adding a metadata reference triggers tag helper discovery
-            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Unchanged); // Re-ran but unchanged
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Modified); // Re-ran due compilation input
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-ran but compilation tag helpers unchanged
             result.VerifyIncrementalSteps("TagHelpersFromReferences", IncrementalStepRunReason.Modified); // New reference added
             result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
@@ -2008,10 +2008,10 @@ public class HeaderTagHelper : TagHelper
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Modified); // New tag helper discovered
             result.VerifyIncrementalStepsMultiple("CheckedAndRewrittenTagHelpers",
                 IncrementalStepRunReason.Modified,   // Index - new tag helper affects h2
-                IncrementalStepRunReason.Unchanged); // Layout - doesn't use h2
+                IncrementalStepRunReason.Modified);  // Layout - reprocessed because options input changed
             result.VerifyIncrementalStepsMultiple("GeneratedCode",
                 IncrementalStepRunReason.Modified,   // Index - re-generated with tag helper
-                IncrementalStepRunReason.Cached);    // Layout - unchanged
+                IncrementalStepRunReason.Modified);  // Layout - re-generated because options input changed
 
         }
 
@@ -2814,7 +2814,7 @@ namespace MyApp
 
             // reference causes the compilation to change so we re-run tag helper discovery there
             // but we didn't re-check the actual reference itself
-            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Unchanged); // Re-ran but unchanged
+            result.VerifyIncrementalSteps("RazorSourceGeneratorOptions", IncrementalStepRunReason.Modified); // Re-ran due compilation input
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-ran but unchanged
         }
 

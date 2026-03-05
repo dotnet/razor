@@ -63,7 +63,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -106,7 +106,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -131,7 +131,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -155,7 +155,7 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out _);
+        var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
