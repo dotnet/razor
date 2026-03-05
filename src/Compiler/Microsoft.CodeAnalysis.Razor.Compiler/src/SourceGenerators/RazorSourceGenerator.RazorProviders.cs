@@ -22,11 +22,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var ((((options, parseOptions), references), compilation), isSuppressed) = pair;
             var globalOptions = options.GlobalOptions;
 
-            if (isSuppressed)
-            {
-                return default;
-            }
-
             Log.ComputeRazorSourceGeneratorOptions();
 
             globalOptions.TryGetValue("build_property.RazorConfiguration", out var configurationName);
