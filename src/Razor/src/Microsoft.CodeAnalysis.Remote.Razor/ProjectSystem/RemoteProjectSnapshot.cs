@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -46,13 +45,9 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
     public string IntermediateOutputPath => FilePathNormalizer.GetNormalizedDirectoryName(_project.CompilationOutputInfo.AssemblyPath);
 
-    public string? RootNamespace => _project.DefaultNamespace ?? "ASP";
-
     public string DisplayName => _project.Name;
 
     public Project Project => _project;
-
-    public LanguageVersion CSharpLanguageVersion => ((CSharpParseOptions)_project.ParseOptions.AssumeNotNull()).LanguageVersion;
 
     public async ValueTask<TagHelperCollection> GetTagHelpersAsync(CancellationToken cancellationToken)
     {
