@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Razor.DynamicFiles;
 public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : DocumentExcerptServiceTestBase(testOutput)
 {
     [Fact]
-    public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp()
+    public async Task TryExcerptAsync_SingleLine_CanClassifyCSharp()
     {
         // Arrange
         var razorSource = @"
@@ -34,7 +34,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -93,7 +93,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
     }
 
     [Fact]
-    public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp_ImplicitExpression()
+    public async Task TryExcerptAsync_SingleLine_CanClassifyCSharp_ImplicitExpression()
     {
         // Arrange
         var razorSource = @"
@@ -112,7 +112,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -146,7 +146,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
     }
 
     [Fact]
-    public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp_ComplexLine()
+    public async Task TryExcerptAsync_SingleLine_CanClassifyCSharp_ComplexLine()
     {
         // Arrange
         var razorSource = @"
@@ -165,7 +165,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -249,7 +249,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
     }
 
     [Fact]
-    public async Task TryGetExcerptInternalAsync_MultiLine_MultilineString()
+    public async Task TryExcerptAsync_MultiLine_MultilineString()
     {
         // Arrange
         var razorSource = """
@@ -272,7 +272,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -355,7 +355,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
     }
 
     [Fact]
-    public async Task TryGetExcerptInternalAsync_SingleLine_MultilineString()
+    public async Task TryExcerptAsync_SingleLine_MultilineString()
     {
         // Arrange
         var razorSource = """
@@ -376,7 +376,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.SingleLine, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -431,7 +431,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
     }
 
     [Fact]
-    public async Task TryGetExcerptInternalAsync_MultiLine_CanClassifyCSharp()
+    public async Task TryExcerptAsync_MultiLine_CanClassifyCSharp()
     {
         // Arrange
         var razorSource = @"
@@ -450,7 +450,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         Assert.NotNull(result);
@@ -548,7 +548,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
     }
 
     [Fact]
-    public async Task TryGetExcerptInternalAsync_MultiLine_Boundaries_CanClassifyCSharp()
+    public async Task TryExcerptAsync_MultiLine_Boundaries_CanClassifyCSharp()
     {
         // Arrange
         var razorSource = @"@{ var [|foo|] = ""Hello, World!""; }";
@@ -559,7 +559,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
-        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
+        var result = await service.TryExcerptAsync(secondary, secondarySpan, RazorExcerptMode.Tooltip, options, DisposalToken);
 
         // Assert
         // Verifies that the right part of the primary document will be highlighted.
@@ -640,8 +640,8 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
             });
     }
 
-    private RazorDocumentExcerptService CreateExcerptService(IDocumentSnapshot document)
+    private RazorSourceGeneratedDocumentExcerptService CreateExcerptService(IDocumentSnapshot document)
     {
-        return new RazorDocumentExcerptService(document, new RazorMappingService(document, NoOpTelemetryReporter.Instance, LoggerFactory));
+        return new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
     }
 }
