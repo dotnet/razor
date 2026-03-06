@@ -23,8 +23,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 {
     public RemoteSolutionSnapshot SolutionSnapshot { get; }
 
-    public ProjectKey Key { get; }
-
     private readonly Project _project;
     private readonly Dictionary<TextDocument, RemoteDocumentSnapshot> _documentMap = [];
 
@@ -37,7 +35,6 @@ internal sealed class RemoteProjectSnapshot : IProjectSnapshot
 
         _project = project;
         SolutionSnapshot = solutionSnapshot;
-        Key = _project.ToProjectKey();
     }
 
     public IEnumerable<string> DocumentFilePaths

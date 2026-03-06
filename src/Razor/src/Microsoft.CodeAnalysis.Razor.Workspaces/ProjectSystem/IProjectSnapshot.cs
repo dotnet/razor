@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal interface IProjectSnapshot
 {
-    ProjectKey Key { get; }
-
     IEnumerable<string> DocumentFilePaths { get; }
 
     /// <summary>

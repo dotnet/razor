@@ -3,8 +3,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Text;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -12,9 +10,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 internal abstract class AbstractFilePathService(LanguageServerFeatureOptions languageServerFeatureOptions) : IFilePathService
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
-
-    public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
-        => GetGeneratedFilePath(projectKey, razorFilePath, LanguageServerConstants.CSharpVirtualDocumentSuffix);
 
     public virtual Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
@@ -65,30 +60,6 @@ internal abstract class AbstractFilePathService(LanguageServerFeatureOptions lan
         }
 
         return filePath;
-    }
-
-    private string GetGeneratedFilePath(ProjectKey projectKey, string razorFilePath, string suffix)
-    {
-        var projectSuffix = GetProjectSuffix(projectKey);
-
-        return razorFilePath + projectSuffix + suffix;
-    }
-
-    private string GetProjectSuffix(ProjectKey projectKey)
-    {
-        // If there is no project key, we still want to generate something as otherwise the GetRazorFilePath method
-        // would end up unnecessarily overcomplicated
-        if (projectKey.IsUnknown)
-        {
-            return ".p";
-        }
-
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var crypto = sha256.ComputeHash(Encoding.Unicode.GetBytes(projectKey.Id));
-        var projectToken = Convert.ToBase64String(crypto, 0, 12).Replace('/', '_').Replace('+', '-');
-
-        Debug.Assert(!projectToken.Contains("."), "Project token can't contain a dot or the GetRazorFilePath method will fail.");
-        return "." + projectToken;
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
