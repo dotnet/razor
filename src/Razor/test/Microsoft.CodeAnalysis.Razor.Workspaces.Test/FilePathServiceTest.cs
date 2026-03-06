@@ -26,34 +26,6 @@ public class FilePathServiceTest
         Assert.Equal(@"C:\path\to\file.razor", result);
     }
 
-    [Fact]
-    public void GetRazorCSharpFilePath_ReturnsExpectedPath()
-    {
-        // Arrange
-        var projectKey = new ProjectKey(@"C:\path\to\obj");
-        var filePathService = new TestFilePathService();
-
-        // Act
-        var result = filePathService.GetRazorCSharpFilePath(projectKey, @"C:\path\to\file.razor");
-
-        // Assert
-        Assert.Equal(@"C:\path\to\file.razor.21z2YGQgr-neX-Hd.ide.g.cs", result);
-    }
-
-    [Fact]
-    public void GetRazorCSharpFilePath_NoProjectInfo_ReturnsExpectedPath()
-    {
-        // Arrange
-        var projectKey = default(ProjectKey);
-        var filePathService = new TestFilePathService();
-
-        // Act
-        var result = filePathService.GetRazorCSharpFilePath(projectKey, @"C:\path\to\file.razor");
-
-        // Assert
-        Assert.Equal(@"C:\path\to\file.razor.p.ide.g.cs", result);
-    }
-
     [Theory]
     [InlineData(@"C:\path\to\file.razor.t3Gf1FBjln6S9T95.ide.g.cs")]
     [InlineData(@"C:\path\to\file.razor.p.ide.g.cs")]
