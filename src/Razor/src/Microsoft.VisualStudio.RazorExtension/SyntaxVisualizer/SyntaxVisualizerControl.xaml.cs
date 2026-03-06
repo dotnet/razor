@@ -127,13 +127,7 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
 
         if (_fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
         {
-            if (_languageServerFeatureOptions.UseRazorCohostServer)
-            {
-                ShowGeneratedCode(_activeWpfTextView.TextBuffer, hostDocumentUri, GeneratedDocumentKind.Formatting);
-                return;
-            }
-
-            // Only supported with cohosting
+            ShowGeneratedCode(_activeWpfTextView.TextBuffer, hostDocumentUri, GeneratedDocumentKind.Formatting);
         }
     }
 
