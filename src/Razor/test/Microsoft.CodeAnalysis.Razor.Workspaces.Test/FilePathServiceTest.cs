@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test;
@@ -16,11 +14,8 @@ public class FilePathServiceTest
     [InlineData(@"C:\path\to\file.razor")]
     public void GetRazorFilePath_ReturnsExpectedPath(string inputFilePath)
     {
-        // Arrange
-        var filePathService = new TestFilePathService();
-
         // Act
-        var result = filePathService.GetTestAccessor().GetRazorFilePath(inputFilePath);
+        var result = AbstractFilePathService.TestAccessor.GetRazorFilePath(inputFilePath);
 
         // Assert
         Assert.Equal(@"C:\path\to\file.razor", result);
@@ -65,7 +60,7 @@ public class FilePathServiceTest
         Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());
     }
 
-    private class TestFilePathService() : AbstractFilePathService(new TestLanguageServerFeatureOptions())
+    private class TestFilePathService() : AbstractFilePathService()
     {
     }
 }
