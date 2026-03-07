@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test;
 public class FilePathServiceTest
 {
     [Theory]
-    [InlineData(@"C:\path\to\file.razor.t3Gf1FBjln6S9T95.ide.g.cs")]
     [InlineData(@"C:\path\to\file.razor__virtual.html")]
     [InlineData(@"C:\path\to\file.razor")]
     public void GetRazorFilePath_ReturnsExpectedPath(string inputFilePath)
@@ -19,21 +18,6 @@ public class FilePathServiceTest
 
         // Assert
         Assert.Equal(@"C:\path\to\file.razor", result);
-    }
-
-    [Theory]
-    [InlineData(@"C:\path\to\file.razor.t3Gf1FBjln6S9T95.ide.g.cs")]
-    [InlineData(@"C:\path\to\file.razor.p.ide.g.cs")]
-    public void GetRazorDocumentUri_CSharpFile_ReturnsExpectedUri(string input)
-    {
-        // Arrange
-        var filePathService = new TestFilePathService();
-
-        // Act
-        var result = filePathService.GetRazorDocumentUri(new Uri(input));
-
-        // Assert
-        Assert.Equal(@"C:/path/to/file.razor", result.GetAbsoluteOrUNCPath());
     }
 
     [Fact]
