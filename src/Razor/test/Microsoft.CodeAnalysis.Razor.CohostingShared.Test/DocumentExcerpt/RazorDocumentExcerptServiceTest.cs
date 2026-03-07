@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -30,7 +30,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -108,7 +108,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -161,7 +161,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -268,7 +268,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -350,7 +350,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
                             Razor shows 3 lines in a
                             tooltip maximum, so this
                             multi-line verbatim
-                    """, result.Value.Content.GetSubText(c.TextSpan).ToString());
+                    """, result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
             });
     }
 
@@ -372,7 +372,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -446,7 +446,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -555,7 +555,7 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
 
         var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource, DisposalToken);
 
-        var service = CreateExcerptService(primary);
+        var service = new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
 
         // Act
         var options = RazorClassificationOptionsWrapper.Default;
@@ -638,10 +638,5 @@ public class RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput) : Doc
                 Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
                 Assert.Equal("}", result.Value.Content.GetSubText(c.TextSpan).ToString());
             });
-    }
-
-    private RazorSourceGeneratedDocumentExcerptService CreateExcerptService(IDocumentSnapshot document)
-    {
-        return new RazorSourceGeneratedDocumentExcerptService(RemoteServiceInvoker);
     }
 }

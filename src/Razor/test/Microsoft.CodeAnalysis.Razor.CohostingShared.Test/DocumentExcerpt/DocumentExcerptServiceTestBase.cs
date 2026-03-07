@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -21,15 +19,8 @@ public abstract class DocumentExcerptServiceTestBase(ITestOutputHelper testOutpu
 {
     public static (SourceText sourceText, TextSpan span) CreateText(string text)
     {
-        if (text is null)
-        {
-            throw new ArgumentNullException(nameof(text));
-        }
-
         // Since we're using positions, normalize to Windows style
-#pragma warning disable CA1307 // Specify StringComparison
         text = text.Replace("\r", "").Replace("\n", "\r\n");
-#pragma warning restore CA1307 // Specify StringComparison
 
         TestFileMarkupParser.GetSpan(text, out text, out var span);
         return (SourceText.From(text), span);

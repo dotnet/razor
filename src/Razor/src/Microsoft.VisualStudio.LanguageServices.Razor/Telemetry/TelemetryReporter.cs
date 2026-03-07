@@ -461,7 +461,10 @@ internal abstract partial class TelemetryReporter : ITelemetryReporter, IDisposa
         public void Dispose()
         {
             Flush();
-            Session.Dispose();
+            if (!Session.IsDisposed)
+            {
+                Session.Dispose();
+            }
         }
 
         public static TelemetrySessionManager Create(TelemetryReporter telemetryReporter, TelemetrySession session)
