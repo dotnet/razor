@@ -1345,6 +1345,51 @@ namespace AspNetCoreGeneratedDocument
 
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8259")]
+        public async Task SourceGenerator_CshtmlFiles_SuppressMvcRazorImports()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.cshtml"] = "<h1>Hello world</h1>",
+            });
+            var compilation = await project.GetCompilationAsync();
+            var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, options =>
+            {
+                options.TestGlobalOptions["build_property.SuppressMvcRazorImports"] = "true";
+            });
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            var generatedSource = Assert.Single(result.GeneratedSources);
+            var generatedCode = generatedSource.SourceText.ToString();
+
+            // Should NOT contain MVC-specific inject properties
+            Assert.DoesNotContain("RazorInjectAttribute", generatedCode);
+            Assert.DoesNotContain("IModelExpressionProvider", generatedCode);
+            Assert.DoesNotContain("IUrlHelper", generatedCode);
+            Assert.DoesNotContain("IViewComponentHelper", generatedCode);
+            Assert.DoesNotContain("IJsonHelper", generatedCode);
+            Assert.DoesNotContain("IHtmlHelper", generatedCode);
+
+            // Should NOT contain MVC-specific using directives
+            Assert.DoesNotContain("using global::Microsoft.AspNetCore.Mvc;", generatedCode);
+            Assert.DoesNotContain("using global::Microsoft.AspNetCore.Mvc.Rendering;", generatedCode);
+            Assert.DoesNotContain("using global::Microsoft.AspNetCore.Mvc.ViewFeatures;", generatedCode);
+
+            // Should still contain System using directives
+            Assert.Contains("using global::System;", generatedCode);
+            Assert.Contains("using global::System.Collections.Generic;", generatedCode);
+            Assert.Contains("using global::System.Linq;", generatedCode);
+            Assert.Contains("using global::System.Threading.Tasks;", generatedCode);
+
+            // Should still contain the page content
+            Assert.Contains("Hello world", generatedCode);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
         public async Task SourceGenerator_CshtmlFiles_TagHelperInFunction()
         {

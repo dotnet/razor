@@ -16,11 +16,49 @@ public class MvcImportProjectFeatureTest
         using var imports = new PooledArrayBuilder<RazorProjectItem>();
 
         // Act
-        MvcImportProjectFeature.AddDefaultDirectivesImport(ref imports.AsRef());
+        MvcImportProjectFeature.AddDefaultDirectivesImport(suppressMvcRazorImports: false, ref imports.AsRef());
 
         // Assert
         var import = Assert.Single(imports.ToImmutable());
         Assert.Null(import.FilePath);
+    }
+
+    [Fact]
+    public void AddDefaultDirectivesImport_DefaultImportContainsMvcDirectives()
+    {
+        // Arrange
+        using var imports = new PooledArrayBuilder<RazorProjectItem>();
+
+        // Act
+        MvcImportProjectFeature.AddDefaultDirectivesImport(suppressMvcRazorImports: false, ref imports.AsRef());
+
+        // Assert
+        var import = Assert.Single(imports.ToImmutable());
+        var content = ReadContent(import);
+        Assert.Contains("@inject", content);
+        Assert.Contains("@addTagHelper", content);
+        Assert.Contains("@using global::Microsoft.AspNetCore.Mvc", content);
+    }
+
+    [Fact]
+    public void AddDefaultDirectivesImport_SuppressMvcRazorImports_OmitsMvcDirectives()
+    {
+        // Arrange
+        using var imports = new PooledArrayBuilder<RazorProjectItem>();
+
+        // Act
+        MvcImportProjectFeature.AddDefaultDirectivesImport(suppressMvcRazorImports: true, ref imports.AsRef());
+
+        // Assert
+        var import = Assert.Single(imports.ToImmutable());
+        var content = ReadContent(import);
+        Assert.DoesNotContain("@inject", content);
+        Assert.DoesNotContain("@addTagHelper", content);
+        Assert.DoesNotContain("Microsoft.AspNetCore.Mvc", content);
+        Assert.Contains("@using global::System", content);
+        Assert.Contains("@using global::System.Collections.Generic", content);
+        Assert.Contains("@using global::System.Linq", content);
+        Assert.Contains("@using global::System.Threading.Tasks", content);
     }
 
     [Fact]
@@ -70,5 +108,12 @@ public class MvcImportProjectFeatureTest
             import => Assert.Equal("/_ViewImports.cshtml", import.FilePath),
             import => Assert.Equal("/Pages/_ViewImports.cshtml", import.FilePath),
             import => Assert.Equal("/Pages/Contact/_ViewImports.cshtml", import.FilePath));
+    }
+
+    private static string ReadContent(RazorProjectItem item)
+    {
+        using var stream = item.Read();
+        using var reader = new System.IO.StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }

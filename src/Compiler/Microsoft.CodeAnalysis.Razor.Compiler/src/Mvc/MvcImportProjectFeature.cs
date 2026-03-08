@@ -29,6 +29,13 @@ internal sealed class MvcImportProjectFeature : RazorProjectEngineFeatureBase, I
 @addTagHelper global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
 ");
 
+    private static readonly DefaultImportProjectItem s_defaultImportNoMvc = new($"Default non-MVC imports ({ImportsFileName})", @"
+@using global::System
+@using global::System.Collections.Generic
+@using global::System.Linq
+@using global::System.Threading.Tasks
+");
+
     public void CollectImports(RazorProjectItem projectItem, ref PooledArrayBuilder<RazorProjectItem> imports)
     {
         ArgHelper.ThrowIfNull(projectItem);
@@ -39,16 +46,16 @@ internal sealed class MvcImportProjectFeature : RazorProjectEngineFeatureBase, I
             return;
         }
 
-        AddDefaultDirectivesImport(ref imports);
+        AddDefaultDirectivesImport(ProjectEngine.Configuration.SuppressMvcRazorImports, ref imports);
 
         // We add hierarchical imports second so any default directive imports can be overridden.
         AddHierarchicalImports(projectItem, ref imports);
     }
 
     // Internal for testing
-    internal static void AddDefaultDirectivesImport(ref PooledArrayBuilder<RazorProjectItem> imports)
+    internal static void AddDefaultDirectivesImport(bool suppressMvcRazorImports, ref PooledArrayBuilder<RazorProjectItem> imports)
     {
-        imports.Add(s_defaultImport);
+        imports.Add(suppressMvcRazorImports ? s_defaultImportNoMvc : s_defaultImport);
     }
 
     // Internal for testing

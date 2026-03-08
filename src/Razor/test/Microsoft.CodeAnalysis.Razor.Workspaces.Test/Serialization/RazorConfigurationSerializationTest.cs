@@ -22,6 +22,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
             UseConsolidatedMvcViews: false,
             SuppressAddComponentParameter: true,
             UseRoslynTokenizer: true,
+            SuppressMvcRazorImports: true,
             PreprocessorSymbols: ["DEBUG", "TRACE", "DAVID"]);
 
         // Act
@@ -42,6 +43,7 @@ public class RazorConfigurationSerializationTest(ITestOutputHelper testOutput) :
         Assert.Equal(configuration.UseConsolidatedMvcViews, obj.UseConsolidatedMvcViews);
         Assert.Equal(configuration.SuppressAddComponentParameter, obj.SuppressAddComponentParameter);
         Assert.Equal(configuration.UseRoslynTokenizer, obj.UseRoslynTokenizer);
+        Assert.Equal(configuration.SuppressMvcRazorImports, obj.SuppressMvcRazorImports);
         Assert.Collection(obj.PreprocessorSymbols,
             s => Assert.Equal("DEBUG", s),
             s => Assert.Equal("TRACE", s),

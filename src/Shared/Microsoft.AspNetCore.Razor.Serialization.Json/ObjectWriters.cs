@@ -35,6 +35,7 @@ internal static partial class ObjectWriters
         writer.WriteIfNotFalse(nameof(value.SuppressAddComponentParameter), value.SuppressAddComponentParameter);
         writer.WriteIfNotTrue(nameof(value.UseConsolidatedMvcViews), value.UseConsolidatedMvcViews);
         writer.WriteIfNotFalse(nameof(value.UseRoslynTokenizer), value.UseRoslynTokenizer);
+        writer.WriteIfNotFalse(nameof(value.SuppressMvcRazorImports), value.SuppressMvcRazorImports);
         writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.PreprocessorSymbols), value.PreprocessorSymbols, static (w, v) => w.Write(v));
 
         writer.WriteArrayIfNotDefaultOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
