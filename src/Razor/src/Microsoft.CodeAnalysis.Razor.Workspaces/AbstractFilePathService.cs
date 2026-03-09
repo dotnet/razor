@@ -18,9 +18,8 @@ internal abstract class AbstractFilePathService : IFilePathService
     }
 
     public bool IsVirtualCSharpFile(Uri uri)
-    {
-        return RazorUri.IsGeneratedDocumentUri(uri);
-    }
+        => RazorUri.IsGeneratedDocumentUri(uri);
+
     public bool IsVirtualHtmlFile(Uri uri)
         => CheckIfFileUriAndExtensionMatch(uri, LanguageServerConstants.HtmlVirtualDocumentSuffix);
 
