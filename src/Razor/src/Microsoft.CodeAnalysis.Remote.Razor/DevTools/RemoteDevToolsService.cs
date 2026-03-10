@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -69,32 +68,6 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
 #pragma warning restore CS0618 // Type or member is obsolete
             },
             cancellationToken);
-
-    public ValueTask<FetchTagHelpersResult> GetTagHelpersJsonAsync(
-        RazorPinnedSolutionInfoWrapper solutionInfo,
-        DocumentId razorDocumentId,
-        TagHelpersKind kind,
-        CancellationToken cancellationToken)
-        => RunServiceAsync(
-            solutionInfo,
-            razorDocumentId,
-            context => GetTagHelpersJsonAsync(context, kind, cancellationToken),
-            cancellationToken);
-
-    private static async ValueTask<FetchTagHelpersResult> GetTagHelpersJsonAsync(RemoteDocumentContext documentContext, TagHelpersKind kind, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var tagHelpers = kind switch
-        {
-            TagHelpersKind.All => codeDocument.GetTagHelpers(),
-            TagHelpersKind.InScope => codeDocument.GetRequiredTagHelperContext().TagHelpers,
-            TagHelpersKind.Referenced => codeDocument.GetReferencedTagHelpers(),
-            _ => []
-        };
-
-        tagHelpers ??= [];
-        return new FetchTagHelpersResult(tagHelpers);
-    }
 
     public ValueTask<SyntaxVisualizerTree?> GetRazorSyntaxTreeAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,

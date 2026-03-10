@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Serialization.Json;
 using Microsoft.CodeAnalysis.Razor.Protocol.DevTools;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -216,57 +213,6 @@ internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTable
         {
             OpenGeneratedCode(hostDocumentUri.AbsolutePath + extension, response);
         }
-    }
-
-    private void ShowSerializedTagHelpers(Uri hostDocumentUri, TagHelperDisplayMode displayKind)
-    {
-        EnsureInitialized();
-
-        var tagHelpersKind = displayKind switch
-        {
-            TagHelperDisplayMode.All => TagHelpersKind.All,
-            TagHelperDisplayMode.InScope => TagHelpersKind.InScope,
-            TagHelperDisplayMode.Referenced => TagHelpersKind.Referenced,
-            _ => TagHelpersKind.All
-        };
-
-        var tagHelpers = _joinableTaskFactory.Run(async () =>
-        {
-            var workspace = VSServiceHelpers.GetRequiredMefService<VisualStudioWorkspace>();
-            var solution = workspace.CurrentSolution;
-            var tagHelpers = await SyntaxVisualizerHelper.GetTagHelperDescriptorsAsync(_remoteServiceInvoker, hostDocumentUri, tagHelpersKind, solution, CancellationToken.None).ConfigureAwait(false);
-
-            if (tagHelpers is null)
-            {
-                return [];
-            }
-
-            return tagHelpers.TagHelpers;
-        });
-
-        ShowSerializedTagHelpers(displayKind, tagHelpers);
-    }
-
-    public void ShowSerializedTagHelpers(TagHelperDisplayMode displayKind)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        EnsureInitialized();
-
-        if (_activeWpfTextView is not null &&
-            _fileUriProvider.TryGet(_activeWpfTextView.TextBuffer, out var hostDocumentUri))
-        {
-            ShowSerializedTagHelpers(hostDocumentUri, displayKind);
-        }
-    }
-
-    private static void ShowSerializedTagHelpers(TagHelperDisplayMode displayKind, IEnumerable<TagHelperDescriptor> tagHelpers)
-    {
-        var tempFileName = GetTempFileName(displayKind.ToString() + "TagHelpers.json");
-
-        JsonDataConvert.SerializeToFile(tagHelpers, tempFileName, indented: true);
-
-        VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, tempFileName);
     }
 
     private static string GetTempFileName(string originalFilePath)
