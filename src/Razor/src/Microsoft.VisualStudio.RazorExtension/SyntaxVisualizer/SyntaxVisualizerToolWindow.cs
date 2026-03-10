@@ -27,6 +27,9 @@ internal class SyntaxVisualizerToolWindow : ToolWindowPane
     private const int ToolbarCmdId = 0x0102;
     private const int CmdIdShowGeneratedCode = 0x0111;
     private const int CmdIdShowGeneratedHtml = 0x0112;
+    private const int CmdIdShowAllTagHelpers = 0x0113;
+    private const int CmdIdShowInScopeTagHelpers = 0x0114;
+    private const int CmdIdShowReferencedTagHelpers = 0x0115;
     private const int CmdidShowFormattingDocument = 0x0116;
 
     private SyntaxVisualizerControl _visualizerControl => (SyntaxVisualizerControl)Content;
@@ -75,6 +78,9 @@ internal class SyntaxVisualizerToolWindow : ToolWindowPane
         mcs.AddCommand(new MenuCommand(ShowFormattingDocument, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdidShowFormattingDocument)));
         mcs.AddCommand(new MenuCommand(ShowGeneratedCode, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowGeneratedCode)));
         mcs.AddCommand(new MenuCommand(ShowGeneratedHtml, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowGeneratedHtml)));
+        mcs.AddCommand(new MenuCommand(ShowAllTagHelpers, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowAllTagHelpers)));
+        mcs.AddCommand(new MenuCommand(ShowInScopeTagHelpers, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowInScopeTagHelpers)));
+        mcs.AddCommand(new MenuCommand(ShowReferencedTagHelpers, new CommandID(guidSyntaxVisualizerMenuCmdSet, CmdIdShowReferencedTagHelpers)));
     }
 
     private void ShowFormattingDocument(object sender, EventArgs e)
@@ -90,5 +96,20 @@ internal class SyntaxVisualizerToolWindow : ToolWindowPane
     private void ShowGeneratedHtml(object sender, EventArgs e)
     {
         _visualizerControl.ShowGeneratedHtml();
+    }
+
+    private void ShowAllTagHelpers(object sender, EventArgs e)
+    {
+        _visualizerControl.ShowSerializedTagHelpers(displayKind: SyntaxVisualizerControl.TagHelperDisplayMode.All);
+    }
+
+    private void ShowInScopeTagHelpers(object sender, EventArgs e)
+    {
+        _visualizerControl.ShowSerializedTagHelpers(displayKind: SyntaxVisualizerControl.TagHelperDisplayMode.InScope);
+    }
+
+    private void ShowReferencedTagHelpers(object sender, EventArgs e)
+    {
+        _visualizerControl.ShowSerializedTagHelpers(displayKind: SyntaxVisualizerControl.TagHelperDisplayMode.Referenced);
     }
 }
