@@ -93,6 +93,34 @@ internal static partial class RazorEditHelper
     }
 
     /// <summary>
+    /// Detects C# constructs (e.g., using directives) that were added or removed in
+    /// <paramref name="changedCSharpText"/> compared to the original generated C#, and
+    /// returns the corresponding edits for the Razor document. This is the single entry
+    /// point for translating unmapped C# changes into their Razor equivalents.
+    /// </summary>
+    internal static async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+        IDocumentSnapshot snapshot,
+        SourceText changedCSharpText,
+        CancellationToken cancellationToken)
+    {
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var originalSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+        var newSyntaxTree = originalSyntaxTree.WithChangedText(changedCSharpText);
+
+        var oldUsings = await UsingDirectiveHelper.FindUsingDirectiveStringsAsync(originalSyntaxTree, cancellationToken).ConfigureAwait(false);
+        var newUsings = await UsingDirectiveHelper.FindUsingDirectiveStringsAsync(newSyntaxTree, cancellationToken).ConfigureAwait(false);
+
+        var addedUsings = Delta.Compute(oldUsings, newUsings);
+        var removedUsings = Delta.Compute(newUsings, oldUsings);
+
+        using var edits = new PooledArrayBuilder<RazorTextChange>();
+        AddUsingsChanges(ref edits.AsRef(), codeDocument, addedUsings, removedUsings, cancellationToken);
+
+        return edits.ToImmutable();
+    }
+
+    /// <summary>
     /// Go through edits and make sure a few things are true:
     ///
     /// <list type="number">
