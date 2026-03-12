@@ -41,7 +41,7 @@
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
 
       <!-- Ensure we consume the right components for our architecture and RID -->
-      <AdditionalProperties>RuntimeIdentifier=win-$(ComponentArchitecture);TargetFramework=$(NetVS);PublishReadyToRun=true</AdditionalProperties>
+      <AdditionalProperties>RuntimeIdentifier=win-$(ComponentArchitecture);TargetFramework=$(NetVS)</AdditionalProperties>
 
       <!-- Do not NGEN at install time. They are R2R compiled as part of the build instead -->
       <Ngen>false</Ngen>
