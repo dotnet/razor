@@ -88,7 +88,7 @@ internal static partial class RazorEditHelper
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
         AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, documentMappingService, cancellationToken);
-        AddUsingsChanges(ref edits.AsRef(), codeDocument, addedUsings, removedUsings, cancellationToken);
+        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, addedUsings, removedUsings, cancellationToken);
 
         return NormalizeEdits(edits.ToImmutableOrderedBy(static e => e.Span.Start), telemetryReporter, cancellationToken);
     }
@@ -97,9 +97,11 @@ internal static partial class RazorEditHelper
     /// Detects C# constructs (e.g., using directives) that were added or removed in
     /// <paramref name="changedCSharpText"/> compared to the original generated C#, and
     /// returns the corresponding edits for the Razor document. This is the single entry
-    /// point for translating unmapped C# changes into their Razor equivalents.
+    /// point for translating unmapped C# changes into their Razor equivalents, to cover
+    /// scenarios where Roslyn adds a C# construct (eg, using directive, method etc.) that needs
+    /// more work than just mapping to conver to Razor (eg, an @ sign, or whole @code block).
     /// </summary>
-    internal static async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+    internal static async Task<ImmutableArray<RazorTextChange>> GetEditsForCSharpLanguageFeaturesAsync(
         IDocumentSnapshot snapshot,
         SourceText changedCSharpText,
         CancellationToken cancellationToken)
@@ -116,7 +118,7 @@ internal static partial class RazorEditHelper
         var removedUsings = Delta.Compute(newUsings, oldUsings);
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
-        AddUsingsChanges(ref edits.AsRef(), codeDocument, addedUsings, removedUsings, cancellationToken);
+        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, addedUsings, removedUsings, cancellationToken);
 
         return edits.ToImmutable();
     }

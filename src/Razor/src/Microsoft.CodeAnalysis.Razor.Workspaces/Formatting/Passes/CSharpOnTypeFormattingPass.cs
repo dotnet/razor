@@ -213,7 +213,7 @@ internal sealed class CSharpOnTypeFormattingPass(
             // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
             if (changes.Any(static e => e.NewText is not null && e.NewText.IndexOf("using") != -1))
             {
-                var usingEdits = await RazorEditHelper.MapCSharpEditsAsync(context.CurrentSnapshot, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
+                var usingEdits = await RazorEditHelper.GetEditsForCSharpLanguageFeaturesAsync(context.CurrentSnapshot, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
                 var usingChanges = usingEdits.SelectAsArray(static e => e.ToTextChange());
                 finalChanges = [.. usingChanges, .. finalChanges];
             }

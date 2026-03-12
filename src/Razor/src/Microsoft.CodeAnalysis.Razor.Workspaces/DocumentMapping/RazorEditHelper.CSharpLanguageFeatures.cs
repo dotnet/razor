@@ -20,6 +20,18 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal static partial class RazorEditHelper
 {
+    private static void AddCSharpLanguageFeatureChanges(
+       ref PooledArrayBuilder<RazorTextChange> edits,
+       RazorCodeDocument codeDocument,
+       ImmutableArray<string> addedUsings,
+       ImmutableArray<string> removedUsings,
+       CancellationToken cancellationToken)
+    {
+        AddUsingsChanges(ref edits, codeDocument, addedUsings, removedUsings, cancellationToken);
+
+        // In future, handle methods, fields, properties, etc.
+    }
+
     /// <summary>
     /// Given a set of new and removed usings, adds text changes to this builder using the following logic:
     ///
