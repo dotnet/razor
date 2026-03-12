@@ -72,7 +72,6 @@ internal static partial class RazorEditHelper
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        using var textChangeBuilder = new TextChangeBuilder(documentMappingService);
 
         var originalSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpSourceText = await originalSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -80,17 +79,17 @@ internal static partial class RazorEditHelper
         var newText = csharpSourceText.WithChanges(textChanges.Select(c => c.ToTextChange()));
         var newSyntaxTree = originalSyntaxTree.WithChangedText(newText);
 
-        textChangeBuilder.AddDirectlyMappedEdits(textChanges, codeDocument, cancellationToken);
-
         var oldUsings = await UsingDirectiveHelper.FindUsingDirectiveStringsAsync(originalSyntaxTree, cancellationToken).ConfigureAwait(false);
         var newUsings = await UsingDirectiveHelper.FindUsingDirectiveStringsAsync(newSyntaxTree, cancellationToken).ConfigureAwait(false);
 
         var addedUsings = Delta.Compute(oldUsings, newUsings);
         var removedUsings = Delta.Compute(newUsings, oldUsings);
 
-        textChangeBuilder.AddUsingsChanges(codeDocument, addedUsings, removedUsings, cancellationToken);
+        using var edits = new PooledArrayBuilder<RazorTextChange>();
+        AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, documentMappingService, cancellationToken);
+        AddUsingsChanges(ref edits.AsRef(), codeDocument, addedUsings, removedUsings, cancellationToken);
 
-        return NormalizeEdits(textChangeBuilder.DrainToOrderedImmutable(), telemetryReporter, cancellationToken);
+        return NormalizeEdits(edits.ToImmutableOrderedBy(static e => e.Span.Start), telemetryReporter, cancellationToken);
     }
 
     /// <summary>
