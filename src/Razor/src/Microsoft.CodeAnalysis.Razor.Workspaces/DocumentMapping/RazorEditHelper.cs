@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -227,6 +228,74 @@ internal static partial class RazorEditHelper
         }
 
         return normalizedChanges.ToImmutable();
+    }
+
+    /// <summary>
+    /// For all edits that are not mapped to using directives, map them directly to the Razor document.
+    /// Edits that don't map are skipped, and using directive changes are handled separately
+    /// by <see cref="AddUsingsChanges"/>.
+    /// </summary>
+    private static void AddDirectlyMappedEdits(
+        ref PooledArrayBuilder<RazorTextChange> edits,
+        ImmutableArray<RazorTextChange> csharpEdits,
+        RazorCodeDocument codeDocument,
+        IDocumentMappingService documentMappingService,
+        CancellationToken cancellationToken)
+    {
+        var root = codeDocument.GetRequiredSyntaxRoot();
+        var razorText = codeDocument.Source.Text;
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpText = csharpDocument.Text;
+
+        foreach (var edit in csharpEdits)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var linePositionSpan = csharpText.GetLinePositionSpan(edit.Span.ToTextSpan());
+
+            if (!documentMappingService.TryMapToRazorDocumentRange(
+                csharpDocument,
+                linePositionSpan,
+                MappingBehavior.Strict,
+                out var mappedLinePositionSpan))
+            {
+                continue;
+            }
+
+            var mappedSpan = razorText.GetTextSpan(mappedLinePositionSpan);
+            var node = root.FindNode(mappedSpan, getInnermostNodeForTie: true);
+            if (node is null)
+            {
+                continue;
+            }
+
+            if (RazorSyntaxFacts.IsInUsingDirective(node))
+            {
+                continue;
+            }
+
+            edits.Add(new RazorTextChange()
+            {
+                Span = mappedSpan.ToRazorTextSpan(),
+                NewText = edit.NewText
+            });
+
+            if (node is BaseMarkupStartTagSyntax startTagSyntax &&
+                startTagSyntax.GetEndTag() is { } endTag)
+            {
+                // We are changing a start tag, and so we have a matching end tag. We have to translate the edit over there too
+                // as we only map the start tag, but if they got out of sync that would be bad.
+                edits.Add(new RazorTextChange()
+                {
+                    Span = new RazorTextSpan()
+                    {
+                        Start = mappedSpan.Start + (endTag.Name.SpanStart - startTagSyntax.Name.SpanStart),
+                        Length = mappedSpan.Length
+                    },
+                    NewText = edit.NewText
+                });
+            }
+        }
     }
 
     private sealed class DroppedEditsException : Exception
