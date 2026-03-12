@@ -39,8 +39,7 @@ internal sealed partial class RemoteCodeActionsService(in ServiceArgs args) : Ra
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var absoluteIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(request.Range.Start);
-
-        var languageKind = codeDocument.GetLanguageKind(absoluteIndex, rightAssociative: false);
+        var languageKind = GetPositionInfo(codeDocument, absoluteIndex).LanguageKind;
 
         VSCodeActionParams? csharpRequest = null;
         if (languageKind == RazorLanguageKind.CSharp)

@@ -113,7 +113,7 @@ internal class CodeActionsService(
             endLocation = startLocation;
         }
 
-        var languageKind = codeDocument.GetLanguageKind(startLocation, rightAssociative: false);
+        var languageKind = _documentMappingService.GetPositionInfo(codeDocument, startLocation).LanguageKind;
         var context = new RazorCodeActionContext(
             request,
             documentSnapshot,
