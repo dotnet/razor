@@ -13,20 +13,31 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
+using RoslynSyntaxNode = Microsoft.CodeAnalysis.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal static partial class RazorEditHelper
 {
     private static void AddCSharpLanguageFeatureChanges(
-       ref PooledArrayBuilder<RazorTextChange> edits,
-       RazorCodeDocument codeDocument,
-       ImmutableArray<string> addedUsings,
-       ImmutableArray<string> removedUsings,
-       CancellationToken cancellationToken)
+        ref PooledArrayBuilder<RazorTextChange> edits,
+        RazorCodeDocument codeDocument,
+        RoslynSyntaxNode originalSyntaxRoot,
+        SourceText originalCSharpSourceText,
+        RoslynSyntaxNode newSyntaxRoot,
+        SourceText newCSharpSourceText,
+        CancellationToken cancellationToken)
     {
+        var oldUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(originalSyntaxRoot, originalCSharpSourceText);
+        var newUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(newSyntaxRoot, newCSharpSourceText);
+
+        var addedUsings = Delta.Compute(oldUsings, newUsings);
+        var removedUsings = Delta.Compute(newUsings, oldUsings);
+
         AddUsingsChanges(ref edits, codeDocument, addedUsings, removedUsings, cancellationToken);
 
         // In future, handle methods, fields, properties, etc.
