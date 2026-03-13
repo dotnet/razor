@@ -72,17 +72,17 @@ internal static partial class RazorEditHelper
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        var originalSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var csharpSourceText = await originalSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var originalSyntaxRoot = await originalSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var originalCSharpSourceText = await originalCSharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var originalCSharpSyntaxRoot = await originalCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var newText = csharpSourceText.WithChanges(textChanges.Select(c => c.ToTextChange()));
-        var newSyntaxTree = originalSyntaxTree.WithChangedText(newText);
-        var newSyntaxRoot = await newSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var newCSharpSourceText = originalCSharpSourceText.WithChanges(textChanges.Select(c => c.ToTextChange()));
+        var newCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(newCSharpSourceText);
+        var newCSharpSyntaxRoot = await newCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
         AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, documentMappingService, cancellationToken);
-        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalSyntaxRoot, csharpSourceText, newSyntaxRoot, newText, cancellationToken);
+        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, cancellationToken);
 
         return NormalizeEdits(edits.ToImmutableOrderedBy(static e => e.Span.Start), telemetryReporter, cancellationToken);
     }
@@ -101,15 +101,15 @@ internal static partial class RazorEditHelper
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var originalSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var originalCSharpSourceText = await originalSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var originalSyntaxRoot = await originalSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var originalCSharpSourceText = await originalCSharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var originalCSharpSyntaxRoot = await originalCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var newSyntaxTree = originalSyntaxTree.WithChangedText(changedCSharpText);
-        var newSyntaxRoot = await newSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var newCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(changedCSharpText);
+        var newCSharpSyntaxRoot = await newCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
-        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalSyntaxRoot, originalCSharpSourceText, newSyntaxRoot, changedCSharpText, cancellationToken);
+        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, changedCSharpText, cancellationToken);
 
         return edits.ToImmutable();
     }

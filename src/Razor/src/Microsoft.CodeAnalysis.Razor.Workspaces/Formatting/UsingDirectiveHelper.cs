@@ -87,13 +87,13 @@ internal static class UsingDirectiveHelper
         return GetInsertUsingTextEdit(codeDocument, @namespace);
     }
 
-    public static ImmutableArray<string> FindUsingDirectiveStrings(RoslynSyntaxNode syntaxRoot, SourceText sourceText)
+    public static ImmutableArray<string> FindUsingDirectiveStrings(RoslynSyntaxNode csharpSyntaxRoot, SourceText csharpSourceText)
     {
-        return syntaxRoot
+        return csharpSyntaxRoot
             .DescendantNodes(static n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax)
             .OfType<UsingDirectiveSyntax>()
             .Where(static u => u.Name is not null) // If the Name is null then this isn't a using directive, it's probably an alias for a tuple type
-            .SelectAsArray(u => GetNamespaceFromDirective(u, sourceText));
+            .SelectAsArray(u => GetNamespaceFromDirective(u, csharpSourceText));
 
         static string GetNamespaceFromDirective(UsingDirectiveSyntax usingDirectiveSyntax, SourceText sourceText)
         {

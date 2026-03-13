@@ -26,14 +26,14 @@ internal static partial class RazorEditHelper
     private static void AddCSharpLanguageFeatureChanges(
         ref PooledArrayBuilder<RazorTextChange> edits,
         RazorCodeDocument codeDocument,
-        RoslynSyntaxNode originalSyntaxRoot,
+        RoslynSyntaxNode originalCSharpSyntaxRoot,
         SourceText originalCSharpSourceText,
-        RoslynSyntaxNode newSyntaxRoot,
+        RoslynSyntaxNode newCSharpSyntaxRoot,
         SourceText newCSharpSourceText,
         CancellationToken cancellationToken)
     {
-        var oldUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(originalSyntaxRoot, originalCSharpSourceText);
-        var newUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(newSyntaxRoot, newCSharpSourceText);
+        var oldUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(originalCSharpSyntaxRoot, originalCSharpSourceText);
+        var newUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(newCSharpSyntaxRoot, newCSharpSourceText);
 
         var addedUsings = Delta.Compute(oldUsings, newUsings);
         var removedUsings = Delta.Compute(newUsings, oldUsings);
