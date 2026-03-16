@@ -41,10 +41,12 @@ internal partial class EditorInProcess
 
         var stopWatch = Stopwatch.StartNew();
         var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
+        var lastTriggerTime = 0L;
+
         var session = asyncCompletion.GetSession(textView);
         if (session is null || session.IsDismissed)
         {
-            session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+            session = TriggerCompletion();
         }
 
         // Loop until completion comes up
@@ -57,9 +59,19 @@ internal partial class EditorInProcess
 
             await Task.Delay(100, cancellationToken);
             session = asyncCompletion.GetSession(textView);
+            if ((session is null || session.IsDismissed) && stopWatch.ElapsedMilliseconds - lastTriggerTime >= 1000)
+            {
+                session = TriggerCompletion();
+            }
         }
 
         return session;
+
+        IAsyncCompletionSession? TriggerCompletion()
+        {
+            lastTriggerTime = stopWatch.ElapsedMilliseconds;
+            return asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        }
     }
 
     /// <summary>
@@ -84,9 +96,17 @@ internal partial class EditorInProcess
         var textView = await GetActiveTextViewAsync(cancellationToken);
         var stopWatch = Stopwatch.StartNew();
         var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
+        var lastOpenOrUpdateTime = 0L;
+        IAsyncCompletionSession? TriggerCompletion()
+            => asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        void OpenOrUpdate(IAsyncCompletionSession currentSession)
+        {
+            currentSession.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+            lastOpenOrUpdateTime = stopWatch.ElapsedMilliseconds;
+        }
 
         // Actually open the completion pop-up window and force visible items to be computed or re-computed
-        session.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        OpenOrUpdate(session);
         while (true)
         {
             if (stopWatch.ElapsedMilliseconds >= timeOut.TotalMilliseconds)
@@ -108,14 +128,20 @@ internal partial class EditorInProcess
                 session = asyncCompletion.GetSession(textView);
                 if (session is null || session.IsDismissed)
                 {
-                    session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+                    session = TriggerCompletion();
                     if (session is null || session.IsDismissed)
                     {
                         continue;
                     }
                 }
 
-                session.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+                OpenOrUpdate(session);
+                continue;
+            }
+
+            if (stopWatch.ElapsedMilliseconds - lastOpenOrUpdateTime >= 1000)
+            {
+                OpenOrUpdate(currentSession);
             }
         }
     }
