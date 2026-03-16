@@ -3,6 +3,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -144,5 +146,46 @@ internal partial class EditorInProcess
                 OpenOrUpdate(currentSession);
             }
         }
+    }
+
+    public async Task<string> GetCompletionSessionDebugInfoAsync(string? expectedSelectedItemLabel, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var textView = await GetActiveTextViewAsync(cancellationToken);
+        var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
+        var session = asyncCompletion.GetSession(textView);
+        var caret = textView.Caret.Position.BufferPosition;
+        var currentLine = textView.TextSnapshot.GetLineFromPosition(caret).GetText();
+
+        var builder = new StringBuilder();
+        builder.AppendLine("Timed out waiting for completion session/item.");
+        builder.AppendLine($"Expected selected item: {expectedSelectedItemLabel ?? "<none>"}");
+        builder.AppendLine($"Caret position: {caret.Position}");
+        builder.AppendLine($"Current line text: {currentLine}");
+
+        if (session is null)
+        {
+            builder.AppendLine("No completion session was active.");
+            return builder.ToString();
+        }
+
+        builder.AppendLine($"Session dismissed: {session.IsDismissed}");
+
+        if (!session.IsDismissed)
+        {
+            var computedItems = session.GetComputedItems(cancellationToken);
+            builder.AppendLine($"Selected item: {computedItems.SelectedItem?.DisplayText ?? "<null>"}");
+
+            if (expectedSelectedItemLabel is not null)
+            {
+                builder.AppendLine($"Expected item present: {computedItems.Items.Any(i => i.DisplayText == expectedSelectedItemLabel)}");
+            }
+
+            var itemList = string.Join(", ", computedItems.Items.Take(10).Select(i => i.DisplayText));
+            builder.AppendLine($"First items: {itemList}");
+        }
+
+        return builder.ToString();
     }
 }
