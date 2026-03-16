@@ -41,7 +41,11 @@ internal partial class EditorInProcess
 
         var stopWatch = Stopwatch.StartNew();
         var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
-        var session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        var session = asyncCompletion.GetSession(textView);
+        if (session is null || session.IsDismissed)
+        {
+            session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        }
 
         // Loop until completion comes up
         while (session is null || session.IsDismissed)
@@ -51,8 +55,8 @@ internal partial class EditorInProcess
                 return null;
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
-            session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+            await Task.Delay(100, cancellationToken);
+            session = asyncCompletion.GetSession(textView);
         }
 
         return session;
@@ -79,21 +83,40 @@ internal partial class EditorInProcess
 
         var textView = await GetActiveTextViewAsync(cancellationToken);
         var stopWatch = Stopwatch.StartNew();
+        var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
 
         // Actually open the completion pop-up window and force visible items to be computed or re-computed
         session.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
-        while (session.GetComputedItems(cancellationToken).SelectedItem?.DisplayText != selectedItemLabel)
+        while (true)
         {
             if (stopWatch.ElapsedMilliseconds >= timeOut.TotalMilliseconds)
             {
                 return null;
             }
 
+            var currentSession = session;
+            if (currentSession is not null && !currentSession.IsDismissed &&
+                currentSession.GetComputedItems(cancellationToken).SelectedItem?.DisplayText == selectedItemLabel)
+            {
+                return currentSession;
+            }
+
             await Task.Delay(100, cancellationToken);
 
-            session.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
-        }
+            if (currentSession is null || currentSession.IsDismissed)
+            {
+                session = asyncCompletion.GetSession(textView);
+                if (session is null || session.IsDismissed)
+                {
+                    session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+                    if (session is null || session.IsDismissed)
+                    {
+                        continue;
+                    }
+                }
 
-        return session;
+                session.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+            }
+        }
     }
 }
