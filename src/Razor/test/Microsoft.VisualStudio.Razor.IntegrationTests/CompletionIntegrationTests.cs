@@ -690,7 +690,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
 
         var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
 
-        var stopwatch = new Stopwatch();
+        var stopwatch = Stopwatch.StartNew();
         string text;
         while ((text = textView.TextBuffer.CurrentSnapshot.GetText()) != expected && stopwatch.ElapsedMilliseconds < EditorInProcess.DefaultCompletionWaitTimeMilliseconds)
         {
