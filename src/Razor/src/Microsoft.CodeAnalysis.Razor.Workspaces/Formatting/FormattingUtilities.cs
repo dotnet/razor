@@ -369,6 +369,9 @@ internal static class FormattingUtilities
             if (lineInfo.SkippedPreviousLineOriginOffset is { } skippedPreviousLineOriginOffset)
             {
                 var skippedPreviousLineIndentationString = GetFixedIndentationString(context, lineInfo);
+                var currentLineWasCollapsedIntoSkippedPreviousLine =
+                    CurrentLineIsOnlyAnOpenBrace(originalText, iOriginal) &&
+                    CurrentLineEndsWithAnOpenBrace(formattedText, iFormatted);
 
                 FormatSkippedPreviousLine(
                     context,
@@ -381,6 +384,13 @@ internal static class FormattingUtilities
                     ref formattingChanges,
                     iOriginal,
                     ref iFormatted);
+
+                if (currentLineWasCollapsedIntoSkippedPreviousLine)
+                {
+                    // The carried-forward previous line already consumed this brace-only line by pulling `{`
+                    // back up onto the previous line, so the normal per-line processing below must skip it.
+                    continue;
+                }
 
                 iFormatted++;
             }
@@ -506,20 +516,28 @@ internal static class FormattingUtilities
             }
             else if (lineInfo.SkipNextLineIfBrace)
             {
-                // If the next line is a brace, we skip it. This is used to skip the opening brace of a class
-                // that we insert, but Roslyn settings might place on the same line as the class declaration,
-                // or skip the opening brace of a lambda definition we insert, but Roslyn might place it on the
-                // next line. In that case, we can't place it on the next line ourselves because Roslyn doesn't
-                // adjust the indentation of opening braces of lambdas in that scenario.
+                // If the next line is a brace, we skip it. This is used for synthetic lines like:
+                //
+                //     class @code {
+                //     () => {
+                //
+                // Roslyn may keep the brace on that same line, move it down to the next line, or pull an original
+                // next-line brace back up. We have to tolerate all of those shapes when mapping the formatted C#
+                // back onto the Razor document.
                 if (NextLineIsOnlyAnOpenBrace(formattedText, iFormatted))
                 {
                     iFormatted++;
                 }
 
-                // On the other hand, we might insert the opening brace of a class, and Roslyn might collapse
-                // it up to the previous line, so we would want to skip the next line in the original document
-                // in that case. Fortunately its illegal to have `@code {\r\n {` in a Razor file, so there can't
-                // be false positives here.
+                // The reverse case is an original next-line brace being collapsed up by Roslyn. For example, Razor may
+                // start with:
+                //
+                //     @code
+                //     {
+                //
+                // while the generated C# becomes `class @code {` on one line. In that case we skip the original brace
+                // line and copy the previous line's indentation onto it so the surviving brace still lands where Roslyn
+                // intended. Fortunately `@code {\r\n {` is illegal in Razor, so there are no false positives here.
                 if (NextLineIsOnlyAnOpenBrace(originalText, iOriginal))
                 {
                     iOriginal++;
@@ -590,12 +608,37 @@ internal static class FormattingUtilities
             ref formattingChanges, ref previousOriginalLineIndex, ref iFormatted, ref originalLine, ref formattedLine,
             originalStart, formattedStart, fixedIndentString);
     }
+
     private static bool NextLineIsOnlyAnOpenBrace(SourceText text, int lineNumber)
         => lineNumber + 1 < text.Lines.Count &&
-            text.Lines[lineNumber + 1] is { Span.Length: > 0 } nextLine &&
-            nextLine.GetFirstNonWhitespaceOffset() is { } firstNonWhitespace &&
-            nextLine.Start + firstNonWhitespace == nextLine.End - 1 &&
-            nextLine.CharAt(firstNonWhitespace) == '{';
+            CurrentLineIsOnlyAnOpenBrace(text, lineNumber + 1);
+
+    private static bool CurrentLineIsOnlyAnOpenBrace(SourceText text, int lineNumber)
+        => lineNumber >= 0 &&
+            lineNumber < text.Lines.Count &&
+            text.Lines[lineNumber] is { Span.Length: > 0 } line &&
+            line.GetFirstNonWhitespaceOffset() is { } firstNonWhitespace &&
+            line.Start + firstNonWhitespace == line.End - 1 &&
+            line.CharAt(firstNonWhitespace) == '{';
+
+    private static bool CurrentLineEndsWithAnOpenBrace(SourceText text, int lineNumber)
+    {
+        if (lineNumber < 0 || lineNumber >= text.Lines.Count)
+        {
+            return false;
+        }
+
+        var line = text.Lines[lineNumber];
+        for (var i = line.End - 1; i >= line.Start; i--)
+        {
+            if (!char.IsWhiteSpace(text[i]))
+            {
+                return text[i] == '{';
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Handles the case where the external formatter has changed the number of lines by inserting or removing newlines.
