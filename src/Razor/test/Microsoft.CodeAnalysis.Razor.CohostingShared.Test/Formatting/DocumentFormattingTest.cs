@@ -12242,6 +12242,95 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             validateHtmlFormattedMatchesWebTools: false);
 
+    [Theory]
+    [CombinatorialData]
+    public Task ScriptTagTagHelper(bool scriptTagHelper)
+    {
+        var directive = scriptTagHelper
+            ? "@addTagHelper *, SomeProject"
+            : "";
+        return RunFormattingTestAsync(
+                input: $$"""
+                    {{directive}}
+
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $('.dropdown-item').click(function (e) {
+                                e.preventDefault();
+                                var url = $(this).attr('href');
+                                $.ajax({
+                                    url: url,
+                                                method: 'POST',
+                                    success: function (response) {
+                                        alert('Content published successfully!');
+                                    },
+                                    error: function (xhr, status, error) {
+                                        alert('Error publishing content: ' + error);
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+                    """,
+                htmlFormatted: $$"""
+                    {{directive}}
+
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $('.dropdown-item').click(function (e) {
+                                e.preventDefault();
+                                var url = $(this).attr('href');
+                                $.ajax({
+                                    url: url,
+                                    method: 'POST',
+                                    success: function (response) {
+                                        alert('Content published successfully!');
+                                    },
+                                    error: function (xhr, status, error) {
+                                        alert('Error publishing content: ' + error);
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+                    """,
+                expected: $$"""
+                    {{directive}}
+
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $('.dropdown-item').click(function (e) {
+                                e.preventDefault();
+                                var url = $(this).attr('href');
+                                $.ajax({
+                                    url: url,
+                                    method: 'POST',
+                                    success: function (response) {
+                                        alert('Content published successfully!');
+                                    },
+                                    error: function (xhr, status, error) {
+                                        alert('Error publishing content: ' + error);
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+                    """,
+                validateHtmlFormattedMatchesWebTools: false, // We don't have JS formatting in tests, so the method param wouldn't really move
+                fileKind: RazorFileKind.Legacy,
+                additionalFiles:
+                [
+                    (FilePath("ScriptTagHelper.cs"), """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                        [HtmlTargetElement("script")]
+                        public class ScriptTagHelper : TagHelper
+                        {
+                        }
+                        """)
+                ]);
+    }
+
     private static RazorCSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
         => RazorCSharpSyntaxFormattingOptions.Default with
         {
