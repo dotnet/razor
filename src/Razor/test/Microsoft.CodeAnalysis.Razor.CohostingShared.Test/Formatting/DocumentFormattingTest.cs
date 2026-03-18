@@ -10038,11 +10038,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="new DefaultTitleContentAreaViewModel
-                        {
-                            Title = Model.CurrentPage.TestimonialsTitle,
-                            ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                            ChildCssClass = string.Empty
-                        }" />
+                             {
+                                 Title = Model.CurrentPage.TestimonialsTitle,
+                                 ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                                 ChildCssClass = string.Empty
+                             }" />
                 </div>
                 """,
             fileKind: RazorFileKind.Legacy);
@@ -10057,11 +10057,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
                 <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                     model="@(new DefaultTitleContentAreaViewModel
-                    {
-                        Title = Model.CurrentPage.TestimonialsTitle,
-                        ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                        ChildCssClass = string.Empty
-                    })" />
+                         {
+                             Title = Model.CurrentPage.TestimonialsTitle,
+                             ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                             ChildCssClass = string.Empty
+                         })" />
 
                 <partial model="@(new DefaultTitleContentAreaViewModel
                     {
@@ -10129,11 +10129,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="@(new DefaultTitleContentAreaViewModel
-                        {
-                            Title = Model.CurrentPage.TestimonialsTitle,
-                            ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                            ChildCssClass = string.Empty
-                        })" />
+                             {
+                                 Title = Model.CurrentPage.TestimonialsTitle,
+                                 ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                                 ChildCssClass = string.Empty
+                             })" />
                 </div>
                 """);
     }
@@ -10163,11 +10163,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="@(new DefaultTitleContentAreaViewModel
-                                 {
-                                     Title = Model.CurrentPage.TestimonialsTitle,
-                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                     ChildCssClass = string.Empty
-                                 })" />
+                             {
+                                 Title = Model.CurrentPage.TestimonialsTitle,
+                                 ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                                 ChildCssClass = string.Empty
+                             })" />
                 </div>
                 """;
         await RunFormattingTestAsync(
@@ -10193,11 +10193,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <partial name="~/Views/Shared/_TestimonialRow.cshtml"
                              model="@(new DefaultTitleContentAreaViewModel
-                                 {
-                                     Title = Model.CurrentPage.TestimonialsTitle,
-                                     ContentArea = Model.CurrentPage.TestimonialsContentArea,
-                                     ChildCssClass = string.Empty
-                                 })" />
+                             {
+                                 Title = Model.CurrentPage.TestimonialsTitle,
+                                 ContentArea = Model.CurrentPage.TestimonialsContentArea,
+                                 ChildCssClass = string.Empty
+                             })" />
                 </div>
                 """,
             expected: code);

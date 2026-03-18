@@ -85,6 +85,9 @@ internal partial class CSharpFormattingPass
     {
         public static FormattedDocument Generate(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, RazorFormattingOptions options, IDocumentMappingService documentMappingService)
         {
+            private const string SyntheticLambdaBodyStart = "() => {";
+            private const int SyntheticLambdaSignatureLength = 5;
+
             using var _1 = StringBuilderPool.GetPooledObject(out var builder);
             using var _2 = ArrayBuilderPool<LineInfo>.GetPooledObject(out var lineInfoBuilder);
             lineInfoBuilder.SetCapacityIfLarger(codeDocument.Source.Text.Lines.Count);
@@ -489,35 +492,37 @@ internal partial class CSharpFormattingPass
                     var span = TextSpan.FromBounds(_currentFirstNonWhitespacePosition, node.EndPosition);
                     _builder.Append(_sourceText.ToString(span));
 
+                    // If the template is multiline we emit a block-bodied lambda opener so Roslyn has a statement-friendly
+                    // context for the template body. For example:
+                    //
+                    //     Render(@<div>
+                    //         @if (showDetails)
+                    //         {
+                    //             <p>Hello</p>
+                    //         }
+                    //     </div>);
+                    //
+                    // The `@<div> ... </div>` template is in an expression position, but its body can contain statements.
+                    // For single-line templates we can get away with a `null` placeholder instead.
+                    if (token.Parent?.Parent.Parent is CSharpTemplateBlockSyntax template &&
+                        _sourceText.GetLinePositionSpan(template.Span).SpansMultipleLines())
+                    {
+                        var charsAppended = AppendSyntheticLambdaBodyStart();
+                        return CreateLineInfo(
+                            skipNextLineIfBrace: true,
+                            formattedLength: span.Length,
+                            formattedOffsetFromEndOfLine: charsAppended,
+                            processFormatting: true,
+                            // We turn off check for new lines because that only works if the content doesn't change from the original,
+                            // but we're deliberately leaving out a bunch of the original file because it would confuse the Roslyn formatter.
+                            checkForNewLines: false);
+                    }
+
                     // Putting a semi-colon on the end might make for invalid C#, but it means this line won't cause indentation,
                     // which is all we need. If we're in an explicit expression body though, we don't want to do this, as the
                     // close paren of the expression will do the same job (and the semi-colon would confuse that).
                     var emitSemiColon = node.Parent.Parent is not CSharpExplicitExpressionBodySyntax;
-
-                    var skipNextLineIfBrace = false;
-                    int formattedOffsetFromEndOfLine;
-
-                    // If the template is multiline we emit a lambda expression, otherwise just a null statement so there
-                    // is something there. See VisitMarkupTransition for more info
-                    if (token.Parent?.Parent.Parent is CSharpTemplateBlockSyntax template &&
-                        _sourceText.GetLinePositionSpan(template.Span).SpansMultipleLines())
-                    {
-                        emitSemiColon = false;
-                        skipNextLineIfBrace = true;
-                        _builder.AppendLine("() => {");
-
-                        // We only want to format up to the text we added, but if Roslyn inserted a newline before the brace
-                        // then that position will be different. If we're not given the options then we assume the default behaviour of
-                        // Roslyn which is to insert the newline.
-                        formattedOffsetFromEndOfLine = _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
-                            ? 5   // "() =>".Length
-                            : 7;  // "() => {".Length
-                    }
-                    else
-                    {
-                        _builder.AppendLine("null");
-                        formattedOffsetFromEndOfLine = 4;
-                    }
+                    _builder.AppendLine("null");
 
                     if (emitSemiColon)
                     {
@@ -526,9 +531,8 @@ internal partial class CSharpFormattingPass
 
                     return CreateLineInfo(
                         skipNextLine: emitSemiColon,
-                        skipNextLineIfBrace: skipNextLineIfBrace,
                         formattedLength: span.Length,
-                        formattedOffsetFromEndOfLine: formattedOffsetFromEndOfLine,
+                        formattedOffsetFromEndOfLine: 4, // "null".Length
                         processFormatting: true,
                         // We turn off check for new lines because that only works if the content doesn't change from the original,
                         // but we're deliberately leaving out a bunch of the original file because it would confuse the Roslyn formatter.
@@ -824,8 +828,7 @@ internal partial class CSharpFormattingPass
                 // formatting where we put the opening brace on the next line ourselves (and Roslyn might bring it back)
                 // if we do that for lambdas, Roslyn won't adjust the opening brace position at all. See, told you lambdas
                 // were annoying to format.
-                _builder.AppendLine("() => {");
-                return CreateLineInfo(skipNextLineIfBrace: true);
+                return EmitSyntheticLambdaBodyStartLine();
             }
 
             public override LineInfo VisitRazorCommentBlock(RazorCommentBlockSyntax node)
@@ -909,19 +912,22 @@ internal partial class CSharpFormattingPass
                     if (secondChild is CSharpTemplateBlockSyntax template &&
                         _sourceText.GetLinePositionSpan(template.Span).SpansMultipleLines())
                     {
-                        _builder.AppendLine("() => {");
-                        // We only want to format up to the text we added, but if Roslyn inserted a newline before the brace
-                        // then that position will be different. If we're not given the options then we assume the default behaviour of
-                        // Roslyn which is to insert the newline.
-                        var formattedOffsetFromEndOfLine = _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
-                            ? 5
-                            : 7;
-
+                        // This is the explicit-expression version of the RenderFragment case above, e.g.
+                        //
+                        //     @(BuildFragment(@<div>
+                        //         @if (showDetails)
+                        //         {
+                        //             <p>Hello</p>
+                        //         }
+                        //     </div>))
+                        //
+                        // The C# before the template stays on this line, but the template body still needs a synthetic lambda opener so Roslyn can format any statements nested inside the template.
+                        var charsAppended = AppendSyntheticLambdaBodyStart();
                         return CreateLineInfo(
                             skipNextLineIfBrace: true,
                             originOffset: 1,
                             formattedLength: span.Length,
-                            formattedOffsetFromEndOfLine: formattedOffsetFromEndOfLine,
+                            formattedOffsetFromEndOfLine: charsAppended,
                             processFormatting: true,
                             // We turn off check for new lines because that only works if the content doesn't change from the original,
                             // but we're deliberately leaving out a bunch of the original file because it would confuse the Roslyn formatter.
@@ -1096,6 +1102,30 @@ internal partial class CSharpFormattingPass
             {
                 _builder.AppendLine($"//");
                 return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
+            }
+
+            private LineInfo EmitSyntheticLambdaBodyStartLine()
+            {
+                // Used when Razor markup is being formatted in an expression position but still needs a statement-friendly
+                // body, such as a multiline RenderFragment or `@<div> ... </div>` template.
+                AppendSyntheticLambdaBodyStart();
+                return CreateLineInfo(skipNextLineIfBrace: true);
+            }
+
+            private int AppendSyntheticLambdaBodyStart()
+            {
+                _builder.AppendLine(SyntheticLambdaBodyStart);
+
+                // Roslyn may keep the opener as `() => {` or rewrite it to:
+                //
+                //     () =>
+                //     {
+                //
+                // The formatted offset tells the mapping code to ignore whichever representation Roslyn chose, because
+                // the synthetic lambda opener is scaffolding for formatting and should not be copied back into Razor.
+                return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
+                    ? SyntheticLambdaSignatureLength
+                    : SyntheticLambdaBodyStart.Length;
             }
 
             private LineInfo EmitOpenBraceLine()
