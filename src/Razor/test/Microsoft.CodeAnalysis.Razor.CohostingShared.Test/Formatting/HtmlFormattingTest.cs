@@ -676,32 +676,6 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
             fileKind: RazorFileKind.Legacy,
             allowDiagnostics: true);
 
-    [Fact]
-    [WorkItem("https://developercommunity.visualstudio.com/t/HTML-code-indentation-in-Blazor-is-not-w/11060759")]
-    public Task VoidTagHelpersWithDirectiveAttributes_NotIndented()
-        => RunFormattingTestAsync(
-            input: """
-                <div>
-                    <div>
-                        <input type="text" @bind="asdf" alt="asdf">
-                    </div>
-                </div>
-                """,
-            htmlFormatted: """
-                <div>
-                    <div>
-                        <input type="text" @bind="asdf" alt="asdf">
-                            </div>
-                        </div>
-                """,
-            expected: """
-                <div>
-                    <div>
-                        <input type="text" @bind="asdf" alt="asdf">
-                    </div>
-                </div>
-                """);
-
     private async Task RunAttributeIndentStyleTestAsync(string input, string expected, AttributeIndentStyle attributeIndentStyle)
     {
         // This helper method specifically doesn't call the Html formatter, to validate behaviour when it

@@ -161,7 +161,13 @@ internal sealed class FormattingVisitor : SyntaxWalker
     {
         Visit(node.StartTag);
 
-        if (node.StartTag is { } startTag && CausesHtmlIndentation(startTag))
+        // Void elements, like <meta> or <input> which don't need an end tag don't cause indentation.
+        // We also cheat and treat the <html> tag as a void element, so it doesn't cause indentation,
+        // as that's what the Html formatter does, to avoid one level of indentation in every html file.
+        var voidElement = node.StartTag is { } startTag &&
+            (startTag.IsVoidElement() || string.Equals(startTag.Name.Content, HtmlTag, StringComparison.OrdinalIgnoreCase));
+
+        if (!voidElement)
         {
             _currentHtmlIndentationLevel++;
         }
@@ -171,7 +177,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
             Visit(child);
         }
 
-        if (node.StartTag is { } startTag2 && CausesHtmlIndentation(startTag2))
+        if (!voidElement)
         {
             _currentHtmlIndentationLevel--;
         }
@@ -210,7 +216,6 @@ internal sealed class FormattingVisitor : SyntaxWalker
         var isComponent = IsComponentTagHelperNode(node);
         // Components with cascading type parameters cause an extra level of indentation
         var componentIndentationLevels = isComponent && HasUnspecifiedCascadingTypeParameter(node) ? 2 : 1;
-        var causesHtmlIndentation = CausesHtmlIndentation(node.StartTag);
 
         var causesIndentation = isComponent;
         if (node.Parent is MarkupTagHelperElementSyntax parentComponent &&
@@ -222,11 +227,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
 
         Visit(node.StartTag);
 
-        if (causesHtmlIndentation)
-        {
-            _currentHtmlIndentationLevel++;
-        }
-
+        _currentHtmlIndentationLevel++;
         if (causesIndentation)
         {
             _currentComponentIndentationLevel += componentIndentationLevels;
@@ -243,10 +244,7 @@ internal sealed class FormattingVisitor : SyntaxWalker
             _currentComponentIndentationLevel -= componentIndentationLevels;
         }
 
-        if (causesHtmlIndentation)
-        {
-            _currentHtmlIndentationLevel--;
-        }
+        _currentHtmlIndentationLevel--;
 
         Visit(node.EndTag);
 
@@ -325,16 +323,6 @@ internal sealed class FormattingVisitor : SyntaxWalker
 
             return true;
         }
-    }
-
-    private static bool CausesHtmlIndentation(BaseMarkupStartTagSyntax startTag)
-    {
-        // Void elements, like <meta> or <input> which don't need an end tag don't cause indentation.
-        // We also cheat and treat the <html> tag as a void element, so it doesn't cause indentation,
-        // as that's what the Html formatter does, to avoid one level of indentation in every html file.
-        return !startTag.IsSelfClosing() &&
-            !startTag.IsVoidElement() &&
-            !string.Equals(startTag.Name.Content, HtmlTag, StringComparison.OrdinalIgnoreCase);
     }
 
     public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
