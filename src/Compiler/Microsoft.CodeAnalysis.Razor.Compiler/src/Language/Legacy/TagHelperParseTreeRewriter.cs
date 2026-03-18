@@ -115,14 +115,14 @@ internal static class TagHelperParseTreeRewriter
             if (startTag != null)
             {
                 var tagName = startTag.GetTagNameWithOptionalBang();
-                if (TryRewriteTagHelperStart(startTag, node.EndTag, out tagHelperStart, out tagHelperInfo))
+                if (TryRewriteTagHelperStart(startTag, node.MarkupEndTag, out tagHelperStart, out tagHelperInfo))
                 {
                     // This is a tag helper.
                     if (tagHelperInfo.TagMode == TagMode.SelfClosing || tagHelperInfo.TagMode == TagMode.StartTagOnly)
                     {
-                        var tagHelperElement = SyntaxFactory.MarkupTagHelperElement(tagHelperStart, body: default, endTag: null, tagHelperInfo);
+                        var tagHelperElement = SyntaxFactory.MarkupTagHelperElement(tagHelperStart, body: default, tagHelperEndTag: null, tagHelperInfo);
 
-                        if (node.Body.Count == 0 && node.EndTag == null)
+                        if (node.Body.Count == 0 && node.MarkupEndTag == null)
                         {
                             return tagHelperElement;
                         }
@@ -134,7 +134,7 @@ internal static class TagHelperParseTreeRewriter
                         var rewrittenBody = VisitList(node.Body);
                         rewrittenNodes.AddRange(rewrittenBody);
 
-                        return SyntaxFactory.MarkupElement(startTag: null, body: rewrittenNodes.ToList(), endTag: node.EndTag);
+                        return SyntaxFactory.MarkupElement(markupStartTag: null, body: rewrittenNodes.ToList(), markupEndTag: node.MarkupEndTag);
                     }
                     else if (node.EndTag == null)
                     {

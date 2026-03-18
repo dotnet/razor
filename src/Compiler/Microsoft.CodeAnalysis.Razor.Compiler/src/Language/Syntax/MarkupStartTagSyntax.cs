@@ -12,6 +12,6 @@ internal partial class MarkupStartTagSyntax
 
     public override BaseMarkupEndTagSyntax? GetEndTag()
     {
-        return (Parent as MarkupElementSyntax)?.EndTag;
+        return (Parent as BaseMarkupElementSyntax)?.EndTag;
     }
 }

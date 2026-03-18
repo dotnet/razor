@@ -6,5 +6,5 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 internal partial class MarkupTagHelperEndTagSyntax
 {
     public override BaseMarkupStartTagSyntax? GetStartTag()
-        => (Parent as MarkupTagHelperElementSyntax)?.StartTag;
+        => (Parent as BaseMarkupElementSyntax)?.StartTag;
 }
