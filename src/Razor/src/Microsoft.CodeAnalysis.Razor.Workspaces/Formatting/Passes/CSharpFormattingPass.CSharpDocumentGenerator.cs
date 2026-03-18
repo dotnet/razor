@@ -733,35 +733,7 @@ internal partial class CSharpFormattingPass
             {
                 if (RazorSyntaxFacts.IsAttributeName(node, out var startTag))
                 {
-                    int htmlIndentLevel;
-                    var additionalIndentation = "";
-
-                    if (_attributeIndentStyle == AttributeIndentStyle.IndentByOne)
-                    {
-                        // Indent attributes by one level to match child elements.
-                        htmlIndentLevel = 1;
-                    }
-                    else if (_attributeIndentStyle == AttributeIndentStyle.IndentByTwo)
-                    {
-                        // Indent attributes by two levels to differentiate them from child elements.
-                        htmlIndentLevel = 2;
-                    }
-                    else if (_attributeIndentStyle == AttributeIndentStyle.AlignWithFirst)
-                    {
-                        // Align attributes with the first attribute in their tag.
-                        var firstAttribute = startTag.Attributes[0];
-                        var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
-
-                        // We need to line up with the first attribute, but the start tag might not be the first thing on the line,
-                        // so it's really relative to the first non-whitespace character on the line. We use the line that the attribute
-                        // is on, just in case its not on the same line as the start tag.
-                        var lineStart = _sourceText.Lines[GetLineNumber(nameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
-                        htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out additionalIndentation);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Unknown attribute indentation style '{_attributeIndentStyle}'.");
-                    }
+                    GetAttributeIndentation(startTag, out var htmlIndentLevel, out var additionalIndentation);
 
                     if (ElementHasSignificantWhitespace(startTag) &&
                         GetLineNumber(node) == GetLineNumber(startTag.CloseAngle))
@@ -782,6 +754,37 @@ internal partial class CSharpFormattingPass
                 return null;
             }
 
+            private void GetAttributeIndentation(BaseMarkupStartTagSyntax startTag, out int htmlIndentLevel, out string additionalIndentation)
+            {
+                additionalIndentation = "";
+
+                if (_attributeIndentStyle == AttributeIndentStyle.IndentByOne)
+                {
+                    // Indent attributes by one level to match child elements.
+                    htmlIndentLevel = 1;
+                }
+                else if (_attributeIndentStyle == AttributeIndentStyle.IndentByTwo)
+                {
+                    // Indent attributes by two levels to differentiate them from child elements.
+                    htmlIndentLevel = 2;
+                }
+                else if (_attributeIndentStyle == AttributeIndentStyle.AlignWithFirst)
+                {
+                    // Align attributes with the first attribute in their tag.
+                    var firstAttribute = startTag.Attributes[0];
+                    var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
+
+                    // We need to line up with the first attribute, but the start tag might not be the first thing on the line,
+                    // so it's really relative to the first non-whitespace character on the line. We use the line that the attribute
+                    // is on, just in case its not on the same line as the start tag.
+                    var lineStart = _sourceText.Lines[GetLineNumber(nameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out additionalIndentation);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Unknown attribute indentation style '{_attributeIndentStyle}'.");
+                }
+            }
             public override LineInfo VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
             {
                 return VisitEndTag(node);
