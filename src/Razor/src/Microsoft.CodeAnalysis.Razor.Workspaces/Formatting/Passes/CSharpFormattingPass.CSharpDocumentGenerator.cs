@@ -324,22 +324,26 @@ internal partial class CSharpFormattingPass
                 // <div class="@(foo
                 //              .bar)" />
                 //
-                // The first line of this we hit will actually be the middle of the expression, so we need to make sure to include
-                // the end of the previous line, so the C# code is more correct, if that line didn't start with C#.
-                // On the last line of C# we need to ensure we don't inadvertently output any non-C# content, ie the ')" />' above.
-                // And of course the second line could be the last line :)
-                var skipPreviousLine = false;
+                // When we visit the second line, the first thing on the line is already the middle of the C# expression.
+                // Roslyn still needs the previous line's `@(foo` context to indent `.Bar)` sensibly, so we may need to
+                // carry that previous line forward into the generated C# document. In attribute cases like:
+                //
+                // <button class="btn"
+                //         @onclick="@(async e =>
+                //         {
+                //
+                // we also need to remember where that carried-forward line started so the mapped result can be applied
+                // back onto the attribute text correctly.
+                int? skippedPreviousLineOriginOffset = null;
                 var nodeStartLine = GetLineNumber(node);
                 if (nodeStartLine == _currentLine.LineNumber - 1 &&
                     _sourceText.Lines[nodeStartLine] is { } previousLine &&
                     previousLine.GetFirstNonWhitespacePosition() != node.Position &&
                     _previousCurrentToken.Kind != SyntaxKind.Transition)
                 {
-                    // This is a multi-line literal, and we're emiting the 2nd line, and the literal didn't start at the start of
-                    // the previous line, so it wouldn't have been handled by that lines formatting. We need to include it here,
-                    // but skip it to not confuse things.
-                    _builder.AppendLine(_sourceText.ToString(TextSpan.FromBounds(node.SpanStart, previousLine.End)));
-                    skipPreviousLine = true;
+                    var skippedPreviousLineText = _sourceText.ToString(TextSpan.FromBounds(node.SpanStart, previousLine.End));
+                    _builder.AppendLine(skippedPreviousLineText);
+                    skippedPreviousLineOriginOffset = node.SpanStart - previousLine.Start;
                 }
 
                 // The last line of this might not be entirely C#, so we have to trim off the end so as not to cause issues. For the
@@ -422,7 +426,7 @@ internal partial class CSharpFormattingPass
                 {
                     // If we're not doing any extra emitting of our own, then we can safely check for newlines
                     return CreateLineInfo(
-                        skipPreviousLine: skipPreviousLine,
+                        skippedPreviousLineOriginOffset: skippedPreviousLineOriginOffset,
                         processFormatting: true,
                         htmlIndentLevel: htmlIndentLevel,
                         additionalIndentation: additionalIndentation,
@@ -430,7 +434,7 @@ internal partial class CSharpFormattingPass
                 }
 
                 return CreateLineInfo(
-                    skipPreviousLine: skipPreviousLine,
+                    skippedPreviousLineOriginOffset: skippedPreviousLineOriginOffset,
                     processFormatting: true,
                     formattedLength: span.Length,
                     formattedOffsetFromEndOfLine: offsetFromEnd,
@@ -1109,7 +1113,7 @@ internal partial class CSharpFormattingPass
                 bool processIndentation = true,
                 bool processFormatting = false,
                 bool checkForNewLines = false,
-                bool skipPreviousLine = false,
+                int? skippedPreviousLineOriginOffset = null,
                 bool skipNextLine = false,
                 bool skipNextLineIfBrace = false,
                 int htmlIndentLevel = 0,
@@ -1133,7 +1137,7 @@ internal partial class CSharpFormattingPass
                     ProcessIndentation: processIndentation,
                     ProcessFormatting: processFormatting,
                     CheckForNewLines: checkForNewLines,
-                    SkipPreviousLine: skipPreviousLine,
+                    SkippedPreviousLineOriginOffset: skippedPreviousLineOriginOffset,
                     SkipNextLine: skipNextLine,
                     SkipNextLineIfBrace: skipNextLineIfBrace,
                     FixedIndentLevel: htmlIndentLevel,

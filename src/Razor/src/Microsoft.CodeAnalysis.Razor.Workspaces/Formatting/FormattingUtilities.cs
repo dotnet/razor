@@ -366,8 +366,22 @@ internal static class FormattingUtilities
         {
             var lineInfo = formattedLineInfo[iOriginal];
 
-            if (lineInfo.SkipPreviousLine)
+            if (lineInfo.SkippedPreviousLineOriginOffset is { } skippedPreviousLineOriginOffset)
             {
+                var skippedPreviousLineIndentationString = GetFixedIndentationString(context, lineInfo);
+
+                FormatSkippedPreviousLine(
+                    context,
+                    originalText,
+                    formattedText,
+                    logger,
+                    shouldKeepInsertedNewlineAtPosition,
+                    skippedPreviousLineOriginOffset,
+                    skippedPreviousLineIndentationString,
+                    ref formattingChanges,
+                    iOriginal,
+                    ref iFormatted);
+
                 iFormatted++;
             }
 
@@ -383,15 +397,14 @@ internal static class FormattingUtilities
             {
                 var originalLine = originalText.Lines[iOriginal];
                 var originalLineOffset = originalLine.GetFirstNonWhitespaceOffset().GetValueOrDefault();
-                var fixedIndentString = context.GetIndentationLevelString(lineInfo.FixedIndentLevel);
+                var fixedIndentString = GetFixedIndentationString(context, lineInfo);
 
                 if (lineInfo.ProcessIndentation)
                 {
                     // First up, we take the indentation from the formatted file, and add on the fixed indentation level from the line info, and
                     // replace whatever was in the original file with it.
                     indentationString = formattedText.ToString(new TextSpan(formattedLine.Start, formattedIndentation))
-                        + fixedIndentString
-                        + lineInfo.AdditionalIndentation;
+                        + fixedIndentString;
                     formattingChanges.Add(new TextChange(new TextSpan(originalLine.Start, originalLineOffset), indentationString));
                 }
 
@@ -486,6 +499,52 @@ internal static class FormattingUtilities
         lastFormattedTextLine = iFormatted;
     }
 
+    private static string GetFixedIndentationString(FormattingContext context, LineInfo lineInfo)
+        => context.GetIndentationLevelString(lineInfo.FixedIndentLevel) + (lineInfo.AdditionalIndentation ?? "");
+
+    private static void FormatSkippedPreviousLine(
+        FormattingContext context,
+        SourceText originalText,
+        SourceText formattedText,
+        ILogger logger,
+        Func<int, bool>? shouldKeepInsertedNewlineAtPosition,
+        int skippedPreviousLineOriginOffset,
+        string fixedIndentString,
+        ref PooledArrayBuilder<TextChange> formattingChanges,
+        int iOriginal,
+        ref int iFormatted)
+    {
+        Debug.Assert(iOriginal > 0);
+        Debug.Assert(iFormatted < formattedText.Lines.Count);
+
+        if (iOriginal == 0 || iFormatted >= formattedText.Lines.Count)
+        {
+            // This helper only applies to a carried-forward previous line from a multiline expression. If we're on the
+            // first original line, or we've already consumed all formatted lines, there is nothing safe to map back.
+            return;
+        }
+
+        var previousOriginalLineIndex = iOriginal - 1;
+        var originalLine = originalText.Lines[previousOriginalLineIndex];
+        var formattedLine = formattedText.Lines[iFormatted];
+        if (formattedLine.GetFirstNonWhitespaceOffset() is not { } formattedIndentation)
+        {
+            // Roslyn can leave the carried-forward line blank or whitespace-only. In that case there is no formatted
+            // content to apply to the previous original line, so we leave it alone and let normal processing continue.
+            return;
+        }
+
+        var originalStart = originalLine.Start + skippedPreviousLineOriginOffset;
+        var formattedStart = formattedLine.Start + formattedIndentation;
+        formattingChanges.Add(new TextChange(
+            TextSpan.FromBounds(originalStart, originalLine.End),
+            formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End))));
+
+        ConsumeNewLines(
+            context, originalText, formattedText, logger, shouldKeepInsertedNewlineAtPosition,
+            ref formattingChanges, ref previousOriginalLineIndex, ref iFormatted, ref originalLine, ref formattedLine,
+            originalStart, formattedStart, fixedIndentString);
+    }
     private static bool NextLineIsOnlyAnOpenBrace(SourceText text, int lineNumber)
         => lineNumber + 1 < text.Lines.Count &&
             text.Lines[lineNumber + 1] is { Span.Length: > 0 } nextLine &&
