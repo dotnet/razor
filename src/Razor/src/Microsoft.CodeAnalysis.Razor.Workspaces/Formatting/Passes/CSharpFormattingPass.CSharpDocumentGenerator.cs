@@ -85,9 +85,6 @@ internal partial class CSharpFormattingPass
     {
         public static FormattedDocument Generate(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, RazorFormattingOptions options, IDocumentMappingService documentMappingService)
         {
-            private const string SyntheticLambdaBodyStart = "() => {";
-            private const int SyntheticLambdaSignatureLength = 5;
-
             using var _1 = StringBuilderPool.GetPooledObject(out var builder);
             using var _2 = ArrayBuilderPool<LineInfo>.GetPooledObject(out var lineInfoBuilder);
             lineInfoBuilder.SetCapacityIfLarger(codeDocument.Source.Text.Lines.Count);
@@ -155,6 +152,9 @@ internal partial class CSharpFormattingPass
             ImmutableArray<LineInfo>.Builder lineInfoBuilder,
             IDocumentMappingService documentMappingService) : SyntaxVisitor<LineInfo>
         {
+            private const string SyntheticLambdaBodyStart = "() => {";
+            private const int SyntheticLambdaSignatureLength = 5;
+
             private readonly SourceText _sourceText = codeDocument.Source.Text;
             private readonly RazorCodeDocument _codeDocument = codeDocument;
             private readonly SyntaxNode _csharpSyntaxRoot = csharpSyntaxRoot;
@@ -339,10 +339,16 @@ internal partial class CSharpFormattingPass
                 // back onto the attribute text correctly.
                 int? skippedPreviousLineOriginOffset = null;
                 var nodeStartLine = GetLineNumber(node);
+                var expressionStartsBlockLambda = IsBlockLambdaStart(node.SpanStart, _sourceText.Lines[nodeStartLine]);
+                var previousTokenParent = _previousCurrentToken.Parent;
+                var previousLineStartedWithAttributeName =
+                    previousTokenParent is not null &&
+                    RazorSyntaxFacts.IsAttributeName(previousTokenParent, out _);
+
                 if (nodeStartLine == _currentLine.LineNumber - 1 &&
                     _sourceText.Lines[nodeStartLine] is { } previousLine &&
                     previousLine.GetFirstNonWhitespacePosition() != node.Position &&
-                    _previousCurrentToken.Kind != SyntaxKind.Transition)
+                    (_previousCurrentToken.Kind != SyntaxKind.Transition || previousLineStartedWithAttributeName))
                 {
                     var skippedPreviousLineText = _sourceText.ToString(TextSpan.FromBounds(node.SpanStart, previousLine.End));
                     _builder.AppendLine(skippedPreviousLineText);
@@ -362,7 +368,7 @@ internal partial class CSharpFormattingPass
                 // end of the node, as there could be other contents afterwards, so work out if we're in that case first.
                 var toEndOfNode = _sourceText.GetLinePosition(node.EndPosition).Line == _currentLine.LineNumber;
 
-                var isEndOfExplicitExpression = false;
+                var emitSemiColon = false;
                 var end = _currentLine.End;
 
                 if (toEndOfNode)
@@ -373,12 +379,14 @@ internal partial class CSharpFormattingPass
                     if (potentialExplicitExpression is CSharpExplicitExpressionBodySyntax or CSharpImplicitExpressionBodySyntax &&
                         _sourceText.GetLinePosition(potentialExplicitExpression.EndPosition).Line == _currentLine.LineNumber)
                     {
-                        isEndOfExplicitExpression = true;
+                        emitSemiColon = true;
                         end = potentialExplicitExpression.EndPosition;
                     }
                     else
                     {
                         end = node.EndPosition;
+                        // Semi-colons are vitally important for block bodied lambdas to not affect subsequent lines
+                        emitSemiColon = expressionStartsBlockLambda && end != _currentLine.End;
                     }
                 }
 
@@ -390,7 +398,7 @@ internal partial class CSharpFormattingPass
 
                 // If we're at the end of an explicit expression, we want to add a semi-colon to the end of the line, so that C# after the
                 // expression is formatted correctly. ie, we need to "close" the expression.
-                if (isEndOfExplicitExpression)
+                if (emitSemiColon)
                 {
                     offsetFromEnd++;
                     _builder.Append(';');
@@ -415,14 +423,12 @@ internal partial class CSharpFormattingPass
                 // TODO: The traverse up the tree here is not ideal. See comments in https://github.com/dotnet/razor/issues/11371
                 var htmlIndentLevel = 0;
                 string? additionalIndentation = null;
-                if (node.Ancestors().FirstOrDefault(n => n.IsAnyAttributeSyntax()) is { } attributeNode)
+                var attributeNode = node.Ancestors().FirstOrDefault(n => n.IsAnyAttributeSyntax())
+                    ?? (previousLineStartedWithAttributeName ? previousTokenParent?.Parent : null);
+                if (attributeNode?.Parent is BaseMarkupStartTagSyntax attributeStartTag)
                 {
-                    // The attribute node can have whitespace, including even a newline, in front of it, so we get the first non-whitespace
-                    // character, then find the offset of that in order to calculate our desired indent level.
-                    _sourceText.TryGetFirstNonWhitespaceOffset(attributeNode.Span, out var startChar, out _);
-                    startChar = _sourceText.GetLinePosition(attributeNode.SpanStart + startChar).Character;
-                    htmlIndentLevel = startChar / _tabSize;
-                    additionalIndentation = new string(' ', startChar % _tabSize);
+                    GetAttributeIndentation(attributeStartTag, out htmlIndentLevel, out var attributeAdditionalIndentation);
+                    additionalIndentation = attributeAdditionalIndentation;
                 }
 
                 if (offsetFromEnd == 0)
@@ -789,6 +795,7 @@ internal partial class CSharpFormattingPass
                     throw new InvalidOperationException($"Unknown attribute indentation style '{_attributeIndentStyle}'.");
                 }
             }
+
             public override LineInfo VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
             {
                 return VisitEndTag(node);
@@ -921,7 +928,8 @@ internal partial class CSharpFormattingPass
                         //         }
                         //     </div>))
                         //
-                        // The C# before the template stays on this line, but the template body still needs a synthetic lambda opener so Roslyn can format any statements nested inside the template.
+                        // The C# before the template stays on this line, but the template body still needs a synthetic
+                        // lambda opener so Roslyn can format any statements nested inside the template.
                         var charsAppended = AppendSyntheticLambdaBodyStart();
                         return CreateLineInfo(
                             skipNextLineIfBrace: true,
@@ -1091,6 +1099,36 @@ internal partial class CSharpFormattingPass
 
             private int GetLineNumber(RazorSyntaxToken token)
                 => _sourceText.Lines.GetLineFromPosition(token.Position).LineNumber;
+
+            private bool IsBlockLambdaStart(int startPosition, TextLine line)
+            {
+                // The lambda body can start on the same line (`() => {`) or on the next line (`() =>` + `{`).
+                // Scan the current line backwards to the last lambda arrow, then walk forward to the next
+                // non-whitespace character in the source text so we cover both shapes without allocating substrings.
+                var i = line.End - 1;
+                for (; i > startPosition; i--)
+                {
+                    if (_sourceText[i] == '>' && _sourceText[i - 1] == '=')
+                    {
+                        break;
+                    }
+                }
+
+                if (i <= startPosition)
+                {
+                    return false;
+                }
+
+                for (i++; i < _sourceText.Length; i++)
+                {
+                    if (!char.IsWhiteSpace(_sourceText[i]))
+                    {
+                        return _sourceText[i] == '{';
+                    }
+                }
+
+                return false;
+            }
 
             private LineInfo EmitCurrentLineAsCSharp()
             {

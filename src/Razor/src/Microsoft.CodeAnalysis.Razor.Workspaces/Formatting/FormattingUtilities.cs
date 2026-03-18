@@ -417,11 +417,56 @@ internal static class FormattingUtilities
                     var length = lineInfo.FormattedLength == 0
                         ? originalLine.End - originalStart
                         : lineInfo.FormattedLength;
+                    var initialFormattedLine = iFormatted;
                     var formattedStart = formattedLine.Start + formattedIndentation + lineInfo.FormattedOffset;
                     var formattedEnd = formattedLine.End - lineInfo.FormattedOffsetFromEndOfLine;
+                    if (lineInfo.FormattedOffsetFromEndOfLine > 0)
+                    {
+                        // This is the partial-line case: we cannot use ConsumeNewLines because we're intentionally
+                        // trimming trailing generated text, so instead we only advance the formatted side until
+                        // we've captured all of the non-whitespace Roslyn moved onto wrapped lines.
+                        var originalNonWhitespace = CountNonWhitespaceChars(originalText, originalStart, originalStart + length);
+                        var formattedNonWhitespace = CountNonWhitespaceChars(formattedText, formattedStart, Math.Max(formattedStart, formattedEnd));
+
+                        while (originalNonWhitespace > formattedNonWhitespace &&
+                            iFormatted + 1 < formattedText.Lines.Count)
+                        {
+                            iFormatted++;
+                            formattedLine = formattedText.Lines[iFormatted];
+                            formattedEnd = formattedLine.End - lineInfo.FormattedOffsetFromEndOfLine;
+                            formattedNonWhitespace = CountNonWhitespaceChars(formattedText, formattedStart, Math.Max(formattedStart, formattedEnd));
+                        }
+                    }
+
                     if (formattedEnd > formattedStart)
                     {
-                        formattingChanges.Add(new TextChange(new TextSpan(originalStart, length), formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedEnd))));
+                        // Start with Roslyn's raw formatted slice, then reapply Razor's fixed indentation
+                        // if the formatter wrapped it across lines so closing braces/trailing text stay aligned.
+                        string replacementText;
+                        if (iFormatted > initialFormattedLine && fixedIndentString.Length > 0)
+                        {
+                            using var _ = StringBuilderPool.GetPooledObject(out var replacementBuilder);
+
+                            replacementBuilder.Append(formattedText.ToString(TextSpan.FromBounds(
+                                formattedStart,
+                                formattedText.Lines[initialFormattedLine].EndIncludingLineBreak)));
+
+                            for (var wrappedLineIndex = initialFormattedLine + 1; wrappedLineIndex < iFormatted; wrappedLineIndex++)
+                            {
+                                replacementBuilder.Append(fixedIndentString);
+                                replacementBuilder.Append(formattedText.ToString(formattedText.Lines[wrappedLineIndex].SpanIncludingLineBreak));
+                            }
+
+                            replacementBuilder.Append(fixedIndentString);
+                            replacementBuilder.Append(formattedText.ToString(TextSpan.FromBounds(formattedText.Lines[iFormatted].Start, formattedEnd)));
+                            replacementText = replacementBuilder.ToString();
+                        }
+                        else
+                        {
+                            replacementText = formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedEnd));
+                        }
+
+                        formattingChanges.Add(new TextChange(new TextSpan(originalStart, length), replacementText));
                     }
 
                     if (lineInfo.CheckForNewLines)
