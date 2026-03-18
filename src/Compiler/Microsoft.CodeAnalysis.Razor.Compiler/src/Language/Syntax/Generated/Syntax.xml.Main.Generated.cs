@@ -579,14 +579,11 @@ internal static partial class SyntaxFactory
 
     /// <summary>Creates a new MarkupTagHelperElementSyntax instance.</summary>
     public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax tagHelperStartTag, SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax tagHelperEndTag, TagHelperInfo tagHelperInfo)
-    {
-        ArgHelper.ThrowIfNull(tagHelperStartTag);
-        return (MarkupTagHelperElementSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperElement(tagHelperStartTag == null ? null : (InternalSyntax.MarkupTagHelperStartTagSyntax)tagHelperStartTag.Green, body.Node.ToGreenList<InternalSyntax.RazorSyntaxNode>(), tagHelperEndTag == null ? null : (InternalSyntax.MarkupTagHelperEndTagSyntax)tagHelperEndTag.Green, tagHelperInfo).CreateRed();
-    }
+        => (MarkupTagHelperElementSyntax)InternalSyntax.SyntaxFactory.MarkupTagHelperElement(tagHelperStartTag == null ? null : (InternalSyntax.MarkupTagHelperStartTagSyntax)tagHelperStartTag.Green, body.Node.ToGreenList<InternalSyntax.RazorSyntaxNode>(), tagHelperEndTag == null ? null : (InternalSyntax.MarkupTagHelperEndTagSyntax)tagHelperEndTag.Green, tagHelperInfo).CreateRed();
 
     /// <summary>Creates a new MarkupTagHelperElementSyntax instance.</summary>
-    public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax tagHelperStartTag, TagHelperInfo tagHelperInfo)
-        => SyntaxFactory.MarkupTagHelperElement(tagHelperStartTag, default(SyntaxList<RazorSyntaxNode>), default(MarkupTagHelperEndTagSyntax), tagHelperInfo);
+    public static MarkupTagHelperElementSyntax MarkupTagHelperElement(TagHelperInfo tagHelperInfo)
+        => SyntaxFactory.MarkupTagHelperElement(default(MarkupTagHelperStartTagSyntax), default(SyntaxList<RazorSyntaxNode>), default(MarkupTagHelperEndTagSyntax), tagHelperInfo);
 
     /// <summary>Creates a new MarkupTagHelperStartTagSyntax instance.</summary>
     public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, SpanEditHandler editHandler)

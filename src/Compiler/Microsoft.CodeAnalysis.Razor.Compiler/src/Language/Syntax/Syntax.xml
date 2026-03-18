@@ -205,7 +205,7 @@
   </Node>
   <Node Name="MarkupTagHelperElementSyntax" Base="BaseMarkupElementSyntax">
     <Kind Name="MarkupTagHelperElement" />
-    <Field Name="TagHelperStartTag" Type="MarkupTagHelperStartTagSyntax" />
+    <Field Name="TagHelperStartTag" Type="MarkupTagHelperStartTagSyntax" Optional="true" />
     <Field Name="Body" Type="SyntaxList&lt;RazorSyntaxNode&gt;" Optional="true" />
     <Field Name="TagHelperEndTag" Type="MarkupTagHelperEndTagSyntax" Optional="true" />
     <Field Name="TagHelperInfo" Type="TagHelperInfo" />

@@ -1069,8 +1069,6 @@ internal sealed partial class MarkupTagHelperElementSyntax : BaseMarkupElementSy
     public MarkupTagHelperElementSyntax WithTagHelperEndTag(MarkupTagHelperEndTagSyntax tagHelperEndTag) => Update(TagHelperStartTag, Body, tagHelperEndTag, TagHelperInfo);
     public MarkupTagHelperElementSyntax WithTagHelperInfo(TagHelperInfo tagHelperInfo) => Update(TagHelperStartTag, Body, TagHelperEndTag, tagHelperInfo);
 
-    public MarkupTagHelperElementSyntax AddTagHelperStartTagAttributes(params RazorSyntaxNode[] items) => WithTagHelperStartTag(this.TagHelperStartTag.WithAttributes(this.TagHelperStartTag.Attributes.AddRange(items)));
-
     public MarkupTagHelperElementSyntax AddBody(params RazorSyntaxNode[] items) => WithBody(this.Body.AddRange(items));
 }
 

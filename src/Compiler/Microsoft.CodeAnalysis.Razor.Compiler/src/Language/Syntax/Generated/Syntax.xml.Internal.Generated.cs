@@ -1422,8 +1422,11 @@ internal sealed partial class MarkupTagHelperElementSyntax : BaseMarkupElementSy
         : base(kind, diagnostics)
     {
         SlotCount = 3;
-        AdjustFlagsAndWidth(tagHelperStartTag);
-        _tagHelperStartTag = tagHelperStartTag;
+        if (tagHelperStartTag != null)
+        {
+            AdjustFlagsAndWidth(tagHelperStartTag);
+            _tagHelperStartTag = tagHelperStartTag;
+        }
         if (body != null)
         {
             AdjustFlagsAndWidth(body);
@@ -1441,8 +1444,11 @@ internal sealed partial class MarkupTagHelperElementSyntax : BaseMarkupElementSy
         : base(kind)
     {
         SlotCount = 3;
-        AdjustFlagsAndWidth(tagHelperStartTag);
-        _tagHelperStartTag = tagHelperStartTag;
+        if (tagHelperStartTag != null)
+        {
+            AdjustFlagsAndWidth(tagHelperStartTag);
+            _tagHelperStartTag = tagHelperStartTag;
+        }
         if (body != null)
         {
             AdjustFlagsAndWidth(body);
@@ -3553,8 +3559,6 @@ internal static partial class SyntaxFactory
 
     public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax tagHelperStartTag, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax tagHelperEndTag, TagHelperInfo tagHelperInfo)
     {
-        ArgHelper.ThrowIfNull(tagHelperStartTag);
-
         return new MarkupTagHelperElementSyntax(SyntaxKind.MarkupTagHelperElement, tagHelperStartTag, body.Node, tagHelperEndTag, tagHelperInfo);
     }
 
