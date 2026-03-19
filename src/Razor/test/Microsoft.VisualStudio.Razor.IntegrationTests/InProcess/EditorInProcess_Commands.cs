@@ -32,13 +32,6 @@ internal partial class EditorInProcess
         await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
     }
 
-    public async Task InvokeCompletionListAsync(CancellationToken cancellationToken)
-    {
-        var commandGuid = typeof(VSStd2KCmdID).GUID;
-        var commandId = VSStd2KCmdID.SHOWMEMBERLIST;
-        await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
-    }
-
     public async Task InvokeGoToDefinitionAsync(CancellationToken cancellationToken)
     {
         var commandGuid = typeof(VSStd97CmdID).GUID;
