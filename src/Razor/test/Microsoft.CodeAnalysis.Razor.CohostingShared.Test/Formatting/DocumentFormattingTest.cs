@@ -12135,7 +12135,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     public Task TernaryInAttribute()
         => RunFormattingTestAsync(
             input: """
-                <Icon Name="@(expanded?ParentDataGrid.closReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)"/>
+                <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)"/>
                 """,
             htmlFormatted: """
                 <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)" />
