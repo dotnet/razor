@@ -677,6 +677,9 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
 
     private async Task CommitCompletionAndVerifyAsync(string expected, string expectedSelectedItemLabel, char? commitChar = null)
     {
+        // Let outstanding async Intellisense work settle before we interrogate the active completion session.
+        await TestServices.Shell.WaitForOperationProgressAsync(HangMitigatingCancellationToken);
+
         // Actually open completion UI and wait for it have selected item we are interested in
         var session = await TestServices.Editor.OpenCompletionSessionAndWaitForItemAsync(TimeSpan.FromSeconds(10), expectedSelectedItemLabel, HangMitigatingCancellationToken);
 
