@@ -76,6 +76,35 @@ internal partial class EditorInProcess
         }
     }
 
+    public Task<IAsyncCompletionSession?> WaitForExistingCompletionSessionAsync(CancellationToken cancellationToken)
+    {
+        return WaitForExistingCompletionSessionAsync(TimeSpan.FromSeconds(10), cancellationToken);
+    }
+
+    public async Task<IAsyncCompletionSession?> WaitForExistingCompletionSessionAsync(TimeSpan timeOut, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var textView = await GetActiveTextViewAsync(cancellationToken);
+
+        var stopWatch = Stopwatch.StartNew();
+        var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
+        var session = asyncCompletion.GetSession(textView);
+
+        while (session is null || session.IsDismissed)
+        {
+            if (stopWatch.ElapsedMilliseconds >= timeOut.TotalMilliseconds)
+            {
+                return null;
+            }
+
+            await Task.Delay(100, cancellationToken);
+            session = asyncCompletion.GetSession(textView);
+        }
+
+        return session;
+    }
+
     /// <summary>
     /// Open completion pop-up window UI and wait for the specified item to be present selected
     /// </summary>
@@ -86,6 +115,10 @@ internal partial class EditorInProcess
     public async Task<IAsyncCompletionSession?> OpenCompletionSessionAndWaitForItemAsync(TimeSpan timeOut, string selectedItemLabel, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        // Completion can stay open with stale items from earlier typing. Reset first so item
+        // checks reflect the current buffer state rather than a reused session.
+        await DismissCompletionSessionsAsync(cancellationToken);
 
         // Returns completion session that might or might not be visible in the IDE
         var session = await WaitForCompletionSessionAsync(timeOut, cancellationToken);
@@ -99,8 +132,13 @@ internal partial class EditorInProcess
         var stopWatch = Stopwatch.StartNew();
         var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
         var lastOpenOrUpdateTime = 0L;
+        var lastTriggerTime = 0L;
         IAsyncCompletionSession? TriggerCompletion()
-            => asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        {
+            lastTriggerTime = stopWatch.ElapsedMilliseconds;
+            return asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+        }
+
         void OpenOrUpdate(IAsyncCompletionSession currentSession)
         {
             currentSession.OpenOrUpdate(new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
@@ -117,10 +155,19 @@ internal partial class EditorInProcess
             }
 
             var currentSession = session;
-            if (currentSession is not null && !currentSession.IsDismissed &&
-                currentSession.GetComputedItems(cancellationToken).SelectedItem?.DisplayText == selectedItemLabel)
+            if (currentSession is not null && !currentSession.IsDismissed)
             {
-                return currentSession;
+                var computedItems = currentSession.GetComputedItems(cancellationToken);
+                if (computedItems.SelectedItem?.DisplayText == selectedItemLabel)
+                {
+                    return currentSession;
+                }
+
+                if (!computedItems.Items.Any(item => item.DisplayText == selectedItemLabel) &&
+                    stopWatch.ElapsedMilliseconds - lastTriggerTime >= 1000)
+                {
+                    currentSession.Dismiss();
+                }
             }
 
             await Task.Delay(100, cancellationToken);
@@ -141,7 +188,7 @@ internal partial class EditorInProcess
                 continue;
             }
 
-            if (stopWatch.ElapsedMilliseconds - lastOpenOrUpdateTime >= 1000)
+            if (stopWatch.ElapsedMilliseconds - lastOpenOrUpdateTime >= 250)
             {
                 OpenOrUpdate(currentSession);
             }
