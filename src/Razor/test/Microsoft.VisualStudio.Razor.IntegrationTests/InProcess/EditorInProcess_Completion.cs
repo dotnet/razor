@@ -48,7 +48,7 @@ internal partial class EditorInProcess
         var session = asyncCompletion.GetSession(textView);
         if (session is null || session.IsDismissed)
         {
-            session = TriggerCompletion();
+            session = await TriggerCompletionAsync();
         }
 
         // Loop until completion comes up
@@ -63,16 +63,23 @@ internal partial class EditorInProcess
             session = asyncCompletion.GetSession(textView);
             if ((session is null || session.IsDismissed) && stopWatch.ElapsedMilliseconds - lastTriggerTime >= 1000)
             {
-                session = TriggerCompletion();
+                session = await TriggerCompletionAsync();
             }
         }
 
         return session;
 
-        IAsyncCompletionSession? TriggerCompletion()
+        async Task<IAsyncCompletionSession?> TriggerCompletionAsync()
         {
             lastTriggerTime = stopWatch.ElapsedMilliseconds;
-            return asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+            var session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+            if (session is null || session.IsDismissed)
+            {
+                await InvokeCompletionListAsync(cancellationToken);
+                session = asyncCompletion.GetSession(textView);
+            }
+
+            return session;
         }
     }
 
@@ -130,10 +137,17 @@ internal partial class EditorInProcess
         var lastOpenOrUpdateTime = 0L;
         var lastSessionResetTime = stopWatch.ElapsedMilliseconds;
 
-        IAsyncCompletionSession? TriggerCompletion()
+        async Task<IAsyncCompletionSession?> TriggerCompletionAsync()
         {
             lastSessionResetTime = stopWatch.ElapsedMilliseconds;
-            return asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+            var session = asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
+            if (session is null || session.IsDismissed)
+            {
+                await InvokeCompletionListAsync(cancellationToken);
+                session = asyncCompletion.GetSession(textView);
+            }
+
+            return session;
         }
 
         void OpenOrUpdate(IAsyncCompletionSession currentSession)
@@ -165,7 +179,7 @@ internal partial class EditorInProcess
                     stopWatch.ElapsedMilliseconds - lastSessionResetTime >= 1000)
                 {
                     currentSession.Dismiss();
-                    session = TriggerCompletion();
+                    session = await TriggerCompletionAsync();
                     if (session is not null && !session.IsDismissed)
                     {
                         OpenOrUpdate(session);
@@ -181,7 +195,7 @@ internal partial class EditorInProcess
                 session = asyncCompletion.GetSession(textView);
                 if (session is null || session.IsDismissed)
                 {
-                    session = TriggerCompletion();
+                    session = await TriggerCompletionAsync();
                     if (session is null || session.IsDismissed)
                     {
                         continue;
