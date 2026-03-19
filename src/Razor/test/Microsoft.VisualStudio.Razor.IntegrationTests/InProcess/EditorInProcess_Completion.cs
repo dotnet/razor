@@ -116,10 +116,6 @@ internal partial class EditorInProcess
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        // Completion can stay open with stale items from earlier typing. Reset first so item
-        // checks reflect the current buffer state rather than a reused session.
-        await DismissCompletionSessionsAsync(cancellationToken);
-
         // Returns completion session that might or might not be visible in the IDE
         var session = await WaitForCompletionSessionAsync(timeOut, cancellationToken);
 
@@ -132,10 +128,11 @@ internal partial class EditorInProcess
         var stopWatch = Stopwatch.StartNew();
         var asyncCompletion = await TestServices.Shell.GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
         var lastOpenOrUpdateTime = 0L;
-        var lastTriggerTime = 0L;
+        var lastSessionResetTime = stopWatch.ElapsedMilliseconds;
+
         IAsyncCompletionSession? TriggerCompletion()
         {
-            lastTriggerTime = stopWatch.ElapsedMilliseconds;
+            lastSessionResetTime = stopWatch.ElapsedMilliseconds;
             return asyncCompletion.TriggerCompletion(textView, new CompletionTrigger(CompletionTriggerReason.Insertion, textView.TextSnapshot), textView.Caret.Position.BufferPosition, cancellationToken);
         }
 
@@ -164,9 +161,10 @@ internal partial class EditorInProcess
                 }
 
                 if (!computedItems.Items.Any(item => item.DisplayText == selectedItemLabel) &&
-                    stopWatch.ElapsedMilliseconds - lastTriggerTime >= 1000)
+                    stopWatch.ElapsedMilliseconds - lastSessionResetTime >= 2000)
                 {
                     currentSession.Dismiss();
+                    lastSessionResetTime = stopWatch.ElapsedMilliseconds;
                 }
             }
 
