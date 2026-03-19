@@ -12135,7 +12135,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     public Task TernaryInAttribute()
         => RunFormattingTestAsync(
             input: """
-                <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)"/>
+                <Icon Name="@(expanded?ParentDataGrid.closReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)"/>
                 """,
             htmlFormatted: """
                 <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)" />
@@ -12325,6 +12325,62 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
                         [HtmlTargetElement("script")]
                         public class ScriptTagHelper : TagHelper
+                        {
+                        }
+                        """)
+                ]);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public Task VoidTagTagHelper(bool useTagHelper)
+    {
+        var directive = useTagHelper
+            ? "@addTagHelper *, SomeProject"
+            : "";
+        return RunFormattingTestAsync(
+                input: $$"""
+                    {{directive}}
+
+                    <div>
+                        <input type="text">
+                        This shouldn't be indented.
+
+                        <input type="text" @bind="Value">
+                        Neither should this
+                    </div>
+                    """,
+                htmlFormatted: $$"""
+                    {{directive}}
+
+                    <div>
+                        <input type="text">
+                        This shouldn't be indented.
+                    
+                        <input type="text" @bind="Value">
+                        Neither should this
+                    </div>
+                    """,
+                expected: $$"""
+                    {{directive}}
+
+                    <div>
+                        <input type="text">
+                        This shouldn't be indented.
+                    
+                        <input type="text" @bind="Value">
+                        Neither should this
+                    </div>
+                    """,
+                validateHtmlFormattedMatchesWebTools: false,
+                fileKind: RazorFileKind.Legacy,
+                additionalFiles:
+                [
+                    (FilePath("InputTagHelper.cs"), """
+                        using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                        [HtmlTargetElement("input")]
+                        public class InputTagHelper : TagHelper
                         {
                         }
                         """)
