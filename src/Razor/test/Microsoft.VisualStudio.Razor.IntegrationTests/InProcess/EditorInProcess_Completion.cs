@@ -160,11 +160,17 @@ internal partial class EditorInProcess
                     return currentSession;
                 }
 
-                if (!computedItems.Items.Any(item => item.DisplayText == selectedItemLabel) &&
-                    stopWatch.ElapsedMilliseconds - lastSessionResetTime >= 2000)
+                if (computedItems.SelectedItem is not null &&
+                    !computedItems.Items.Any(item => item.DisplayText == selectedItemLabel) &&
+                    stopWatch.ElapsedMilliseconds - lastSessionResetTime >= 1000)
                 {
                     currentSession.Dismiss();
-                    lastSessionResetTime = stopWatch.ElapsedMilliseconds;
+                    session = TriggerCompletion();
+                    if (session is not null && !session.IsDismissed)
+                    {
+                        OpenOrUpdate(session);
+                        continue;
+                    }
                 }
             }
 
