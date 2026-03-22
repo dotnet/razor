@@ -761,7 +761,7 @@ internal partial class CSharpFormattingPass
                             // When firstAttrOffset < _tabSize (e.g. a tag named <a> has firstAttrOffset=3 < tabSize=4),
                             // the result is negative and we can't express it as a non-negative FixedIndentLevel/AdditionalIndentation.
                             // Instead, use formattedIndentationOffset to trim the formatted indentation by the required amount.
-                            var firstAttrOffset = htmlIndentLevel * _tabSize + additionalIndentation.Length;
+                            var firstAttrOffset = htmlIndentLevel * _tabSize + (additionalIndentation?.Length ?? 0);
                             if (firstAttrOffset > 0)
                             {
                                 var adjustedOffset = firstAttrOffset - _tabSize;
@@ -774,7 +774,7 @@ internal partial class CSharpFormattingPass
                                     // The desired attribute column is less than one indent level. Signal the formatter to
                                     // reduce the formatted C# indentation by this negative amount.
                                     htmlIndentLevel = 0;
-                                    additionalIndentation = "";
+                                    additionalIndentation = string.Empty;
                                     formattedIndentationOffset = adjustedOffset;
                                 }
                             }
