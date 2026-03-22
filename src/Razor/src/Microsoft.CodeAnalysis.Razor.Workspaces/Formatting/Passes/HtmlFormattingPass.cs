@@ -248,7 +248,8 @@ internal sealed partial class HtmlFormattingPass(
                 FormattedLength: 0,
                 FormattedOffset: 0,
                 FormattedOffsetFromEndOfLine: 0,
-                AdditionalIndentation: null));
+                AdditionalIndentation: null,
+                FormattedIndentationOffset: 0));
         }
 
         return lineInfoBuilder.ToImmutable();

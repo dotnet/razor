@@ -413,7 +413,8 @@ internal static class FormattingUtilities
                 {
                     // First up, we take the indentation from the formatted file, and add on the fixed indentation level from the line info, and
                     // replace whatever was in the original file with it.
-                    indentationString = formattedText.ToString(new TextSpan(formattedLine.Start, formattedIndentation))
+                    var adjustedFormattedIndentation = Math.Max(0, formattedIndentation + lineInfo.FormattedIndentationOffset);
+                    indentationString = formattedText.ToString(new TextSpan(formattedLine.Start, adjustedFormattedIndentation))
                         + fixedIndentString;
                     formattingChanges.Add(new TextChange(new TextSpan(originalLine.Start, originalLineOffset), indentationString));
                 }

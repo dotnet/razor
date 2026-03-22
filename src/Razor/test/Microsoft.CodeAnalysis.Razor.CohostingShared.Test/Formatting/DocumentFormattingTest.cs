@@ -11447,6 +11447,48 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12914")]
+    public Task HtmlAttributes_ShortTagName()
+        => RunFormattingTestAsync(
+            input: """
+                <a class=""
+                            id="demo"
+                        asp-action="ok"
+                  data-id="a">
+                  demo
+                </a>
+                <a class=""
+                            id="demo"
+                        asp-action="ok"
+                  data-id="a">demo</a>
+                """,
+            htmlFormatted: """
+                <a class=""
+                   id="demo"
+                   asp-action="ok"
+                   data-id="a">
+                    demo
+                </a>
+                <a class=""
+                   id="demo"
+                   asp-action="ok"
+                   data-id="a">demo</a>
+                """,
+            expected: """
+                <a class=""
+                   id="demo"
+                   asp-action="ok"
+                   data-id="a">
+                    demo
+                </a>
+                <a class=""
+                   id="demo"
+                   asp-action="ok"
+                   data-id="a">demo</a>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
     public Task HtmlAttributes_IndentByOne()
         => RunFormattingTestAsync(
             input: """

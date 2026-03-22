@@ -744,6 +744,7 @@ internal partial class CSharpFormattingPass
                 if (RazorSyntaxFacts.IsAttributeName(node, out var startTag))
                 {
                     GetAttributeIndentation(startTag, out var htmlIndentLevel, out var additionalIndentation);
+                    var formattedIndentationOffset = 0;
 
                     if (ElementHasSignificantWhitespace(startTag) &&
                         GetLineNumber(node) == GetLineNumber(startTag.CloseAngle))
@@ -751,14 +752,44 @@ internal partial class CSharpFormattingPass
                         // If this is the last line of a tag that shouldn't be indented, honour that
                         _ignoreUntilLine = GetLineNumber(startTag.GetEndTag()?.CloseAngle ?? startTag.CloseAngle);
                     }
-                    else if (ElementCausesIndentation(startTag) && htmlIndentLevel > 0)
+                    else if (ElementCausesIndentation(startTag))
                     {
-                        // If the element has caused indentation, then we'll want to take one level off our attribute indentation to
-                        // compensate. Need to be careful here because things like `<a` are likely less than a single indent level.
-                        htmlIndentLevel--;
+                        if (_attributeIndentStyle == AttributeIndentStyle.AlignWithFirst)
+                        {
+                            // For AlignWithFirst, we need to subtract one indent level to compensate for the element
+                            // causing indentation. The amount to subtract equals one tabSize from the first attribute's offset.
+                            // When firstAttrOffset < _tabSize (e.g. a tag named <a> has firstAttrOffset=3 < tabSize=4),
+                            // the result is negative and we can't express it as a non-negative FixedIndentLevel/AdditionalIndentation.
+                            // Instead, use formattedIndentationOffset to trim the formatted indentation by the required amount.
+                            var firstAttrOffset = htmlIndentLevel * _tabSize + additionalIndentation.Length;
+                            if (firstAttrOffset > 0)
+                            {
+                                var adjustedOffset = firstAttrOffset - _tabSize;
+                                if (adjustedOffset >= 0)
+                                {
+                                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(adjustedOffset, _tabSize, out additionalIndentation);
+                                }
+                                else
+                                {
+                                    // The desired attribute column is less than one indent level. Signal the formatter to
+                                    // reduce the formatted C# indentation by this negative amount.
+                                    htmlIndentLevel = 0;
+                                    additionalIndentation = "";
+                                    formattedIndentationOffset = adjustedOffset;
+                                }
+                            }
+                            // else: firstAttrOffset == 0 means the first attribute is on its own line (not same line as the
+                            // tag name). In that case we fall back to IndentByOne behaviour (no adjustment needed).
+                        }
+                        else if (htmlIndentLevel > 0)
+                        {
+                            // If the element has caused indentation, then we'll want to take one level off our attribute
+                            // indentation to compensate.
+                            htmlIndentLevel--;
+                        }
                     }
 
-                    return EmitCurrentLineAsComment(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
+                    return EmitCurrentLineAsComment(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation, formattedIndentationOffset: formattedIndentationOffset);
                 }
 
                 return null;
@@ -1136,10 +1167,10 @@ internal partial class CSharpFormattingPass
                 return CreateLineInfo(processFormatting: true, checkForNewLines: true);
             }
 
-            private LineInfo EmitCurrentLineAsComment(int htmlIndentLevel = 0, string? additionalIndentation = null)
+            private LineInfo EmitCurrentLineAsComment(int htmlIndentLevel = 0, string? additionalIndentation = null, int formattedIndentationOffset = 0)
             {
                 _builder.AppendLine($"//");
-                return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
+                return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation, formattedIndentationOffset: formattedIndentationOffset);
             }
 
             private LineInfo EmitSyntheticLambdaBodyStartLine()
@@ -1192,7 +1223,8 @@ internal partial class CSharpFormattingPass
                 int formattedLength = 0,
                 int formattedOffset = 0,
                 int formattedOffsetFromEndOfLine = 0,
-                string? additionalIndentation = null)
+                string? additionalIndentation = null,
+                int formattedIndentationOffset = 0)
             {
                 // We sometimes want to honour the indentation that the Html formatter supplied, when inside the right type of tag
                 // but we will also have added our own C# indentation on top of that, so we need to subtract one level to compensate.
@@ -1216,7 +1248,8 @@ internal partial class CSharpFormattingPass
                     FormattedLength: formattedLength,
                     FormattedOffset: formattedOffset,
                     FormattedOffsetFromEndOfLine: formattedOffsetFromEndOfLine,
-                    AdditionalIndentation: additionalIndentation);
+                    AdditionalIndentation: additionalIndentation,
+                    FormattedIndentationOffset: formattedIndentationOffset);
             }
         }
     }
