@@ -1102,6 +1102,47 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             fileKind: RazorFileKind.Legacy);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/10796")]
+    public async Task Section_BraceOnNextLine_AtColumnZero()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @section Controls
+                {
+                <label>
+                <span>Office</span>
+                </label>
+                <label>
+                <span>Department</span>
+                </label>
+                }
+                """,
+            htmlFormatted: """
+                @section Controls
+                {
+                <label>
+                    <span>Office</span>
+                </label>
+                <label>
+                    <span>Department</span>
+                </label>
+                }
+                """,
+            expected: """
+                @section Controls
+                {
+                    <label>
+                        <span>Office</span>
+                    </label>
+                    <label>
+                        <span>Department</span>
+                    </label>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
     [Theory, CombinatorialData]
     public async Task CodeBlock_SpansMultipleLines(bool inGlobalNamespace)
     {
