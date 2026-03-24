@@ -4831,9 +4831,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: """
                 <button @onclick="() =>
-                            {
-                                StateHasChanged();
-                            }">
+                        {
+                            StateHasChanged();
+                        }">
                 </button>
                 """,
             csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
@@ -4857,8 +4857,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: """
                 <button @onclick="() => {
-                                StateHasChanged();
-                            }">
+                            StateHasChanged();
+                        }">
                 </button>
                 """,
             csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
@@ -4885,9 +4885,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             expected: """
                 <button foo="bar"
                         @onclick="() =>
-                            {
-                                StateHasChanged();
-                            }">
+                        {
+                            StateHasChanged();
+                        }">
                 </button>
                 """,
             csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
@@ -4914,8 +4914,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             expected: """
                 <button foo="bar"
                         @onclick="() => {
-                                StateHasChanged();
-                            }">
+                            StateHasChanged();
+                        }">
                 </button>
                 """,
             csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
@@ -4947,9 +4947,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button foo="bar"
                             @onclick="() =>
-                                {
-                                    StateHasChanged();
-                                }">
+                            {
+                                StateHasChanged();
+                            }">
                     </button>
                 </div>
                 """,
@@ -4982,8 +4982,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button foo="bar"
                             @onclick="() => {
-                                    StateHasChanged();
-                                }">
+                                StateHasChanged();
+                            }">
                     </button>
                 </div>
                 """,
@@ -5016,9 +5016,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button foo="bar"
                             @onclick="() =>
-                                {
-                                    StateHasChanged();
-                                }">
+                            {
+                                StateHasChanged();
+                            }">
                     </button>
                 </div>
                 """,
@@ -5051,8 +5051,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button foo="bar"
                             @onclick="() => {
-                                    StateHasChanged();
-                                }">
+                                StateHasChanged();
+                            }">
                     </button>
                 </div>
                 """,
@@ -5079,9 +5079,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: """
                 <button @onclick="() =>
-                            {
-                                StateHasChanged();
-                            }">
+                        {
+                            StateHasChanged();
+                        }">
                 </button>
                 """,
             csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
@@ -5107,8 +5107,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: """
                 <button @onclick="() => {
-                                StateHasChanged();
-                            }">
+                            StateHasChanged();
+                        }">
                 </button>
                 """,
             csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
@@ -5142,9 +5142,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button foo="bar"
                             @onclick="() =>
-                                {
-                                    StateHasChanged();
-                                }">
+                            {
+                                StateHasChanged();
+                            }">
                     </button>
                 </div>
                 """,
@@ -5179,8 +5179,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button foo="bar"
                             @onclick="() => {
-                                    StateHasChanged();
-                                }">
+                                StateHasChanged();
+                            }">
                     </button>
                 </div>
                 """,
@@ -5205,10 +5205,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: """
                 <button @onclick="() =>
-                            {
-                                foo();
-                                bar();
-                            }">
+                        {
+                            foo();
+                            bar();
+                        }">
                 </button>
                 """,
             csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: true),
@@ -5232,9 +5232,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: """
                 <button @onclick="() => {
-                                foo();
-                                bar();
-                            }">
+                            foo();
+                            bar();
+                        }">
                 </button>
                 """,
             csharpSyntaxFormattingOptions: GetNewLineBeforeBraceInLambdaExpressionOptions(newLineBeforeBraceInLambda: false),
