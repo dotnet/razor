@@ -25,14 +25,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
 public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
-    private IDocumentMappingService? _documentMappingService;
     private IRazorEditService? _razorEditService;
 
     protected async override Task InitializeAsync()
     {
         await base.InitializeAsync();
 
-        _documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
         _razorEditService = OOPExportProvider.GetExportedValue<IRazorEditService>();
     }
 
@@ -750,8 +748,6 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         var mappedChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
             changes.SelectAsArray(c => c.ToRazorTextChange()),
             snapshot,
-            _documentMappingService.AssumeNotNull(),
-            FailingTelemetryReporter.Instance,
             CancellationToken.None);
 
         Assert.NotEmpty(mappedChanges);

@@ -30,7 +30,6 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
     }
 
     private readonly RemoteSnapshotManager _snapshotManager = args.ExportProvider.GetExportedValue<RemoteSnapshotManager>();
-    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
     private readonly ITelemetryReporter _telemetryReporter = args.ExportProvider.GetExportedValue<ITelemetryReporter>();
     private readonly IRazorEditService _razorEditService = args.ExportProvider.GetExportedValue<IRazorEditService>();
 
@@ -161,8 +160,6 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             var results = await _razorEditService.MapCSharpEditsAsync(
                 changes.SelectAsArray(c => c.ToRazorTextChange()),
                 documentSnapshot,
-                _documentMappingService,
-                _telemetryReporter,
                 cancellationToken).ConfigureAwait(false);
 
             if (results.IsDefaultOrEmpty)

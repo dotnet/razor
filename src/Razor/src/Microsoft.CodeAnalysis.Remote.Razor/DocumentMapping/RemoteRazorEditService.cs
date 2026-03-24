@@ -3,8 +3,11 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 [Export(typeof(IRazorEditService)), Shared]
-internal sealed class RemoteRazorEditService : RazorEditService;
+[method: ImportingConstructor]
+internal sealed class RemoteRazorEditService(IDocumentMappingService documentMappingService, ITelemetryReporter telemetryReporter)
+    : RazorEditService(documentMappingService, telemetryReporter);

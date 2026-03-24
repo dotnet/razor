@@ -17,8 +17,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal partial class RazorEditService : IRazorEditService
+internal partial class RazorEditService(
+    IDocumentMappingService documentMappingService,
+    ITelemetryReporter telemetryReporter) : IRazorEditService
 {
+    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
+
     public bool TryGetMappedSpan(TextSpan span, SourceText source, RazorCSharpDocument output, out LinePositionSpan linePositionSpan, out TextSpan mappedSpan)
     {
         foreach (var mapping in output.SourceMappingsSortedByGenerated)
@@ -66,8 +71,6 @@ internal partial class RazorEditService : IRazorEditService
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
-        IDocumentMappingService documentMappingService,
-        ITelemetryReporter telemetryReporter,
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
@@ -81,10 +84,10 @@ internal partial class RazorEditService : IRazorEditService
         var newCSharpSyntaxRoot = await newCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
-        AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, documentMappingService, cancellationToken);
+        AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, cancellationToken);
         AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, cancellationToken);
 
-        return NormalizeEdits(edits.ToImmutableOrderedBy(static e => e.Span.Start), telemetryReporter, cancellationToken);
+        return NormalizeEdits(edits.ToImmutableOrderedBy(static e => e.Span.Start), cancellationToken);
     }
 
     /// <summary>
@@ -127,7 +130,7 @@ internal partial class RazorEditService : IRazorEditService
     /// </item>
     /// </list>
     /// </summary>
-    private static ImmutableArray<RazorTextChange> NormalizeEdits(ImmutableArray<RazorTextChange> changes, ITelemetryReporter telemetryReporter, CancellationToken cancellationToken)
+    private ImmutableArray<RazorTextChange> NormalizeEdits(ImmutableArray<RazorTextChange> changes, CancellationToken cancellationToken)
     {
         // Ensure that the changes are sorted by start position otherwise
         // the normalization logic will not work.
@@ -214,7 +217,7 @@ internal partial class RazorEditService : IRazorEditService
 
         if (droppedEdits > 0)
         {
-            telemetryReporter.ReportFault(
+            _telemetryReporter.ReportFault(
                 new DroppedEditsException(),
                 "Potentially dropped edits when trying to map",
                 new Property("droppedEditCount", droppedEdits));
@@ -228,11 +231,10 @@ internal partial class RazorEditService : IRazorEditService
     /// Edits that don't map are skipped, and using directive changes are handled separately
     /// by <see cref="AddUsingsChanges"/>.
     /// </summary>
-    private static void AddDirectlyMappedEdits(
+    private void AddDirectlyMappedEdits(
         ref PooledArrayBuilder<RazorTextChange> edits,
         ImmutableArray<RazorTextChange> csharpEdits,
         RazorCodeDocument codeDocument,
-        IDocumentMappingService documentMappingService,
         CancellationToken cancellationToken)
     {
         var root = codeDocument.GetRequiredSyntaxRoot();
@@ -246,7 +248,7 @@ internal partial class RazorEditService : IRazorEditService
 
             var linePositionSpan = csharpText.GetLinePositionSpan(edit.Span.ToTextSpan());
 
-            if (!documentMappingService.TryMapToRazorDocumentRange(
+            if (!_documentMappingService.TryMapToRazorDocumentRange(
                 csharpDocument,
                 linePositionSpan,
                 MappingBehavior.Strict,

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
@@ -19,8 +18,6 @@ internal interface IRazorEditService
     Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
-        IDocumentMappingService documentMappingService,
-        ITelemetryReporter telemetryReporter,
         CancellationToken cancellationToken);
 
     Task<ImmutableArray<RazorTextChange>> GetEditsForCSharpLanguageFeaturesAsync(

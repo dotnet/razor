@@ -13,20 +13,15 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal abstract class AbstractEditMappingService(
-    IDocumentMappingService documentMappingService,
-    ITelemetryReporter telemetryReporter,
     IFilePathService filePathService,
     IRazorEditService razorEditService) : IEditMappingService
 {
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
-    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly IFilePathService _filePathService = filePathService;
     private readonly IRazorEditService _razorEditService = razorEditService;
 
@@ -165,7 +160,7 @@ internal abstract class AbstractEditMappingService(
             Span = csharpSourceText.GetTextSpan(e.Range).ToRazorTextSpan(),
             NewText = e.NewText,
         });
-        var mappedEdits = await _razorEditService.MapCSharpEditsAsync(textChanges, documentContext.Snapshot, _documentMappingService, _telemetryReporter, cancellationToken).ConfigureAwait(false);
+        var mappedEdits = await _razorEditService.MapCSharpEditsAsync(textChanges, documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
 
         return mappedEdits.SelectAsArray(e => LspFactory.CreateTextEdit(razorSourceText.GetLinePositionSpan(e.Span.ToTextSpan()), e.NewText.AssumeNotNull()));
     }
