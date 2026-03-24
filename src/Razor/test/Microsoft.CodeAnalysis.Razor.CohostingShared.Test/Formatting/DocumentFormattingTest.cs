@@ -8146,7 +8146,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
-    [WorkItem("https://developercommunity.visualstudio.com/t/Razor-formatting-removes-indentation/10538709")]
+    [WorkItem("https://github.com/dotnet/razor/issues/9826")]
     public async Task CodeBlock_ArrayInitializers_InsideHtmlElement()
     {
         // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
