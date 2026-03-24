@@ -422,7 +422,7 @@ internal partial class CSharpFormattingPass
                 // Html attributes are not valid.
                 // TODO: The traverse up the tree here is not ideal. See comments in https://github.com/dotnet/razor/issues/11371
                 var htmlIndentLevel = 0;
-                string? additionalIndentation = null;
+                int? additionalIndentation = null;
                 var attributeNode = node.Ancestors().FirstOrDefault(n => n.IsAnyAttributeSyntax())
                     ?? (previousLineStartedWithAttributeName ? previousTokenParent?.Parent : null);
                 if (attributeNode?.Parent is BaseMarkupStartTagSyntax attributeStartTag)
@@ -764,9 +764,9 @@ internal partial class CSharpFormattingPass
                 return null;
             }
 
-            private void GetAttributeIndentation(BaseMarkupStartTagSyntax startTag, out int htmlIndentLevel, out string additionalIndentation)
+            private void GetAttributeIndentation(BaseMarkupStartTagSyntax startTag, out int htmlIndentLevel, out int additionalIndentation)
             {
-                additionalIndentation = "";
+                additionalIndentation = 0;
 
                 if (_attributeIndentStyle == AttributeIndentStyle.IndentByOne)
                 {
@@ -1136,7 +1136,7 @@ internal partial class CSharpFormattingPass
                 return CreateLineInfo(processFormatting: true, checkForNewLines: true);
             }
 
-            private LineInfo EmitCurrentLineAsComment(int htmlIndentLevel = 0, string? additionalIndentation = null)
+            private LineInfo EmitCurrentLineAsComment(int htmlIndentLevel = 0, int? additionalIndentation = null)
             {
                 _builder.AppendLine($"//");
                 return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
@@ -1192,7 +1192,7 @@ internal partial class CSharpFormattingPass
                 int formattedLength = 0,
                 int formattedOffset = 0,
                 int formattedOffsetFromEndOfLine = 0,
-                string? additionalIndentation = null)
+                int? additionalIndentation = null)
             {
                 // We sometimes want to honour the indentation that the Html formatter supplied, when inside the right type of tag
                 // but we will also have added our own C# indentation on top of that, so we need to subtract one level to compensate.
@@ -1201,7 +1201,8 @@ internal partial class CSharpFormattingPass
                     _honourHtmlFormattingUntilLine is { } endLine &&
                     endLine >= _currentLine.LineNumber)
                 {
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out additionalIndentation) - 1;
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var calculatedAdditionalIndentation) - 1;
+                    additionalIndentation = calculatedAdditionalIndentation;
                 }
 
                 return new(
