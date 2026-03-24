@@ -1110,19 +1110,34 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             input: """
                 @section Controls
                 {
-                <p>Office</p>
+                <label>
+                <span>Office</span>
+                </label>
+                <label>
+                <span>Department</span>
+                </label>
                 }
                 """,
             htmlFormatted: """
                 @section Controls
                 {
-                <p>Office</p>
+                <label>
+                    <span>Office</span>
+                </label>
+                <label>
+                    <span>Department</span>
+                </label>
                 }
                 """,
             expected: """
                 @section Controls
                 {
-                    <p>Office</p>
+                    <label>
+                        <span>Office</span>
+                    </label>
+                    <label>
+                        <span>Department</span>
+                    </label>
                 }
                 """,
             fileKind: RazorFileKind.Legacy);
