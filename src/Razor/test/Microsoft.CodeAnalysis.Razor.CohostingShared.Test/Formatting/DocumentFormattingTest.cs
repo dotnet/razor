@@ -3492,11 +3492,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             htmlFormatted: $$"""
                 @if (true)
                 {
-                    <em href="#"
-                        disabled
-                        style="hello"
-                        @onclick="foo()">
-                    </em>
+                <em href="#"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
+                </em>
                 }
                 """,
             expected: $$"""
@@ -3622,11 +3622,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             htmlFormatted: $$"""
                 @if (true)
                 {
-                    <a href="#"
-                       disabled
-                       style="hello"
-                       @onclick="foo()">
-                    </a>
+                <a href="#"
+                   disabled
+                   style="hello"
+                   @onclick="foo()">
+                </a>
                 }
                 """,
             expected: $$"""
