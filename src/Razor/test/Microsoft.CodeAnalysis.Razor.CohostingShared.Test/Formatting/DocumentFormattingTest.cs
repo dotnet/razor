@@ -3382,6 +3382,62 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12938")]
+    public async Task FormatWrappedAttributesOnShortTag()
+    {
+        await RunFormattingTestAsync(
+            input: $$"""
+                <em href="#"
+                            disabled
+                        style="hello"
+                  @onclick="foo()">
+                </em>
+                """,
+            htmlFormatted: $$"""
+                <em href="#"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
+                </em>
+                """,
+            expected: $$"""
+                <em href="#"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
+                </em>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12938")]
+    public async Task FormatWrappedAttributesOnShortestTag()
+    {
+        await RunFormattingTestAsync(
+            input: $$"""
+                <a href="#"
+                            disabled
+                        style="hello"
+                  @onclick="foo()">
+                </a>
+                """,
+            htmlFormatted: $$"""
+                <a href="#"
+                   disabled
+                   style="hello"
+                   @onclick="foo()">
+                </a>
+                """,
+            expected: $$"""
+                <a href="#"
+                   disabled
+                   style="hello"
+                   @onclick="foo()">
+                </a>
+                """);
+    }
+
+    [Fact]
     [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2471065")]
     public Task MultipleHtmlElementsInCSharpCode()
         => RunFormattingTestAsync(
