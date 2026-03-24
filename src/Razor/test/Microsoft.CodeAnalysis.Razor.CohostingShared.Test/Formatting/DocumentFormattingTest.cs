@@ -8168,13 +8168,13 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             htmlFormatted: """
                 <table>
                     @{
-                        var minimum = "";
-                        var maximum = "";
-                        var dateOptions = new[,]
-                        {
-                            {$"Set to minimum ({minimum})", minimum},
-                            {$"Set to maximum ({maximum})", maximum},
-                        };
+                    var minimum = "";
+                    var maximum = "";
+                    var dateOptions = new[,]
+                    {
+                    {$"Set to minimum ({minimum})", minimum},
+                    {$"Set to maximum ({maximum})", maximum},
+                    };
                     }
                 </table>
                 """,
