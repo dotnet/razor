@@ -20,7 +20,8 @@ internal sealed class RemoteEditMappingService(
     IDocumentMappingService documentMappingService,
     ITelemetryReporter telemetryReporter,
     IFilePathService filePathService,
-    RemoteSnapshotManager snapshotManager) : AbstractEditMappingService(documentMappingService, telemetryReporter, filePathService)
+    IRazorEditService razorEditService,
+    RemoteSnapshotManager snapshotManager) : AbstractEditMappingService(documentMappingService, telemetryReporter, filePathService, razorEditService)
 {
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 

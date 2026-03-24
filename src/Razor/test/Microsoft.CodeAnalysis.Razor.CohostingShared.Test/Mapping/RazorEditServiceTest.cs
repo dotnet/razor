@@ -23,15 +23,17 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
-public class RazorEditHelperTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
+public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
     private IDocumentMappingService? _documentMappingService;
+    private IRazorEditService? _razorEditService;
 
     protected async override Task InitializeAsync()
     {
         await base.InitializeAsync();
 
         _documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
+        _razorEditService = OOPExportProvider.GetExportedValue<IRazorEditService>();
     }
 
     [Fact]
@@ -745,7 +747,7 @@ public class RazorEditHelperTest(ITestOutputHelper testOutput) : CohostEndpointT
         codeDocument = codeDocument.WithCSharpDocument(csharpDocument);
         var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
 
-        var mappedChanges = await RazorEditHelper.MapCSharpEditsAsync(
+        var mappedChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
             changes.SelectAsArray(c => c.ToRazorTextChange()),
             snapshot,
             _documentMappingService.AssumeNotNull(),

@@ -17,9 +17,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal static partial class RazorEditHelper
+internal partial class RazorEditService : IRazorEditService
 {
-    internal static bool TryGetMappedSpan(TextSpan span, SourceText source, RazorCSharpDocument output, out LinePositionSpan linePositionSpan, out TextSpan mappedSpan)
+    public bool TryGetMappedSpan(TextSpan span, SourceText source, RazorCSharpDocument output, out LinePositionSpan linePositionSpan, out TextSpan mappedSpan)
     {
         foreach (var mapping in output.SourceMappingsSortedByGenerated)
         {
@@ -63,7 +63,7 @@ internal static partial class RazorEditHelper
     /// <remarks>
     /// Note that the changes coming in are in the generated C# file. This method will map them appropriately.
     /// </remarks>
-    internal static async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+    public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
         IDocumentMappingService documentMappingService,
@@ -95,7 +95,7 @@ internal static partial class RazorEditHelper
     /// scenarios where Roslyn adds a C# construct (eg, using directive, method etc.) that needs
     /// more work than just mapping to conver to Razor (eg, an @ sign, or whole @code block).
     /// </summary>
-    internal static async Task<ImmutableArray<RazorTextChange>> GetEditsForCSharpLanguageFeaturesAsync(
+    public async Task<ImmutableArray<RazorTextChange>> GetEditsForCSharpLanguageFeaturesAsync(
         IDocumentSnapshot snapshot,
         SourceText changedCSharpText,
         CancellationToken cancellationToken)

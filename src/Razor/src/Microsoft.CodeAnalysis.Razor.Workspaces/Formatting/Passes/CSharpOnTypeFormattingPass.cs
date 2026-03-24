@@ -34,10 +34,12 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 /// </summary>
 internal sealed class CSharpOnTypeFormattingPass(
     IDocumentMappingService documentMappingService,
+    IRazorEditService razorEditService,
     IHostServicesProvider hostServicesProvider,
     ILoggerFactory loggerFactory) : IFormattingPass
 {
     private readonly IDocumentMappingService _documentMappingSerivce = documentMappingService;
+    private readonly IRazorEditService _razorEditService = razorEditService;
     private readonly IHostServicesProvider _hostServicesProvider = hostServicesProvider;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpOnTypeFormattingPass>();
 
@@ -206,14 +208,14 @@ internal sealed class CSharpOnTypeFormattingPass(
         return finalChanges;
     }
 
-    private static async Task<ImmutableArray<TextChange>> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, ImmutableArray<TextChange> changes, SourceText originalTextWithChanges, ImmutableArray<TextChange> finalChanges, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<TextChange>> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, ImmutableArray<TextChange> changes, SourceText originalTextWithChanges, ImmutableArray<TextChange> finalChanges, CancellationToken cancellationToken)
     {
         if (context.AutomaticallyAddUsings)
         {
             // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
             if (changes.Any(static e => e.NewText is not null && e.NewText.Contains("using")))
             {
-                var usingEdits = await RazorEditHelper.GetEditsForCSharpLanguageFeaturesAsync(context.CurrentSnapshot, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
+                var usingEdits = await _razorEditService.GetEditsForCSharpLanguageFeaturesAsync(context.CurrentSnapshot, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
                 var usingChanges = usingEdits.SelectAsArray(static e => e.ToTextChange());
                 finalChanges = [.. usingChanges, .. finalChanges];
             }

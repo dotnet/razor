@@ -21,7 +21,7 @@ using RoslynSyntaxNode = Microsoft.CodeAnalysis.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal static partial class RazorEditHelper
+internal partial class RazorEditService
 {
     private static void AddCSharpLanguageFeatureChanges(
         ref PooledArrayBuilder<RazorTextChange> edits,

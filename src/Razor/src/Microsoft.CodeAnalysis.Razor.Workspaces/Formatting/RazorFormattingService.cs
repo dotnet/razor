@@ -38,12 +38,13 @@ internal class RazorFormattingService : IRazorFormattingService
 
     public RazorFormattingService(
         IDocumentMappingService documentMappingService,
+        IRazorEditService razorEditService,
         IHostServicesProvider hostServicesProvider,
         IFormattingLoggerFactory formattingLoggerFactory,
         ILoggerFactory loggerFactory)
     {
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass();
-        _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, hostServicesProvider, loggerFactory);
+        _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, razorEditService, hostServicesProvider, loggerFactory);
         _validationPasses =
         [
             new FormattingDiagnosticValidationPass(loggerFactory),

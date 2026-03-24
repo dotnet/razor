@@ -65,7 +65,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\HtmlFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\MoreHtmlFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\RazorFormattingServiceTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditHelperTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ProjectAvailabilityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetCompletionItemResolveProvider.cs" />

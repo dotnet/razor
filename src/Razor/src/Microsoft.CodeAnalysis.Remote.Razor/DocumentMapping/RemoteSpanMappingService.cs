@@ -32,6 +32,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
     private readonly RemoteSnapshotManager _snapshotManager = args.ExportProvider.GetExportedValue<RemoteSnapshotManager>();
     private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
     private readonly ITelemetryReporter _telemetryReporter = args.ExportProvider.GetExportedValue<ITelemetryReporter>();
+    private readonly IRazorEditService _razorEditService = args.ExportProvider.GetExportedValue<IRazorEditService>();
 
     public ValueTask<RemoteExcerptResult?> TryExcerptAsync(RazorPinnedSolutionInfoWrapper solutionInfo, DocumentId generatedDocumentId, TextSpan span, RazorExcerptMode mode, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -101,7 +102,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
         return await MapSpansAsync(documentSnapshot, codeDocument, spans, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(RemoteDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(RemoteDocumentSnapshot documentSnapshot, RazorCodeDocument codeDocument, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         var csharpSyntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var csharpSyntaxNode = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -127,7 +128,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             {
                 results.Add(new(filePath, new(LinePosition.Zero, LinePosition.Zero), new TextSpan()));
             }
-            else if (RazorEditHelper.TryGetMappedSpan(span, source, csharpDocument, out var linePositionSpan, out var mappedSpan))
+            else if (_razorEditService.TryGetMappedSpan(span, source, csharpDocument, out var linePositionSpan, out var mappedSpan))
             {
                 results.Add(new(filePath, linePositionSpan, mappedSpan));
             }
@@ -157,7 +158,7 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             }
 
             var documentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-            var results = await RazorEditHelper.MapCSharpEditsAsync(
+            var results = await _razorEditService.MapCSharpEditsAsync(
                 changes.SelectAsArray(c => c.ToRazorTextChange()),
                 documentSnapshot,
                 _documentMappingService,
