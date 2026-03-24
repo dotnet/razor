@@ -24,42 +24,6 @@ internal partial class RazorEditService(
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
-    public bool TryGetMappedSpan(TextSpan span, SourceText source, RazorCSharpDocument output, out LinePositionSpan linePositionSpan, out TextSpan mappedSpan)
-    {
-        foreach (var mapping in output.SourceMappingsSortedByGenerated)
-        {
-            var generated = mapping.GeneratedSpan.AsTextSpan();
-
-            if (!generated.Contains(span))
-            {
-                if (generated.Start > span.End)
-                {
-                    // This span (and all following) are after the area we're interested in
-                    break;
-                }
-
-                // If the search span isn't contained within the generated span, it is not a match.
-                // A C# identifier won't cover multiple generated spans.
-                continue;
-            }
-
-            var leftOffset = span.Start - generated.Start;
-            var rightOffset = span.End - generated.End;
-            if (leftOffset >= 0 && rightOffset <= 0)
-            {
-                // This span mapping contains the span.
-                var original = mapping.OriginalSpan.AsTextSpan();
-                mappedSpan = new TextSpan(original.Start + leftOffset, (original.End + rightOffset) - (original.Start + leftOffset));
-                linePositionSpan = source.GetLinePositionSpan(mappedSpan);
-                return true;
-            }
-        }
-
-        mappedSpan = default;
-        linePositionSpan = default;
-        return false;
-    }
-
     /// <summary>
     /// Maps the given text edits for a razor file based on changes in csharp. It special
     /// cases usings directives to insure they are added correctly. All other edits
