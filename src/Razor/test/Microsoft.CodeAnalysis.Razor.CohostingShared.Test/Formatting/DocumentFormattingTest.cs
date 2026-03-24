@@ -3411,6 +3411,108 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/12938")]
+    public async Task FormatWrappedAttributesOnShortTag_WithContent()
+    {
+        await RunFormattingTestAsync(
+            input: $$"""
+                <em href="#"
+                            disabled
+                        style="hello"
+                  @onclick="foo()">
+                    Hello World
+                </em>
+                """,
+            htmlFormatted: $$"""
+                <em href="#"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
+                    Hello World
+                </em>
+                """,
+            expected: $$"""
+                <em href="#"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
+                    Hello World
+                </em>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12938")]
+    public async Task FormatWrappedAttributesOnShortTag_NestedInHtml()
+    {
+        await RunFormattingTestAsync(
+            input: $$"""
+                <div>
+                    <em href="#"
+                                disabled
+                            style="hello"
+                      @onclick="foo()">
+                    </em>
+                </div>
+                """,
+            htmlFormatted: $$"""
+                <div>
+                    <em href="#"
+                        disabled
+                        style="hello"
+                        @onclick="foo()">
+                    </em>
+                </div>
+                """,
+            expected: $$"""
+                <div>
+                    <em href="#"
+                        disabled
+                        style="hello"
+                        @onclick="foo()">
+                    </em>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12938")]
+    public async Task FormatWrappedAttributesOnShortTag_InIfBlock()
+    {
+        await RunFormattingTestAsync(
+            input: $$"""
+                @if (true)
+                {
+                    <em href="#"
+                                disabled
+                            style="hello"
+                      @onclick="foo()">
+                    </em>
+                }
+                """,
+            htmlFormatted: $$"""
+                @if (true)
+                {
+                    <em href="#"
+                        disabled
+                        style="hello"
+                        @onclick="foo()">
+                    </em>
+                }
+                """,
+            expected: $$"""
+                @if (true)
+                {
+                    <em href="#"
+                        disabled
+                        style="hello"
+                        @onclick="foo()">
+                    </em>
+                }
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12938")]
     public async Task FormatWrappedAttributesOnShortestTag()
     {
         await RunFormattingTestAsync(
@@ -3434,6 +3536,108 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                    style="hello"
                    @onclick="foo()">
                 </a>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12938")]
+    public async Task FormatWrappedAttributesOnShortestTag_WithContent()
+    {
+        await RunFormattingTestAsync(
+            input: $$"""
+                <a href="#"
+                            disabled
+                        style="hello"
+                  @onclick="foo()">
+                    Hello World
+                </a>
+                """,
+            htmlFormatted: $$"""
+                <a href="#"
+                   disabled
+                   style="hello"
+                   @onclick="foo()">
+                    Hello World
+                </a>
+                """,
+            expected: $$"""
+                <a href="#"
+                   disabled
+                   style="hello"
+                   @onclick="foo()">
+                    Hello World
+                </a>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12938")]
+    public async Task FormatWrappedAttributesOnShortestTag_NestedInHtml()
+    {
+        await RunFormattingTestAsync(
+            input: $$"""
+                <div>
+                    <a href="#"
+                                disabled
+                            style="hello"
+                      @onclick="foo()">
+                    </a>
+                </div>
+                """,
+            htmlFormatted: $$"""
+                <div>
+                    <a href="#"
+                       disabled
+                       style="hello"
+                       @onclick="foo()">
+                    </a>
+                </div>
+                """,
+            expected: $$"""
+                <div>
+                    <a href="#"
+                       disabled
+                       style="hello"
+                       @onclick="foo()">
+                    </a>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12938")]
+    public async Task FormatWrappedAttributesOnShortestTag_InIfBlock()
+    {
+        await RunFormattingTestAsync(
+            input: $$"""
+                @if (true)
+                {
+                    <a href="#"
+                                disabled
+                            style="hello"
+                      @onclick="foo()">
+                    </a>
+                }
+                """,
+            htmlFormatted: $$"""
+                @if (true)
+                {
+                    <a href="#"
+                       disabled
+                       style="hello"
+                       @onclick="foo()">
+                    </a>
+                }
+                """,
+            expected: $$"""
+                @if (true)
+                {
+                    <a href="#"
+                       disabled
+                       style="hello"
+                       @onclick="foo()">
+                    </a>
+                }
                 """);
     }
 
