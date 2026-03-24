@@ -8146,6 +8146,54 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://developercommunity.visualstudio.com/t/Razor-formatting-removes-indentation/10538709")]
+    public async Task CodeBlock_ArrayInitializers_InsideHtmlElement()
+    {
+        // The C# Formatter doesn't touch these types of initializers, so nor do we. This test
+        // just verifies we don't regress things and start moving code around.
+        await RunFormattingTestAsync(
+            input: """
+                <table>
+                    @{
+                        var minimum = "";
+                        var maximum = "";
+                        var dateOptions = new[,]
+                        {
+                            {$"Set to minimum ({minimum})", minimum},
+                            {$"Set to maximum ({maximum})", maximum},
+                        };
+                    }
+                </table>
+                """,
+            htmlFormatted: """
+                <table>
+                    @{
+                        var minimum = "";
+                        var maximum = "";
+                        var dateOptions = new[,]
+                        {
+                            {$"Set to minimum ({minimum})", minimum},
+                            {$"Set to maximum ({maximum})", maximum},
+                        };
+                    }
+                </table>
+                """,
+            expected: """
+                <table>
+                    @{
+                        var minimum = "";
+                        var maximum = "";
+                        var dateOptions = new[,]
+                        {
+                            {$"Set to minimum ({minimum})", minimum},
+                            {$"Set to maximum ({maximum})", maximum},
+                        };
+                    }
+                </table>
+                """);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6092")]
     public async Task CodeBlock_CollectionArrayInitializers()
     {
