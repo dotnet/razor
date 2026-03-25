@@ -39,23 +39,33 @@ internal partial class RazorEditService(
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var originalRazorSourceText = codeDocument.Source.Text;
 
+        using var edits = new PooledArrayBuilder<RazorTextChange>();
+        AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, cancellationToken, out var skippedEdits);
+
+        // If everything was successfully mapped, then we're done
+        if (skippedEdits.Length == 0)
+        {
+            return NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
+        }
+
+        // If there was something that didn't map, we need to process the generated C# document that Roslyn wanted to produce, and look
+        // for changes that we can translate into their Razor equivalents.
         var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var originalCSharpSourceText = await originalCSharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var originalCSharpSyntaxRoot = await originalCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var newCSharpSourceText = originalCSharpSourceText.WithChanges(textChanges.Select(c => c.ToTextChange()));
+        // Important note: We're only applying the skipped edits to this file, and we're not applying the directly mapped edits to the Razor file
+        // so the changes here are NOT complete. This isn't important for the scenario we're supporting, which is added or removed C# language
+        // features that are outside of the mapped area, but if that changes, it's important to note.
+        var newCSharpSourceText = originalCSharpSourceText.WithChanges(skippedEdits.Select(static c => c.ToTextChange()));
         var newCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(newCSharpSourceText);
         var newCSharpSyntaxRoot = await newCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-        using var edits = new PooledArrayBuilder<RazorTextChange>();
-        AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, cancellationToken, out _);
-        if (includeCSharpLanguageFeatureEdits)
-        {
-            AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, cancellationToken);
-        }
+        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, cancellationToken);
 
-        return NormalizeEdits(edits.ToImmutableOrderedBy(static e => e.Span.Start), cancellationToken);
+        return NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
     }
 
     /// <summary>
