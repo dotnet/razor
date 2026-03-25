@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentExcerpt;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -195,18 +193,17 @@ internal sealed partial class RemoteSpanMappingService(in ServiceArgs args) : Ra
             }
 
             var documentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-            var results = await _razorEditService.MapCSharpEditsAsync(
-                changes.SelectAsArray(c => c.ToRazorTextChange()),
+            var textChanges = await _razorEditService.MapCSharpEditsAsync(
+                changes,
                 documentSnapshot,
                 cancellationToken).ConfigureAwait(false);
 
-            if (results.IsDefaultOrEmpty)
+            if (textChanges.IsDefaultOrEmpty)
             {
                 return [];
             }
 
             var razorSource = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textChanges = results.SelectAsArray(te => te.ToTextChange());
 
             return [new RazorMappedEditResult() { FilePath = documentSnapshot.FilePath, TextChanges = [.. textChanges] }];
         }

@@ -35,6 +35,7 @@ internal partial class RazorEditService(
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
+        bool automaticallyAddUsings,
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
@@ -49,36 +50,12 @@ internal partial class RazorEditService(
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
         AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, cancellationToken);
-        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, cancellationToken);
+        if (automaticallyAddUsings)
+        {
+            AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, cancellationToken);
+        }
 
         return NormalizeEdits(edits.ToImmutableOrderedBy(static e => e.Span.Start), cancellationToken);
-    }
-
-    /// <summary>
-    /// Detects C# constructs (e.g., using directives) that were added or removed in
-    /// <paramref name="changedCSharpText"/> compared to the original generated C#, and
-    /// returns the corresponding edits for the Razor document. This is the single entry
-    /// point for translating unmapped C# changes into their Razor equivalents, to cover
-    /// scenarios where Roslyn adds a C# construct (eg, using directive, method etc.) that needs
-    /// more work than just mapping to conver to Razor (eg, an @ sign, or whole @code block).
-    /// </summary>
-    public async Task<ImmutableArray<RazorTextChange>> GetEditsForCSharpLanguageFeaturesAsync(
-        IDocumentSnapshot snapshot,
-        SourceText changedCSharpText,
-        CancellationToken cancellationToken)
-    {
-        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var originalCSharpSourceText = await originalCSharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var originalCSharpSyntaxRoot = await originalCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-        var newCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(changedCSharpText);
-        var newCSharpSyntaxRoot = await newCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-
-        using var edits = new PooledArrayBuilder<RazorTextChange>();
-        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, changedCSharpText, cancellationToken);
-
-        return edits.ToImmutable();
     }
 
     /// <summary>

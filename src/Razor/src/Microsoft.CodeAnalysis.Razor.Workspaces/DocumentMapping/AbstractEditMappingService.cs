@@ -8,13 +8,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
@@ -155,14 +152,10 @@ internal abstract class AbstractEditMappingService(
 
         var razorSourceText = codeDocument.Source.Text;
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var textChanges = edits.SelectAsArray(e => new RazorTextChange
-        {
-            Span = csharpSourceText.GetTextSpan(e.Range).ToRazorTextSpan(),
-            NewText = e.NewText,
-        });
+        var textChanges = edits.SelectAsArray(csharpSourceText.GetTextChange);
         var mappedEdits = await _razorEditService.MapCSharpEditsAsync(textChanges, documentContext.Snapshot, cancellationToken).ConfigureAwait(false);
 
-        return mappedEdits.SelectAsArray(e => LspFactory.CreateTextEdit(razorSourceText.GetLinePositionSpan(e.Span.ToTextSpan()), e.NewText.AssumeNotNull()));
+        return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
     }
 
     protected abstract bool TryGetDocumentContext(IDocumentSnapshot contextDocumentSnapshot, Uri razorDocumentUri, VSProjectContext? projectContext, [NotNullWhen(true)] out DocumentContext? documentContext);
