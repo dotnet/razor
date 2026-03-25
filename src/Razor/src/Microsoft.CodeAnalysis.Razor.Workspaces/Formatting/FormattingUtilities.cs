@@ -507,6 +507,28 @@ internal static class FormattingUtilities
                         formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), context.NewLineString));
                     }
                 }
+                else if (lineInfo.CheckForNewLines)
+                {
+                    // Even when not processing formatting (e.g., a line starting inside a Razor comment
+                    // that has HTML content after the comment close), we still need to keep iFormatted in
+                    // sync in case the HTML formatter inserted extra lines here. For example, a line like
+                    // " *@    <tr>" can be split by the formatter into "*@" and "<tr>" on separate lines.
+                    // We absorb those extra formatted lines without emitting any changes.
+                    var originalStart = originalLine.Start + originalLineOffset;
+                    var formattedStart = formattedLine.Start + formattedIndentation;
+                    var originalNonWhitespace = CountNonWhitespaceChars(originalText, originalStart, originalLine.End);
+                    var formattedNonWhitespace = CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End);
+
+                    while (originalNonWhitespace > formattedNonWhitespace &&
+                           iFormatted + 1 < formattedText.Lines.Count)
+                    {
+                        iFormatted++;
+                        var nextFormattedLine = formattedText.Lines[iFormatted];
+                        var nextFormattedOffset = nextFormattedLine.GetFirstNonWhitespaceOffset().GetValueOrDefault();
+                        formattedNonWhitespace += CountNonWhitespaceChars(formattedText,
+                            nextFormattedLine.Start + nextFormattedOffset, nextFormattedLine.End);
+                    }
+                }
             }
 
             if (lineInfo.SkipNextLine)

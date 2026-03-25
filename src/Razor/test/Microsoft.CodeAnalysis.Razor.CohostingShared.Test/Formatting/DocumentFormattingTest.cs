@@ -12736,6 +12736,60 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 ]);
     }
 
+    [Fact]
+    [WorkItem("https://developercommunity.visualstudio.com/t/Razor-formatting-not-working---HtmlForm/11064705")]
+    public async Task RazorCommentClosingWithHtmlOnSameLine()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div class="table-container">
+                    <table>
+                        <thead>
+                @*
+                            <tr class="row-1">
+                                <th>Group A</th>
+                            </tr>
+                 *@         <tr>
+                                <th>ID</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="table-container">
+                    <table>
+                        <thead>
+                @*
+                            <tr class="row-1">
+                                <th>Group A</th>
+                            </tr>
+                 *@
+                        <tr>
+                            <th>ID</th>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                """,
+            expected: """
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            @*
+                            <tr class="row-1">
+                                <th>Group A</th>
+                            </tr>
+                 *@         <tr>
+                            <th>ID</th>
+                        </tr>
+                    </thead>
+                </table>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
     private static RazorCSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
         => RazorCSharpSyntaxFormattingOptions.Default with
         {
