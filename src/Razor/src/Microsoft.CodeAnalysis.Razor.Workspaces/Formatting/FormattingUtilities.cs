@@ -516,18 +516,11 @@ internal static class FormattingUtilities
                     // We absorb those extra formatted lines without emitting any changes.
                     var originalStart = originalLine.Start + originalLineOffset;
                     var formattedStart = formattedLine.Start + formattedIndentation;
-                    var originalNonWhitespace = CountNonWhitespaceChars(originalText, originalStart, originalLine.End);
-                    var formattedNonWhitespace = CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End);
-
-                    while (originalNonWhitespace > formattedNonWhitespace &&
-                           iFormatted + 1 < formattedText.Lines.Count)
-                    {
-                        iFormatted++;
-                        var nextFormattedLine = formattedText.Lines[iFormatted];
-                        var nextFormattedOffset = nextFormattedLine.GetFirstNonWhitespaceOffset().GetValueOrDefault();
-                        formattedNonWhitespace += CountNonWhitespaceChars(formattedText,
-                            nextFormattedLine.Start + nextFormattedOffset, nextFormattedLine.End);
-                    }
+                    ConsumeNewLines(
+                        context, originalText, formattedText, logger, shouldKeepInsertedNewlineAtPosition,
+                        ref formattingChanges, ref iOriginal, ref iFormatted, ref originalLine, ref formattedLine,
+                        originalStart, formattedStart, fixedIndentationWidth,
+                        emitChanges: false);
                 }
             }
 
@@ -718,7 +711,8 @@ internal static class FormattingUtilities
         ref TextLine formattedLine,
         int originalStart,
         int formattedStart,
-        int fixedIndentationWidth)
+        int fixedIndentationWidth,
+        bool emitChanges = true)
     {
         // We assume the external formatter won't change anything but whitespace, so we can just apply the
         // changes directly, but it could very well be adding whitespace in the form of newlines, for example
@@ -785,7 +779,7 @@ internal static class FormattingUtilities
 
             // When we haven't consumed from the secondary side, the formatter purely added or removed lines,
             // so we emit per-line text changes.
-            if (!consumedFromSecondarySide)
+            if (!consumedFromSecondarySide && emitChanges)
             {
                 if (formatterInsertedNewLines)
                 {
@@ -811,7 +805,7 @@ internal static class FormattingUtilities
             }
         }
 
-        if (consumedFromSecondarySide)
+        if (consumedFromSecondarySide && emitChanges)
         {
             // The formatter re-wrapped content at a different point, consuming lines from both sides.
             // Update the formatting change to cover the full range of consumed original and formatted lines.
