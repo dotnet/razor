@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -168,6 +169,160 @@ internal partial class RazorEditService(
     }
 
     /// <summary>
+    /// Maps changes in a C# generated document back to the Razor document, preserving the existing
+    /// special handling for partially mapped multi-line edits and edits that need to insert content
+    /// before a transition on a directive line.
+    /// </summary>
+    private ImmutableArray<TextChange> GetRazorDocumentEdits(RazorCSharpDocument csharpDocument, ImmutableArray<TextChange> csharpChanges)
+    {
+        using var result = new PooledArrayBuilder<TextChange>();
+        var csharpSourceText = csharpDocument.Text;
+        var lastNewLineAddedToLine = 0;
+
+        foreach (var change in csharpChanges)
+        {
+            var span = change.Span;
+            // Deliberately doing a naive check to avoid telemetry for truly bad data
+            if (span.Start <= 0 || span.Start >= csharpSourceText.Length || span.End <= 0 || span.End >= csharpSourceText.Length)
+            {
+                continue;
+            }
+
+            var (startLine, startChar) = csharpSourceText.GetLinePosition(span.Start);
+            var (endLine, _) = csharpSourceText.GetLinePosition(span.End);
+
+            var mappedStart = _documentMappingService.TryMapToRazorDocumentPosition(csharpDocument, span.Start, out _, out var hostStartIndex);
+            var mappedEnd = _documentMappingService.TryMapToRazorDocumentPosition(csharpDocument, span.End, out _, out var hostEndIndex);
+
+            // Ideal case, both start and end can be mapped so just return the edit
+            if (mappedStart && mappedEnd)
+            {
+                // If the previous edit was on the same line, and added a newline, then we need to add a space
+                // between this edit and the previous one, because the normalization will have swallowed it. See
+                // below for a more info.
+                var newText = (lastNewLineAddedToLine == startLine ? " " : "") + change.NewText;
+                result.Add(new TextChange(TextSpan.FromBounds(hostStartIndex, hostEndIndex), newText));
+                continue;
+            }
+
+            // For the first line of a code block the C# formatter will often return an edit that starts
+            // before our mapping, but ends within. In those cases, when the edit spans multiple lines
+            // we just take the last line and try to use that.
+            if (!mappedStart && mappedEnd && startLine != endLine)
+            {
+                // Construct a theoretical edit that is just for the last line of the edit that the C# formatter
+                // gave us, and see if we can map that.
+                // The +1 here skips the newline character that is found, but also protects from Substring throwing
+                // if there are no newlines (which should be impossible anyway)
+                var lastNewLine = change.NewText.AssumeNotNull().LastIndexOfAny(['\n', '\r']) + 1;
+
+                // Strictly speaking we could be dropping more lines than we need to, because our mapping point could be anywhere within the edit
+                // but we know that the C# formatter will only be returning blank lines up until the first bit of content that needs to be indented
+                // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
+                Debug.Assert(lastNewLine == 0 || change.NewText[..(lastNewLine - 1)].All(static c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
+
+                var startSync = csharpSourceText.TryGetAbsoluteIndex((endLine, 0), out var startIndex);
+                if (startSync is false)
+                {
+                    break;
+                }
+
+                mappedStart = _documentMappingService.TryMapToRazorDocumentPosition(csharpDocument, startIndex, out _, out hostStartIndex);
+
+                if (mappedStart && mappedEnd)
+                {
+                    result.Add(new TextChange(TextSpan.FromBounds(hostStartIndex, hostEndIndex), change.NewText[lastNewLine..]));
+                    continue;
+                }
+            }
+
+            // The opposite case of the above: for the last line of a code block, the C# formatter might
+            // return an edit that starts within our mapping, but ends after. In those cases, when the edit
+            // spans multiple lines we just take the first line and try to use that.
+            if (mappedStart && !mappedEnd && startLine != endLine)
+            {
+                // Construct a theoretical edit that is just for the first line of the edit that the C# formatter
+                // gave us, and see if we can map that.
+                if (!csharpSourceText.TryGetAbsoluteIndex(startLine, csharpSourceText.Lines[startLine].Span.Length, out var endIndex))
+                {
+                    break;
+                }
+
+                if (_documentMappingService.TryMapToRazorDocumentPosition(csharpDocument, endIndex, out _, out hostEndIndex))
+                {
+                    // If there's a newline in the new text, only take the part before it
+                    var firstNewLine = change.NewText.AssumeNotNull().IndexOfAny(['\n', '\r']);
+                    var newText = firstNewLine >= 0 ? change.NewText[..firstNewLine] : change.NewText;
+                    result.Add(new TextChange(TextSpan.FromBounds(hostStartIndex, hostEndIndex), newText));
+                    continue;
+                }
+            }
+
+            // If we couldn't map either the start or the end then we still might want to do something tricky.
+            // When we have a block like this:
+            //
+            // @functions {
+            //    class Goo
+            //    {
+            //    }
+            // }
+            //
+            // The source mapping starts at char 13 on the "@functions" line (after the open brace). Unfortunately
+            // and code that is needed on that line, say an attribute that the code action wants to insert, will
+            // start at char 8 because of the desired indentation of that new code. This means it starts outside of the
+            // mapping, so is thrown away, which results in data loss.
+            //
+            // To fix this we check and if the mapping would have been successful at the end of the line (char 13 above)
+            // then we insert a newline, and enough indentation to get us back out to where the new code wanted to start (char 8)
+            // and then we're good - we've left the @functions bit alone which razor needs, but we're still able to insert
+            // new code above where the C# code is in the generated document.
+            //
+            // One last hurdle is that sometimes these edits come in as separate edits. So for example replacing "class Goo" above
+            // with "public class Goo" would come in as one edit for "public", one for "class" and one for "Goo", all on the same line.
+            // When we map the edit for "public" we will push everything down a line, so we don't want to do it for other edits
+            // on that line.
+            if (!mappedStart && !mappedEnd && startLine == endLine)
+            {
+                // If the new text doesn't have any content we don't care - throwing away invisible whitespace is fine
+                if (string.IsNullOrWhiteSpace(change.NewText))
+                {
+                    continue;
+                }
+
+                var line = csharpSourceText.Lines[startLine];
+
+                // If the line isn't blank, then this isn't a functions directive
+                if (line.GetFirstNonWhitespaceOffset() is not null)
+                {
+                    continue;
+                }
+
+                // Only do anything if the end of the line in question is a valid mapping point (ie, a transition)
+                if (_documentMappingService.TryMapToRazorDocumentPosition(csharpDocument, line.Span.End, out _, out hostEndIndex))
+                {
+                    if (startLine == lastNewLineAddedToLine)
+                    {
+                        // If we already added a newline to this line, then we don't want to add another one, but
+                        // we do need to add a space between this edit and the previous one, because the normalization
+                        // will have swallowed it.
+                        result.Add(new TextChange(new TextSpan(hostEndIndex, 0), " " + change.NewText));
+                    }
+                    else
+                    {
+                        // Otherwise, add a newline and the real content, and remember where we added it
+                        lastNewLineAddedToLine = startLine;
+                        result.Add(new TextChange(new TextSpan(hostEndIndex, 0), " " + Environment.NewLine + new string(' ', startChar) + change.NewText));
+                    }
+
+                    continue;
+                }
+            }
+        }
+
+        return result.ToImmutableAndClear();
+    }
+
+    /// <summary>
     /// For all edits that are not mapped to using directives, map them directly to the Razor document.
     /// Edits that don't map are skipped, and using directive changes are handled separately
     /// by <see cref="AddUsingsChanges"/>.
@@ -180,7 +335,7 @@ internal partial class RazorEditService(
     {
         var root = codeDocument.GetRequiredSyntaxRoot();
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
-        var mappedEdits = _documentMappingService.GetRazorDocumentEdits(csharpDocument, csharpEdits.SelectAsArray(static e => e.ToTextChange()));
+        var mappedEdits = GetRazorDocumentEdits(csharpDocument, csharpEdits.SelectAsArray(static e => e.ToTextChange()));
 
         foreach (var mappedEdit in mappedEdits)
         {
