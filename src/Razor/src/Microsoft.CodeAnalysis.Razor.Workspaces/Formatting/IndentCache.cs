@@ -4,7 +4,6 @@
 #if !NET
 using System;
 #endif
-using System.Threading;
 using Microsoft.AspNetCore.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
@@ -37,7 +36,7 @@ internal static class IndentCache
 
         if (insertSpaces)
         {
-            return GetSingleCharacterString(size, ' ', MaxSpaceCount, s_spaceStrings);
+            return GetSingleCharacterString(size, ' ', s_spaceStrings);
         }
 
         var tabCount = size / tabSize;
@@ -45,20 +44,20 @@ internal static class IndentCache
 
         if (spaceCount == 0)
         {
-            return GetSingleCharacterString(tabCount, '\t', MaxTabCount, s_tabStrings);
+            return GetSingleCharacterString(tabCount, '\t', s_tabStrings);
         }
 
         if (tabCount == 0)
         {
-            return GetSingleCharacterString(spaceCount, ' ', MaxSpaceCount, s_spaceStrings);
+            return GetSingleCharacterString(spaceCount, ' ', s_spaceStrings);
         }
 
         return GetMixedString(tabCount, spaceCount);
     }
 
-    private static string GetSingleCharacterString(int length, char character, int maxLength, string?[] cache)
+    private static string GetSingleCharacterString(int length, char character, string?[] cache)
     {
-        if (length > maxLength || !UseCache)
+        if (length >= cache.Length || !UseCache)
         {
             return new string(character, length);
         }
@@ -70,7 +69,8 @@ internal static class IndentCache
         }
 
         indentString = new string(character, length);
-        return Interlocked.CompareExchange(ref cache[length], indentString, null) ?? indentString;
+        cache[length] = indentString;
+        return indentString;
     }
 
     private static string GetMixedString(int tabCount, int spaceCount)
@@ -84,7 +84,7 @@ internal static class IndentCache
         if (tabStrings is null)
         {
             tabStrings = new string?[MaxSpaceCount + 1];
-            tabStrings = Interlocked.CompareExchange(ref s_mixedStrings[tabCount], tabStrings, null) ?? tabStrings;
+            s_mixedStrings[tabCount] = tabStrings;
         }
 
         var indentString = tabStrings[spaceCount];
@@ -94,7 +94,8 @@ internal static class IndentCache
         }
 
         indentString = CreateMixedString(tabCount, spaceCount);
-        return Interlocked.CompareExchange(ref tabStrings[spaceCount], indentString, null) ?? indentString;
+        tabStrings[spaceCount] = indentString;
+        return indentString;
     }
 
     private static string CreateMixedString(int tabCount, int spaceCount)
