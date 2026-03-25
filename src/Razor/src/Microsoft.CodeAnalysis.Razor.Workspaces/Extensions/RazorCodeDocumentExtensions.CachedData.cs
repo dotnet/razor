@@ -8,7 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Threading;
 
 namespace Microsoft.AspNetCore.Razor.Language;
