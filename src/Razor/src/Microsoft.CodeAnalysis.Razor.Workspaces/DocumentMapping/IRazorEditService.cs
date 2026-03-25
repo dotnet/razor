@@ -14,6 +14,6 @@ internal interface IRazorEditService
     Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
-        bool automaticallyAddUsings,
+        bool includeCSharpLanguageFeatureEdits,
         CancellationToken cancellationToken);
 }

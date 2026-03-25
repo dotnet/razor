@@ -21,7 +21,7 @@ internal static class IRazorEditServiceExtensions
         var mappedChanges = await service.MapCSharpEditsAsync(
                 textChanges.SelectAsArray(static c => c.ToRazorTextChange()),
                 snapshot,
-                automaticallyAddUsings: true,
+                includeCSharpLanguageFeatureEdits: true,
                 cancellationToken).ConfigureAwait(false);
 
         return mappedChanges.SelectAsArray(static c => c.ToTextChange());

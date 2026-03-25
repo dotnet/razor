@@ -35,7 +35,7 @@ internal partial class RazorEditService(
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
-        bool automaticallyAddUsings,
+        bool includeCSharpLanguageFeatureEdits,
         CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
@@ -50,7 +50,7 @@ internal partial class RazorEditService(
 
         using var edits = new PooledArrayBuilder<RazorTextChange>();
         AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, cancellationToken);
-        if (automaticallyAddUsings)
+        if (includeCSharpLanguageFeatureEdits)
         {
             AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, cancellationToken);
         }

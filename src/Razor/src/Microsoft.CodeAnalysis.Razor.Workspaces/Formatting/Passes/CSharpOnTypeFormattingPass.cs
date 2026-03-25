@@ -108,7 +108,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var mappedChanges = await _razorEditService.MapCSharpEditsAsync(
             normalizedChanges.SelectAsArray(static c => c.ToRazorTextChange()),
             context.CurrentSnapshot,
-            context.AutomaticallyAddUsings,
+            context.IncludeCSharpLanguageFeatureEdits,
             cancellationToken).ConfigureAwait(false);
 
         var filteredChanges = FilterCSharpTextChanges(context, mappedChanges.SelectAsArray(static e => e.ToTextChange()));
