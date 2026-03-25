@@ -82,13 +82,5 @@ internal static partial class RazorCodeDocumentExtensions
                 return _htmlDocument ??= RazorHtmlWriter.GetHtmlDocument(_codeDocument);
             }
         }
-
-        public CachedData Clone()
-            => new(_codeDocument)
-            {
-                _classifiedSpans = _classifiedSpans,
-                _tagHelperSpans = _tagHelperSpans,
-                _htmlDocument = _htmlDocument
-            };
     }
 }
