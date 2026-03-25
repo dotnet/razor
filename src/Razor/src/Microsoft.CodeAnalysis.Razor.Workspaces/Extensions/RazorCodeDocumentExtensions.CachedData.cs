@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Threading;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -39,29 +38,9 @@ internal static partial class RazorCodeDocumentExtensions
         private readonly RazorCodeDocument _codeDocument = codeDocument;
 
         private readonly SemaphoreSlim _stateLock = new(initialCount: 1);
-        private SyntaxTree? _syntaxTree;
         private ImmutableArray<ClassifiedSpan>? _classifiedSpans;
         private ImmutableArray<SourceSpan>? _tagHelperSpans;
         private RazorHtmlDocument? _htmlDocument;
-
-        public SyntaxTree GetOrParseCSharpSyntaxTree(CancellationToken cancellationToken)
-        {
-            if (_syntaxTree is { } syntaxTree)
-            {
-                return syntaxTree;
-            }
-
-            using (_stateLock.DisposableWait(cancellationToken))
-            {
-                return _syntaxTree ??= ParseSyntaxTree(_codeDocument, cancellationToken);
-            }
-
-            static SyntaxTree ParseSyntaxTree(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
-            {
-                var csharpText = codeDocument.GetCSharpSourceText();
-                return CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
-            }
-        }
 
         public ImmutableArray<ClassifiedSpan> GetOrComputeClassifiedSpans(CancellationToken cancellationToken)
         {
@@ -123,7 +102,6 @@ internal static partial class RazorCodeDocumentExtensions
         public CachedData Clone()
             => new(_codeDocument)
             {
-                _syntaxTree = _syntaxTree,
                 _classifiedSpans = _classifiedSpans,
                 _tagHelperSpans = _tagHelperSpans,
                 _htmlDocument = _htmlDocument
