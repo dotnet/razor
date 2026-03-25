@@ -202,26 +202,14 @@ internal partial class RazorEditService(
         CancellationToken cancellationToken)
     {
         var root = codeDocument.GetRequiredSyntaxRoot();
-        var razorText = codeDocument.Source.Text;
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
-        var csharpText = csharpDocument.Text;
+        var mappedEdits = _documentMappingService.GetRazorDocumentEdits(csharpDocument, csharpEdits.SelectAsArray(static e => e.ToTextChange()));
 
-        foreach (var edit in csharpEdits)
+        foreach (var mappedEdit in mappedEdits)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var linePositionSpan = csharpText.GetLinePositionSpan(edit.Span.ToTextSpan());
-
-            if (!_documentMappingService.TryMapToRazorDocumentRange(
-                csharpDocument,
-                linePositionSpan,
-                MappingBehavior.Strict,
-                out var mappedLinePositionSpan))
-            {
-                continue;
-            }
-
-            var mappedSpan = razorText.GetTextSpan(mappedLinePositionSpan);
+            var mappedSpan = mappedEdit.Span;
             var node = root.FindNode(mappedSpan, getInnermostNodeForTie: true);
             if (node is null)
             {
@@ -236,7 +224,7 @@ internal partial class RazorEditService(
             edits.Add(new RazorTextChange()
             {
                 Span = mappedSpan.ToRazorTextSpan(),
-                NewText = edit.NewText
+                NewText = mappedEdit.NewText
             });
 
             if (node is BaseMarkupStartTagSyntax startTagSyntax &&
@@ -251,7 +239,7 @@ internal partial class RazorEditService(
                         Start = mappedSpan.Start + (endTag.Name.SpanStart - startTagSyntax.Name.SpanStart),
                         Length = mappedSpan.Length
                     },
-                    NewText = edit.NewText
+                    NewText = mappedEdit.NewText
                 });
             }
         }
