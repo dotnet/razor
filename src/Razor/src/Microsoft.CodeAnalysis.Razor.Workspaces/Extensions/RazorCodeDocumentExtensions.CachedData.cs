@@ -1,9 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -18,19 +16,6 @@ internal static partial class RazorCodeDocumentExtensions
 
     private static CachedData GetCachedData(RazorCodeDocument codeDocument)
         => s_codeDocumentCache.GetValue(codeDocument, static doc => new CachedData(doc));
-
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete("Do not use. Present to support the legacy editor", error: false)]
-    public static void CloneCachedData(this RazorCodeDocument fromCodeDocument, RazorCodeDocument toCodeDocument)
-    {
-        if (!s_codeDocumentCache.TryGetValue(fromCodeDocument, out var fromCachedData))
-        {
-            // If there isn't any data cached, there's nothing to clone.
-            return;
-        }
-
-        s_codeDocumentCache.Add(toCodeDocument, fromCachedData.Clone());
-    }
 
     private sealed class CachedData(RazorCodeDocument codeDocument)
     {
