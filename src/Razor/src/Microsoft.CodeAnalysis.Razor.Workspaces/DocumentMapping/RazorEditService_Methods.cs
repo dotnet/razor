@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -60,7 +61,7 @@ internal partial class RazorEditService
             }
         }
 
-        var methodsText = GetMethodsText(addedMethods);
+        var methodsText = GetMethodsText(addedMethods, new RazorFormattingOptions());
         var newText = FormatMethodsInExistingCodeBlock(sourceText, openBraceLine, closeBraceLocation.LineIndex, insertLineIndex, methodsText);
 
         edits.Add(new RazorTextChange()
@@ -88,7 +89,7 @@ internal partial class RazorEditService
             : ComponentCodeDirective.Directive.Directive);
         builder.Append('{');
         builder.AppendLine();
-        builder.AppendLine(GetMethodsText(methods));
+        builder.AppendLine(GetMethodsText(methods, new RazorFormattingOptions()));
         builder.Append('}');
 
         edits.Add(new RazorTextChange()
@@ -124,7 +125,7 @@ internal partial class RazorEditService
         return methodsText;
     }
 
-    private static string GetMethodsText(ImmutableArray<CSharpMethod> methods)
+    private static string GetMethodsText(ImmutableArray<CSharpMethod> methods, RazorFormattingOptions options)
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -136,10 +137,42 @@ internal partial class RazorEditService
                 builder.AppendLine();
             }
 
-            builder.Append(method.ToString());
+            AppendIndentedMethod(builder, method, options);
         }
 
         return builder.ToString();
+    }
+
+    private static void AppendIndentedMethod(System.Text.StringBuilder builder, CSharpMethod method, RazorFormattingOptions options)
+    {
+        // Roslyn will have indented the method by an appropriate amount for the generated file, but we need it to be placed nicely in the Razor
+        // file, so we add each line of the method one at a time, adjusting the indentation as we go.
+        int? initialIndentation = null;
+        var sourceText = method.Text;
+
+        foreach (var line in method.EnumerateLines())
+        {
+            var currentIndentation = line.GetIndentationSize(tabSize: 4);
+
+            if (initialIndentation is null)
+            {
+                // The indentation of the first line is used as the baseline
+                initialIndentation = currentIndentation;
+            }
+            else
+            {
+                builder.AppendLine();
+            }
+
+            if (line.GetFirstNonWhitespaceOffset() is int offset)
+            {
+                // New indentation is the Roslyn indentation, minus the baseline indentation, plus our desired indentation, which is just one
+                // level, to nest inside the @code block.
+                var newIndentation = options.TabSize + currentIndentation - initialIndentation.GetValueOrDefault();
+                builder.Append(FormattingUtilities.GetIndentationString(Math.Max(0, newIndentation), options.InsertSpaces, options.TabSize));
+                builder.Append(sourceText.ToString(TextSpan.FromBounds(line.Start + offset, line.End)));
+            }
+        }
     }
 
     private static ImmutableArray<CSharpMethod> FindMethods(RoslynSyntaxNode syntaxRoot, SourceText sourceText)
@@ -197,10 +230,17 @@ internal partial class RazorEditService
             return 0;
         }
 
-        public override string ToString()
-            // We don't want trivia, because it will include generated artifacts like #line directives, so call ToString()
-            // not ToFullString(). If we want to expose a code action that creates Xml documentation, this will have to get
-            // smarter, though changes are those edits would likely to be directly mappable anyway.
-            => Method.ToString();
+        public IEnumerable<TextLine> EnumerateLines()
+        {
+            // We don't want trivia, because it will include generated artifacts like #line directives, so using Span instead of FullSpan is deliberate
+
+            var firstLineNumber = Text.Lines.GetLineFromPosition(Method.SpanStart).LineNumber;
+            var lastLineNumber = Text.Lines.GetLineFromPosition(Math.Max(Method.SpanStart, Method.Span.End - 1)).LineNumber;
+
+            for (var i = firstLineNumber; i <= lastLineNumber; i++)
+            {
+                yield return Text.Lines[i];
+            }
+        }
     }
 }

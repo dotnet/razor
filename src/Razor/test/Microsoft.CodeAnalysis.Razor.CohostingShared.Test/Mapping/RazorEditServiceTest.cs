@@ -91,7 +91,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 @code {
                     public int NewCounter { get; set; } 
 
-                void Method()
+                    void Method()
                     {
                     }
                 }
@@ -141,8 +141,63 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                         NewMethod();
                     }
 
-                private void NewMethod()
+                    private void NewMethod()
                     {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task GenerateMethod_WithBlankLineInBody()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private void M()
+                    {
+                        NewMethod();
+                    }|}
+                }
+                """,
+            razorSource: """
+                @code {
+                    {|map1:private void M()
+                    {
+                        NewMethod();
+                    }|}
+                }
+                """,
+            newCSharpSource: """
+                using System;
+
+                class MyComponent : ComponentBase
+                {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                    private void NewMethod()
+                    {
+                        var x = 1;
+
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @code {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                    private void NewMethod()
+                    {
+                        var x = 1;
+
                         throw new NotImplementedException();
                     }
                 }
@@ -210,7 +265,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 @code {
                     public int NewCounter { get; set; }
 
-                int UnmappedMethod()
+                    int UnmappedMethod()
                         => 5;
                 }
                 """);
@@ -237,7 +292,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 <div></div>
                 @code
                 {
-                int UnmappedMethod()
+                    int UnmappedMethod()
                         => 5;
                 }
                 """);
@@ -263,8 +318,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 <div></div>
                 @code
                 {
-                int UnmappedMethod()
-
+                    int UnmappedMethod()
                 }
                 """);
 
@@ -300,7 +354,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 {
                     int UnmappedMethod()
 
-                void M()
+                    void M()
                     {
                     }
                 }

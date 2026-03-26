@@ -52,10 +52,10 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                 The end.
                 @code
                 {
-                internal void NewMethod()
-                        {
-                            throw new NotImplementedException();
-                        }
+                    internal void NewMethod()
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
                 """,
             codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
@@ -97,10 +97,10 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                 {
                     private string componentnName = nameof(Component);
 
-                internal void NewMethod()
-                        {
-                            throw new NotImplementedException();
-                        }
+                    internal void NewMethod()
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
 
                 The end.
