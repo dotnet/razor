@@ -366,6 +366,42 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         }
     }
 
+    /// <summary>
+    /// Post-pass that consolidates adjacent <see cref="HtmlContentIntermediateNode"/> children.
+    /// Merges tokens and extends source spans. Called after element unwrapping to clean up
+    /// fragmented content.
+    /// </summary>
+    private static void MergeAdjacentHtmlContent(IntermediateNode parent)
+    {
+        for (var i = 0; i < parent.Children.Count - 1;)
+        {
+            if (parent.Children[i] is HtmlContentIntermediateNode current &&
+                parent.Children[i + 1] is HtmlContentIntermediateNode next)
+            {
+                foreach (var child in next.Children)
+                {
+                    current.Children.Add(child);
+                }
+                if (current.Source is SourceSpan cs && next.Source is SourceSpan ns)
+                {
+                    var end = Math.Max(cs.AbsoluteIndex + cs.Length, ns.AbsoluteIndex + ns.Length);
+                    var lineCount = (ns.LineIndex + ns.LineCount) - cs.LineIndex;
+                    current.Source = new SourceSpan(cs.FilePath, cs.AbsoluteIndex, cs.LineIndex, cs.CharacterIndex,
+                        end - cs.AbsoluteIndex, lineCount, ns.EndCharacterIndex);
+                }
+                else if (current.Source == null)
+                {
+                    current.Source = next.Source;
+                }
+                parent.Children.RemoveAt(i + 1);
+            }
+            else
+            {
+                i++;
+            }
+        }
+    }
+
     private static TagMode GetTagMode(ElementOrTagHelperIntermediateNode elementNode, TagHelperBinding binding)
     {
         if (elementNode.IsSelfClosing)
@@ -488,6 +524,119 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         return false;
     }
 
+    private static void ConvertUnresolvedValuesToBasicForm(HtmlAttributeIntermediateNode source, IntermediateNode target)
+    {
+        // Check if all children are unresolved literal values -- merge into single HtmlContent
+        // to enable preallocated attribute optimization.
+        if (AreAllChildrenOfType<MarkupOrTagHelperAttributeValueIntermediateNode>(source.Children) && source.Children.Count > 0)
+        {
+            var htmlContent = new HtmlContentIntermediateNode();
+            foreach (var child in source.Children)
+            {
+                var unresolvedLiteral = (MarkupOrTagHelperAttributeValueIntermediateNode)child;
+                foreach (var valueChild in unresolvedLiteral.Children)
+                {
+                    htmlContent.Children.Add(valueChild);
+                    htmlContent.Source ??= valueChild.Source;
+                }
+            }
+
+            // Compute merged source span.
+            if (htmlContent.Children.Count > 0)
+            {
+                var firstSrc = htmlContent.Children[0].Source;
+                var lastSrc = htmlContent.Children[htmlContent.Children.Count - 1].Source;
+                if (firstSrc is { } fs && lastSrc is { } ls)
+                {
+                    htmlContent.Source = new SourceSpan(fs.FilePath, fs.AbsoluteIndex, fs.LineIndex, fs.CharacterIndex,
+                        (ls.AbsoluteIndex + ls.Length) - fs.AbsoluteIndex, ls.LineIndex - fs.LineIndex, ls.EndCharacterIndex);
+                }
+            }
+
+            target.Children.Add(htmlContent);
+            return;
+        }
+
+        foreach (var child in source.Children)
+        {
+            if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteral)
+            {
+                var htmlAttrValue = new HtmlAttributeValueIntermediateNode()
+                {
+                    Prefix = unresolvedLiteral.Prefix,
+                    Source = unresolvedLiteral.Source,
+                };
+
+                foreach (var valueChild in unresolvedLiteral.Children)
+                {
+                    htmlAttrValue.Children.Add(valueChild);
+                }
+
+                target.Children.Add(htmlAttrValue);
+            }
+            else if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr)
+            {
+                IntermediateNode exprNode = unresolvedExpr.ContainsExpression
+                    ? new CSharpExpressionAttributeValueIntermediateNode()
+                    {
+                        Prefix = unresolvedExpr.Prefix,
+                        Source = unresolvedExpr.Source,
+                    }
+                    : new CSharpCodeAttributeValueIntermediateNode()
+                    {
+                        Prefix = unresolvedExpr.Prefix,
+                        Source = unresolvedExpr.Source,
+                    };
+
+                // For expression attribute values: unwrap both CSharpExpression and CSharpCode.
+                // For code attribute values: only unwrap CSharpCode, keep CSharpExpression.
+                var unwrapExpressions = unresolvedExpr.ContainsExpression;
+                foreach (var valueChild in unresolvedExpr.Children)
+                {
+                    if (unwrapExpressions && valueChild is CSharpExpressionIntermediateNode csharpExpr)
+                    {
+                        foreach (var token in csharpExpr.Children)
+                        {
+                            exprNode.Children.Add(token);
+                        }
+                    }
+                    else if (valueChild is CSharpCodeIntermediateNode csharpCode)
+                    {
+                        foreach (var token in csharpCode.Children)
+                        {
+                            exprNode.Children.Add(token);
+                        }
+                    }
+                    else
+                    {
+                        exprNode.Children.Add(valueChild);
+                    }
+                }
+
+                target.Children.Add(exprNode);
+            }
+            else
+            {
+                target.Children.Add(child);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Lowers unresolved attribute value nodes within an <see cref="HtmlAttributeIntermediateNode"/>
+    /// into the correct IR shape for a bound tag helper property.
+    /// </summary>
+    private static void LowerUnresolvedAttributeValues(
+        HtmlAttributeIntermediateNode htmlAttr,
+        IntermediateNode target,
+        bool expectsStringValue,
+        SourceSpan? valueSourceSpan,
+        RazorSourceDocument sourceDocument,
+        bool isLegacy = false)
+    {
+        throw new NotImplementedException("Shared value lowering pipeline: implemented in a following commit.");
+    }
+
     /// <summary>
     /// Final pass that finds remaining <see cref="ElementOrTagHelperIntermediateNode"/> nodes not
     /// resolved by tag helper matching. Converts each to a plain element using the resolver.
@@ -519,6 +668,81 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         }
     }
 
+    private static AttributeStructure InferAttributeStructure(HtmlAttributeIntermediateNode htmlAttr)
+    {
+        if (htmlAttr.Prefix != null)
+        {
+            if (htmlAttr.Prefix.Contains('\''))
+            {
+                return AttributeStructure.SingleQuotes;
+            }
+            if (htmlAttr.Prefix.Contains('"'))
+            {
+                return AttributeStructure.DoubleQuotes;
+            }
+            // Has '=' but no quotes (e.g., type= or checked=) - not minimized, treat as DoubleQuotes.
+            if (htmlAttr.Prefix.Contains('='))
+            {
+                return AttributeStructure.DoubleQuotes;
+            }
+        }
+
+        if (htmlAttr.Children.Count == 0)
+        {
+            return AttributeStructure.Minimized;
+        }
+
+        return AttributeStructure.DoubleQuotes;
+    }
+
+    /// <summary>
+    /// Computes the source span of the attribute value by merging the source spans of all value children.
+    /// </summary>
+    private static SourceSpan? ComputeValueSource(HtmlAttributeIntermediateNode htmlAttr)
+    {
+        SourceSpan? result = null;
+        foreach (var child in htmlAttr.Children)
+        {
+            // For HtmlAttributeValueIntermediateNode, use the inner token sources (not the wrapper).
+            if (child is HtmlAttributeValueIntermediateNode attrValue)
+            {
+                foreach (var token in attrValue.Children)
+                {
+                    if (token.Source is SourceSpan tokenSource)
+                    {
+                        result = result == null ? tokenSource : MergeSpans(result.Value, tokenSource);
+                    }
+                }
+            }
+            else if (child is CSharpExpressionAttributeValueIntermediateNode csharpAttrValue)
+            {
+                foreach (var token in csharpAttrValue.Children)
+                {
+                    if (token.Source is SourceSpan tokenSource)
+                    {
+                        result = result == null ? tokenSource : MergeSpans(result.Value, tokenSource);
+                    }
+                }
+            }
+            else if (child.Source is SourceSpan childSource)
+            {
+                result = result == null ? childSource : MergeSpans(result.Value, childSource);
+            }
+        }
+        return result;
+    }
+
+    private static SourceSpan MergeSpans(SourceSpan a, SourceSpan b)
+    {
+        var start = Math.Min(a.AbsoluteIndex, b.AbsoluteIndex);
+        var end = Math.Max(a.AbsoluteIndex + a.Length, b.AbsoluteIndex + b.Length);
+        var first = a.AbsoluteIndex <= b.AbsoluteIndex ? a : b;
+        var last = a.AbsoluteIndex + a.Length >= b.AbsoluteIndex + b.Length ? a : b;
+        var lineCount = (last.LineIndex + last.LineCount) - first.LineIndex;
+        return new SourceSpan(first.FilePath, start, first.LineIndex, first.CharacterIndex,
+            end - start, lineCount, last.EndCharacterIndex);
+    }
+
     /// <summary>
     /// Collects the text content and first child source from an <see cref="HtmlAttributeValueIntermediateNode"/>,
     /// concatenating the prefix with all token content.
@@ -536,6 +760,42 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         var source = attrValue.Children.Count > 0 ? attrValue.Children[0].Source : attrValue.Source;
         return (content, source);
+    }
+
+    /// <summary>
+    /// Creates an empty <see cref="HtmlContentIntermediateNode"/> with a single empty token.
+    /// </summary>
+    private static HtmlContentIntermediateNode CreateEmptyHtmlContent(SourceSpan? source)
+    {
+        return new HtmlContentIntermediateNode()
+        {
+            Source = source,
+            Children = { new HtmlIntermediateToken(LazyContent.Create("", static s => s), source) }
+        };
+    }
+
+    /// <summary>
+    /// Creates an empty <see cref="CSharpIntermediateToken"/> with a lazy empty string.
+    /// </summary>
+    private static CSharpIntermediateToken CreateEmptyCSharpToken(SourceSpan? source)
+    {
+        return new CSharpIntermediateToken(LazyContent.Create("", static s => s), source);
+    }
+
+    /// <summary>
+    /// Checks whether all children of a node collection are of the specified type.
+    /// </summary>
+    private static bool AreAllChildrenOfType<T>(IntermediateNodeCollection children) where T : IntermediateNode
+    {
+        foreach (var child in children)
+        {
+            if (child is not T)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -646,6 +906,40 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> if all children of a node are empty or whitespace-only tokens.
+    /// Used to detect empty bound attribute values for RZ2008 diagnostics.
+    /// </summary>
+    private static bool HasOnlyWhitespaceContent(IntermediateNode node)
+    {
+        foreach (var child in node.Children)
+        {
+            if (child is IntermediateToken token)
+            {
+                if (!string.IsNullOrWhiteSpace(token.Content))
+                {
+                    return false;
+                }
+            }
+            else if (child is HtmlContentIntermediateNode htmlContent)
+            {
+                foreach (var hc in htmlContent.Children)
+                {
+                    if (hc is IntermediateToken ht && !string.IsNullOrWhiteSpace(ht.Content))
+                    {
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
