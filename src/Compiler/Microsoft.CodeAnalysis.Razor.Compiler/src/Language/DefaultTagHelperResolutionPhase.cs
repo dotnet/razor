@@ -622,6 +622,45 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         }
     }
 
+    private static void ConvertHtmlTokensToCSharp(
+        IntermediateNodeCollection tokens,
+        ref PooledArrayBuilder<IntermediateNode> output,
+        SourceSpan? source,
+        bool wrapInCSharpExpression)
+    {
+        if (wrapInCSharpExpression)
+        {
+            var expr = new CSharpExpressionIntermediateNode() { Source = source };
+            foreach (var token in tokens)
+            {
+                if (token is HtmlIntermediateToken htmlToken)
+                {
+                    expr.Children.Add(ToCSharpToken(htmlToken));
+                }
+                else
+                {
+                    expr.Children.Add(token);
+                }
+            }
+
+            output.Add(expr);
+        }
+        else
+        {
+            foreach (var token in tokens)
+            {
+                if (token is HtmlIntermediateToken htmlToken)
+                {
+                    output.Add(ToCSharpToken(htmlToken));
+                }
+                else
+                {
+                    output.Add(token);
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Lowers unresolved attribute value nodes within an <see cref="HtmlAttributeIntermediateNode"/>
     /// into the correct IR shape for a bound tag helper property.
@@ -635,6 +674,34 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         bool isLegacy = false)
     {
         throw new NotImplementedException("Shared value lowering pipeline: implemented in a following commit.");
+    }
+
+    /// <summary>
+    /// Recursively flattens a node to direct CSharpIntermediateToken children on the target,
+    /// converting HtmlIntermediateToken to CSharpIntermediateToken and unwrapping wrapper nodes.
+    /// </summary>
+    private static void FlattenToDirectCSharpTokens(IntermediateNode source, IntermediateNode target)
+    {
+        if (source is CSharpIntermediateToken csharpToken)
+        {
+            target.Children.Add(csharpToken);
+        }
+        else if (source is HtmlIntermediateToken htmlToken)
+        {
+            target.Children.Add(ToCSharpToken(htmlToken));
+        }
+        else if (source is IntermediateToken token)
+        {
+            target.Children.Add(new CSharpIntermediateToken(token.Content, token.Source));
+        }
+        else
+        {
+            // Unwrap container nodes (HtmlContentIntermediateNode, CSharpExpressionIntermediateNode, etc.)
+            foreach (var child in source.Children)
+            {
+                FlattenToDirectCSharpTokens(child, target);
+            }
+        }
     }
 
     /// <summary>
@@ -763,6 +830,17 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     }
 
     /// <summary>
+    /// Converts an <see cref="HtmlIntermediateToken"/> to a <see cref="CSharpIntermediateToken"/>,
+    /// preserving lazy content when present.
+    /// </summary>
+    private static CSharpIntermediateToken ToCSharpToken(HtmlIntermediateToken htmlToken)
+    {
+        return htmlToken.IsLazy
+            ? new CSharpIntermediateToken(LazyContent.Create(htmlToken, static t => t.Content), htmlToken.Source)
+            : new CSharpIntermediateToken(htmlToken.Content, htmlToken.Source);
+    }
+
+    /// <summary>
     /// Creates an empty <see cref="HtmlContentIntermediateNode"/> with a single empty token.
     /// </summary>
     private static HtmlContentIntermediateNode CreateEmptyHtmlContent(SourceSpan? source)
@@ -796,6 +874,28 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Extends a source span backward by <paramref name="prefixLength"/> characters.
+    /// Used when merging an attribute prefix (e.g., whitespace before the value) into
+    /// the first token's content and source span.
+    /// </summary>
+    private static SourceSpan? ExtendSpanBackward(SourceSpan? source, int prefixLength)
+    {
+        if (source is not { } s)
+        {
+            return null;
+        }
+
+        return new SourceSpan(
+            s.FilePath,
+            s.AbsoluteIndex - prefixLength,
+            s.LineIndex,
+            s.CharacterIndex - prefixLength,
+            s.Length + prefixLength,
+            s.LineCount,
+            s.EndCharacterIndex);
     }
 
     /// <summary>
