@@ -658,21 +658,6 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     }
 
     /// <summary>
-    /// Lowers unresolved attribute value nodes within an <see cref="HtmlAttributeIntermediateNode"/>
-    /// into the correct IR shape for a bound tag helper property.
-    /// </summary>
-    private static void LowerUnresolvedAttributeValues(
-        HtmlAttributeIntermediateNode htmlAttr,
-        IntermediateNode target,
-        bool expectsStringValue,
-        SourceSpan? valueSourceSpan,
-        RazorSourceDocument sourceDocument,
-        bool isLegacy = false)
-    {
-        throw new NotImplementedException("Shared value lowering pipeline: implemented in a following commit.");
-    }
-
-    /// <summary>
     /// Recursively flattens a node to direct CSharpIntermediateToken children on the target,
     /// converting HtmlIntermediateToken to CSharpIntermediateToken and unwrapping wrapper nodes.
     /// </summary>
@@ -801,6 +786,102 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     }
 
     /// <summary>
+    /// Splits an explicit expression <c>@(expr)</c> at the given source position into
+    /// structured <see cref="CSharpIntermediateToken"/> children: <c>@</c>, <c>(</c>,
+    /// inner content, <c>)</c>. Falls back to a single token for non-<c>@()</c> patterns.
+    /// </summary>
+    private static void EmitExplicitExpressionTokens(
+        IntermediateNode target,
+        int exprStart,
+        int exprLength,
+        RazorSourceDocument sourceDocument)
+    {
+        var exprText = sourceDocument.Text.GetSubText(
+            new Microsoft.CodeAnalysis.Text.TextSpan(exprStart, exprLength)).ToString();
+        var filePath = sourceDocument.FilePath;
+
+        if (exprText.Length >= 3 && exprText[0] == '@' && exprText[1] == '(')
+        {
+            // @
+            var atLoc = sourceDocument.Text.Lines.GetLinePosition(exprStart);
+            target.Children.Add(new CSharpIntermediateToken(
+                LazyContent.Create("@", static s => s),
+                new SourceSpan(filePath, exprStart, atLoc.Line, atLoc.Character, 1, 0, atLoc.Character + 1)));
+
+            // (, inner content, )
+            EmitParenthesizedExpressionTokens(target, exprStart + 1, exprLength - 1, sourceDocument);
+        }
+        else
+        {
+            // Not @() -- emit as single token.
+            var loc = sourceDocument.Text.Lines.GetLinePosition(exprStart);
+            target.Children.Add(new CSharpIntermediateToken(
+                LazyContent.Create(exprText, static s => s),
+                new SourceSpan(filePath, exprStart, loc.Line, loc.Character, exprLength, 0, loc.Character + exprLength)));
+        }
+    }
+
+    /// <summary>
+    /// Emits a parenthesized expression <c>(expr)</c> as three tokens: <c>(</c>, inner content, <c>)</c>.
+    /// The <paramref name="parenStart"/> should point at the <c>(</c> character and
+    /// <paramref name="parenLength"/> should include both parens.
+    /// </summary>
+    private static void EmitParenthesizedExpressionTokens(
+        IntermediateNode target,
+        int parenStart,
+        int parenLength,
+        RazorSourceDocument sourceDocument)
+    {
+        var filePath = sourceDocument.FilePath;
+
+        // (
+        var openLoc = sourceDocument.Text.Lines.GetLinePosition(parenStart);
+        target.Children.Add(new CSharpIntermediateToken(
+            LazyContent.Create("(", static s => s),
+            new SourceSpan(filePath, parenStart, openLoc.Line, openLoc.Character, 1, 0, openLoc.Character + 1)));
+
+        // inner content
+        var innerStart = parenStart + 1;
+        var innerLen = parenLength - 2; // skip ( and )
+        if (innerLen > 0)
+        {
+            var innerText = sourceDocument.Text.GetSubText(
+                new Microsoft.CodeAnalysis.Text.TextSpan(innerStart, innerLen)).ToString();
+            var innerLoc = sourceDocument.Text.Lines.GetLinePosition(innerStart);
+            target.Children.Add(new CSharpIntermediateToken(
+                LazyContent.Create(innerText, static s => s),
+                new SourceSpan(filePath, innerStart, innerLoc.Line, innerLoc.Character, innerLen, 0, innerLoc.Character + innerLen)));
+        }
+
+        // )
+        var closePos = parenStart + parenLength - 1;
+        var closeLoc = sourceDocument.Text.Lines.GetLinePosition(closePos);
+        target.Children.Add(new CSharpIntermediateToken(
+            LazyContent.Create(")", static s => s),
+            new SourceSpan(filePath, closePos, closeLoc.Line, closeLoc.Character, 1, 0, closeLoc.Character + 1)));
+    }
+
+    /// <summary>
+    /// Emits the full <c>@@(expr)</c> escape sequence as a <see cref="CSharpExpressionIntermediateNode"/>
+    /// with structured tokens. The expression source should point at the <c>@(expr)</c> portion
+    /// (after the literal <c>@</c> from <c>@@</c>).
+    /// </summary>
+    private static void EmitEscapedAtCSharpExpression(
+        IntermediateNode target,
+        SourceSpan expressionSource,
+        RazorSourceDocument sourceDocument)
+    {
+        var expr = new CSharpExpressionIntermediateNode();
+        EmitExplicitExpressionTokens(expr, expressionSource.AbsoluteIndex, expressionSource.Length, sourceDocument);
+
+        var exprLoc = sourceDocument.Text.Lines.GetLinePosition(expressionSource.AbsoluteIndex);
+        expr.Source = new SourceSpan(
+            expressionSource.FilePath, expressionSource.AbsoluteIndex,
+            exprLoc.Line, exprLoc.Character, expressionSource.Length, 0, exprLoc.Character + expressionSource.Length);
+        target.Children.Add(expr);
+    }
+
+    /// <summary>
     /// Collects the text content and first child source from an <see cref="HtmlAttributeValueIntermediateNode"/>,
     /// concatenating the prefix with all token content.
     /// </summary>
@@ -886,6 +967,50 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             s.Length + prefixLength,
             s.LineCount,
             s.EndCharacterIndex);
+    }
+
+    /// <summary>
+    /// Collects literal content and source spans from unresolved attribute value children.
+    /// Used by both the string and non-string unresolved lowering paths.
+    /// </summary>
+    private static (string Content, SourceSpan? MergedSpan) CollectUnresolvedLiteralContent(
+        HtmlAttributeIntermediateNode htmlAttr,
+        SourceSpan? valueSourceSpan)
+    {
+        using var contentParts = new PooledArrayBuilder<string>();
+        SourceSpan? firstSpan = null;
+        SourceSpan? lastSpan = null;
+
+        foreach (var child in htmlAttr.Children)
+        {
+            var unresolvedValue = (MarkupOrTagHelperAttributeValueIntermediateNode)child;
+
+            if (!string.IsNullOrEmpty(unresolvedValue.Prefix))
+            {
+                contentParts.Add(unresolvedValue.Prefix);
+            }
+
+            foreach (var valueChild in unresolvedValue.Children)
+            {
+                if (valueChild is HtmlIntermediateToken htmlToken)
+                {
+                    contentParts.Add(htmlToken.Content);
+                    if (htmlToken.Source is { } s)
+                    {
+                        firstSpan ??= s;
+                        lastSpan = s;
+                    }
+                }
+            }
+        }
+
+        var mergedSpan = valueSourceSpan;
+        if (mergedSpan is null && firstSpan is { } first && lastSpan is { } last)
+        {
+            mergedSpan = MergeSpans(first, last);
+        }
+
+        return (string.Concat(contentParts.ToArray()), mergedSpan);
     }
 
     /// <summary>
@@ -1082,6 +1207,69 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             DocumentIntermediateNode documentNode)
         {
         }
+
+        /// <summary>
+        /// Lowers unresolved attribute value nodes into the correct IR shape for a
+        /// bound tag helper property. Handles the shared "all-literal" fast paths,
+        /// then delegates to <see cref="LowerComplexNonStringValues"/> or
+        /// <see cref="LowerComplexStringValues"/> for mixed content.
+        /// </summary>
+        protected void LowerUnresolvedAttributeValues(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            bool expectsStringValue,
+            SourceSpan? valueSourceSpan,
+            RazorSourceDocument sourceDocument)
+        {
+            if (htmlAttr.Children.Count == 0)
+            {
+                return;
+            }
+
+            if (AreAllChildrenOfType<MarkupOrTagHelperAttributeValueIntermediateNode>(htmlAttr.Children) && htmlAttr.Children.Count > 0)
+            {
+                var (mergedContent, mergedSpan) = CollectUnresolvedLiteralContent(htmlAttr, valueSourceSpan);
+
+                if (expectsStringValue)
+                {
+                    var htmlContent = new HtmlContentIntermediateNode() { Source = mergedSpan };
+                    htmlContent.Children.Add(new HtmlIntermediateToken(mergedContent, mergedSpan));
+                    target.Children.Add(htmlContent);
+                }
+                else
+                {
+                    target.Children.Add(new CSharpIntermediateToken(mergedContent, mergedSpan));
+                }
+
+                return;
+            }
+
+            if (expectsStringValue)
+            {
+                LowerComplexStringValues(htmlAttr, target, sourceDocument);
+            }
+            else
+            {
+                LowerComplexNonStringValues(htmlAttr, target, valueSourceSpan, sourceDocument);
+            }
+        }
+
+        /// <summary>
+        /// Handles complex (non-all-literal) non-string attribute value lowering.
+        /// </summary>
+        protected abstract void LowerComplexNonStringValues(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            SourceSpan? valueSourceSpan,
+            RazorSourceDocument sourceDocument);
+
+        /// <summary>
+        /// Handles complex (non-all-literal) string attribute value lowering.
+        /// </summary>
+        protected abstract void LowerComplexStringValues(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            RazorSourceDocument sourceDocument);
     }
 
 }

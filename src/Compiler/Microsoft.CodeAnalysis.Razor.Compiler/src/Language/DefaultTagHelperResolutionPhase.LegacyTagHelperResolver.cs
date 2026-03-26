@@ -14,6 +14,23 @@ internal partial class DefaultTagHelperResolutionPhase
 {
     private sealed class LegacyTagHelperResolver : TagHelperResolver
     {
+        protected override void LowerComplexNonStringValues(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            SourceSpan? valueSourceSpan,
+            RazorSourceDocument sourceDocument)
+        {
+            LowerUnresolvedNonStringAttributeValues_Legacy(htmlAttr, target, valueSourceSpan, sourceDocument);
+        }
+
+        protected override void LowerComplexStringValues(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            RazorSourceDocument sourceDocument)
+        {
+            LowerUnresolvedStringAttributeValues_Legacy(htmlAttr, target, sourceDocument);
+        }
+
         public override void BuildTagHelper(
             TagHelperIntermediateNode tagHelperNode,
             TagHelperBodyIntermediateNode bodyNode,
@@ -173,7 +190,7 @@ internal partial class DefaultTagHelperResolutionPhase
         /// children with the appropriate IR (HtmlContent for string properties, CSharp tokens for non-string).
         /// Adds an empty placeholder child if the value is empty (e.g., <c>type=""</c>).
         /// </summary>
-        private static void LowerBoundLegacyAttributeValue(
+        private void LowerBoundLegacyAttributeValue(
             TagHelperPropertyIntermediateNode prop,
             MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr,
             TagHelperAttributeMatch match,
@@ -183,7 +200,7 @@ internal partial class DefaultTagHelperResolutionPhase
 
             if (htmlAttrChild != null)
             {
-                LowerUnresolvedAttributeValues(htmlAttrChild, prop, match.ExpectsStringValue, unresolvedAttr.ValueSourceSpan, sourceDocument, isLegacy: true);
+                LowerUnresolvedAttributeValues(htmlAttrChild, prop, match.ExpectsStringValue, unresolvedAttr.ValueSourceSpan, sourceDocument);
             }
 
             // If the property still has no children (empty value like type="" or checked=),
@@ -1268,6 +1285,391 @@ internal partial class DefaultTagHelperResolutionPhase
             return false;
         }
 
+        private static void LowerUnresolvedNonStringAttributeValues_Legacy(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            SourceSpan? valueSourceSpan,
+            RazorSourceDocument sourceDocument)
+        {
+            // Legacy non-string path: for non-string properties, the entire attribute
+            // value is treated as C# code.
+
+            // Case 1: Implicit/explicit expression (e.g. @int, @new string(...), @(@object)).
+            if (htmlAttr.Children.Count >= 1 &&
+                htmlAttr.Children[0] is CSharpOrTagHelperExpressionAttributeValueIntermediateNode firstExpr &&
+                string.IsNullOrEmpty(firstExpr.Prefix) &&
+                firstExpr.ContainsExpression)
+            {
+                LowerImplicitExpressionAttribute_Legacy(htmlAttr, target, firstExpr, sourceDocument);
+                return;
+            }
+
+            // Case 2: Code block as sole content (e.g. @{1 + 2}).
+            if (htmlAttr.Children.Count == 1 &&
+                htmlAttr.Children[0] is CSharpOrTagHelperExpressionAttributeValueIntermediateNode soleCodeBlock &&
+                !soleCodeBlock.ContainsExpression &&
+                string.IsNullOrEmpty(soleCodeBlock.Prefix))
+            {
+                LowerCodeBlockAttribute_Legacy(soleCodeBlock, target);
+                return;
+            }
+
+            // Case 3: Mixed content (literals + expressions).
+            // For @@ escape cases, use children-based collection to avoid double-counting
+            // the escaped @ that was already added as a unresolved literal.
+            var hasEscapedAt = false;
+            foreach (var child in htmlAttr.Children)
+            {
+                if (child is MarkupOrTagHelperAttributeValueIntermediateNode lit &&
+                    lit.Children.Count == 1 &&
+                    lit.Children[0] is HtmlIntermediateToken ht &&
+                    ht.Content == "@")
+                {
+                    hasEscapedAt = true;
+                    break;
+                }
+            }
+
+            if (!hasEscapedAt && valueSourceSpan is { Length: > 0 } vss)
+            {
+                LowerMixedContentFromSource_Legacy(target, vss, sourceDocument);
+            }
+            else
+            {
+                LowerMixedContentFromChildren_Legacy(htmlAttr, target, sourceDocument);
+            }
+        }
+
+        /// <summary>
+        /// Handles implicit (<c>@expr</c>) and explicit (<c>@(expr)</c>) C# expressions in legacy attributes.
+        /// For explicit expressions, splits into three tokens: <c>(</c>, content, <c>)</c>.
+        /// For implicit expressions, produces a single <see cref="CSharpIntermediateToken"/>.
+        /// Extracts content from the source document, skipping the <c>@</c> transition character.
+        /// </summary>
+        private static void LowerImplicitExpressionAttribute_Legacy(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            CSharpOrTagHelperExpressionAttributeValueIntermediateNode firstExpr,
+            RazorSourceDocument sourceDocument)
+        {
+            var expr = new CSharpExpressionIntermediateNode();
+
+            // Extract expression content from source document, skipping the @ transition.
+            // This preserves explicit expression parens: @(@object) -> (@object), @(1+2) -> (1+2).
+            // For implicit expressions: @int -> int.
+            if (firstExpr.Source is { } exprSource && exprSource.Length > 1)
+            {
+                // Skip the @ transition character.
+                var contentStart = exprSource.AbsoluteIndex + 1;
+                var contentLength = exprSource.Length - 1;
+
+                // Also include any following literal children's content.
+                for (var i = 1; i < htmlAttr.Children.Count; i++)
+                {
+                    if (htmlAttr.Children[i] is MarkupOrTagHelperAttributeValueIntermediateNode lit && lit.Source is { } litSrc)
+                    {
+                        var litEnd = litSrc.AbsoluteIndex + litSrc.Length;
+                        contentLength = litEnd - contentStart;
+                    }
+                }
+
+                var text = sourceDocument.Text.GetSubText(
+                    new Microsoft.CodeAnalysis.Text.TextSpan(contentStart, contentLength)).ToString();
+
+                // For explicit expressions @(...), split into 3 tokens: (, content, )
+                if (text.Length >= 2 && text[0] == '(' && text[text.Length - 1] == ')')
+                {
+                    EmitParenthesizedExpressionTokens(expr, contentStart, contentLength, sourceDocument);
+
+                    var openLoc = sourceDocument.Text.Lines.GetLinePosition(contentStart);
+                    var closeLoc = sourceDocument.Text.Lines.GetLinePosition(contentStart + contentLength - 1);
+                    expr.Source = new SourceSpan(exprSource.FilePath, contentStart, openLoc.Line, openLoc.Character, contentLength, 0, closeLoc.Character + 1);
+                }
+                else
+                {
+                    // Implicit expression: single token.
+                    var contentLocation = sourceDocument.Text.Lines.GetLinePosition(contentStart);
+                    var contentSpan = new SourceSpan(
+                        exprSource.FilePath,
+                        contentStart,
+                        contentLocation.Line,
+                        contentLocation.Character,
+                        contentLength,
+                        0,
+                        contentLocation.Character + contentLength);
+                    expr.Children.Add(new CSharpIntermediateToken(
+                        LazyContent.Create(text, static s => s), contentSpan));
+                    expr.Source = contentSpan;
+                }
+            }
+            else
+            {
+                // Fallback: collect from children.
+                using var contentParts = new PooledArrayBuilder<string>();
+                SourceSpan? firstSpan = null;
+                SourceSpan? lastSpan = null;
+                foreach (var child in htmlAttr.Children)
+                {
+                    if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr
+                        && !string.IsNullOrEmpty(unresolvedExpr.Prefix))
+                    {
+                        contentParts.Add(unresolvedExpr.Prefix);
+                    }
+                    else if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteral
+                        && !string.IsNullOrEmpty(unresolvedLiteral.Prefix))
+                    {
+                        contentParts.Add(unresolvedLiteral.Prefix);
+                    }
+
+                    CollectAllTokenContent(child, ref contentParts.AsRef(), ref firstSpan, ref lastSpan);
+                }
+
+                var mergedContent = string.Concat(contentParts.ToArray());
+                var tokenSpan = firstSpan is { } f && lastSpan is { } l
+                    ? new SourceSpan(f.FilePath, f.AbsoluteIndex, f.LineIndex, f.CharacterIndex,
+                        (l.AbsoluteIndex + l.Length) - f.AbsoluteIndex, l.LineIndex - f.LineIndex, l.EndCharacterIndex)
+                    : firstSpan;
+                expr.Children.Add(new CSharpIntermediateToken(
+                    LazyContent.Create(mergedContent, static s => s), tokenSpan));
+                expr.Source = tokenSpan;
+            }
+
+            target.Children.Add(expr);
+        }
+
+        /// <summary>
+        /// Handles code block attribute values (<c>@{ ... }</c>). Preserves internal CSharpCode
+        /// structure without wrapping in <see cref="CSharpExpressionIntermediateNode"/>, matching
+        /// legacy pipeline behavior where code blocks are distinct from expressions.
+        /// </summary>
+        private static void LowerCodeBlockAttribute_Legacy(
+            CSharpOrTagHelperExpressionAttributeValueIntermediateNode soleCodeBlock,
+            IntermediateNode target)
+        {
+            foreach (var innerChild in soleCodeBlock.Children)
+            {
+                target.Children.Add(innerChild);
+            }
+        }
+
+        /// <summary>
+        /// Handles mixed literal+expression content by extracting the full text from the source document.
+        /// Produces a single <see cref="CSharpIntermediateToken"/> with the raw source text.
+        /// Only used when a source span is available with non-zero length.
+        /// </summary>
+        private static void LowerMixedContentFromSource_Legacy(
+            IntermediateNode target,
+            SourceSpan vss,
+            RazorSourceDocument sourceDocument)
+        {
+            var text = sourceDocument.Text.GetSubText(new Microsoft.CodeAnalysis.Text.TextSpan(vss.AbsoluteIndex, vss.Length)).ToString();
+            target.Children.Add(new CSharpIntermediateToken(
+                LazyContent.Create(text, static s => s), vss));
+        }
+
+        /// <summary>
+        /// Fallback for mixed content when source span is unavailable. Walks children producing:
+        /// flat <see cref="CSharpIntermediateToken"/>s for literals, <see cref="CSharpExpressionIntermediateNode"/>
+        /// wrappers for expressions. Handles <c>@@</c> escape by detecting literal <c>@</c> tokens
+        /// after ephemeral markers.
+        /// </summary>
+        private static void LowerMixedContentFromChildren_Legacy(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            RazorSourceDocument sourceDocument)
+        {
+            // @@ escape case: the @@ literal becomes a flat @ token, and expression children
+            // become CSharpExpression with source-extracted content.
+            foreach (var child in htmlAttr.Children)
+            {
+                if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteral)
+                {
+                    // Literal children (including the @ from @@): produce flat CSharp token.
+                    foreach (var valueChild in unresolvedLiteral.Children)
+                    {
+                        if (valueChild is HtmlIntermediateToken htmlToken)
+                        {
+                            target.Children.Add(ToCSharpToken(htmlToken));
+                        }
+                    }
+
+                    // Add empty token after @@ literal. The @@ escape produces a single
+                    // @ content token, and requires a trailing empty token to represent
+                    // the ephemeral second @ that was consumed by the escape.
+                    if (unresolvedLiteral.Children.Count == 1 &&
+                        unresolvedLiteral.Children[0] is HtmlIntermediateToken singleToken &&
+                        singleToken.Content == "@")
+                    {
+                        // Find the next child's position for the empty token span.
+                        SourceSpan? emptySpan = null;
+                        var litIdx = htmlAttr.Children.IndexOf(child);
+                        if (litIdx + 1 < htmlAttr.Children.Count && htmlAttr.Children[litIdx + 1].Source is { } nextSrc)
+                        {
+                            var loc = sourceDocument.Text.Lines.GetLinePosition(nextSrc.AbsoluteIndex);
+                            emptySpan = new SourceSpan(nextSrc.FilePath, nextSrc.AbsoluteIndex, loc.Line, loc.Character, 0, 0, loc.Character);
+                        }
+
+                        target.Children.Add(CreateEmptyCSharpToken(emptySpan));
+                    }
+                }
+                else if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr)
+                {
+                    if (unresolvedExpr.ContainsExpression && unresolvedExpr.Source is { Length: > 1 } exprSrc)
+                    {
+                        // Expression after @@ escape: emit CSharpExpression(@, (, content, ))
+                        EmitEscapedAtCSharpExpression(target, exprSrc, sourceDocument);
+                    }
+                    else
+                    {
+                        // Code block or no source: flatten to tokens.
+                        foreach (var innerChild in unresolvedExpr.Children)
+                        {
+                            target.Children.Add(innerChild);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Converts unresolved values to <see cref="HtmlContentIntermediateNode"/> tokens matching the
+        /// legacy string attribute pipeline. Groups adjacent literals into pending parts, flushing as
+        /// <see cref="HtmlContentIntermediateNode"/>. Merges prefix into first token content and extends
+        /// source span backward via <see cref="ExtendSpanBackward"/>. Expressions become
+        /// <see cref="CSharpExpressionIntermediateNode"/> nodes between literal groups.
+        /// </summary>
+        private static void LowerUnresolvedStringAttributeValues_Legacy(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            RazorSourceDocument sourceDocument)
+        {
+            // Legacy path: preserve individual literal tokens (including prefixes/spaces) and wrap expressions
+            // in CSharpExpression. Adjacent literals are batched into single HtmlContent nodes.
+            using var pendingLiteralParts = new PooledArrayBuilder<(string text, SourceSpan? source, bool isLazy)>();
+            SourceSpan? pendingFirstSpan = null;
+            SourceSpan? pendingLastSpan = null;
+
+            foreach (var child in htmlAttr.Children)
+            {
+                if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteral)
+                {
+                    var prefix = unresolvedLiteral.Prefix;
+                    var mergedPrefixWithFirst = false;
+
+                    foreach (var valueChild in unresolvedLiteral.Children)
+                    {
+                        if (valueChild is HtmlIntermediateToken htmlToken)
+                        {
+                            if (!mergedPrefixWithFirst && !string.IsNullOrEmpty(prefix))
+                            {
+                                // Merge prefix into the first token's content and extend span backward.
+                                var mergedContent = prefix + htmlToken.Content;
+                                var mergedSource = ExtendSpanBackward(htmlToken.Source, prefix.Length);
+
+                                pendingLiteralParts.Add((mergedContent, mergedSource, htmlToken.IsLazy));
+                                if (mergedSource is { } ms)
+                                {
+                                    pendingFirstSpan ??= ms;
+                                    pendingLastSpan = ms;
+                                }
+
+                                mergedPrefixWithFirst = true;
+                            }
+                            else
+                            {
+                                pendingLiteralParts.Add((htmlToken.Content, htmlToken.Source, htmlToken.IsLazy));
+                                if (htmlToken.Source is { } s)
+                                {
+                                    pendingFirstSpan ??= s;
+                                    pendingLastSpan = s;
+                                }
+                            }
+                        }
+                    }
+
+                    // If prefix wasn't merged (no children), add it standalone.
+                    if (!mergedPrefixWithFirst && !string.IsNullOrEmpty(prefix))
+                    {
+                        pendingLiteralParts.Add((prefix, null, false));
+                    }
+                }
+                else
+                {
+                    // Include the expression's prefix (e.g. space before @expr) in pending literals.
+                    if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr2
+                        && !string.IsNullOrEmpty(unresolvedExpr2.Prefix))
+                    {
+                        pendingLiteralParts.Add((unresolvedExpr2.Prefix, (SourceSpan?)null, false));
+                    }
+
+                    // Flush pending literals as HtmlContent with individual tokens.
+                    FlushPendingLiterals(target, ref pendingLiteralParts.AsRef(), ref pendingFirstSpan, ref pendingLastSpan);
+
+                    if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr)
+                    {
+                        if (unresolvedExpr.ContainsExpression)
+                        {
+                            // Implicit/explicit expression: wrap in CSharpExpression.
+                            var expr = new CSharpExpressionIntermediateNode();
+                            FlattenToDirectCSharpTokens(unresolvedExpr, expr);
+                            expr.Source = expr.Children.Count > 0 ? expr.Children[0].Source : unresolvedExpr.Source;
+                            target.Children.Add(expr);
+                        }
+                        else
+                        {
+                            // Code block (@if{}, @{...}): preserve internal structure
+                            // (CSharpCode + HtmlContent interleaving).
+                            foreach (var innerChild in unresolvedExpr.Children)
+                            {
+                                target.Children.Add(innerChild);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        target.Children.Add(child);
+                    }
+                }
+            }
+
+            FlushPendingLiterals(target, ref pendingLiteralParts.AsRef(), ref pendingFirstSpan, ref pendingLastSpan);
+        }
+
+        /// <summary>
+        /// Flushes accumulated pending literal parts as a single <see cref="HtmlContentIntermediateNode"/>
+        /// with individual tokens, then clears the pending state.
+        /// </summary>
+        private static void FlushPendingLiterals(
+            IntermediateNode target,
+            ref PooledArrayBuilder<(string text, SourceSpan? source, bool isLazy)> pendingParts,
+            ref SourceSpan? pendingFirstSpan,
+            ref SourceSpan? pendingLastSpan)
+        {
+            if (pendingParts.Count == 0)
+            {
+                return;
+            }
+
+            var htmlContent = new HtmlContentIntermediateNode() { Source = pendingFirstSpan };
+            foreach (var (text, tokenSource, isLazy) in pendingParts)
+            {
+                htmlContent.Children.Add(isLazy
+                    ? new HtmlIntermediateToken(LazyContent.Create(text, static s => s), tokenSource)
+                    : new HtmlIntermediateToken(text, tokenSource));
+            }
+
+            if (pendingFirstSpan is { } f && pendingLastSpan is { } l)
+            {
+                htmlContent.Source = new SourceSpan(f.FilePath, f.AbsoluteIndex, f.LineIndex, f.CharacterIndex,
+                    (l.AbsoluteIndex + l.Length) - f.AbsoluteIndex, l.LineIndex - f.LineIndex + 1, l.EndCharacterIndex);
+            }
+
+            target.Children.Add(htmlContent);
+            pendingParts.Clear();
+            pendingFirstSpan = null;
+            pendingLastSpan = null;
+        }
+
         private static void TryAddCSharpInDeclarationDiagnostic(
             TagHelperIntermediateNode tagHelperNode,
             ElementOrTagHelperIntermediateNode elementNode,
@@ -1304,6 +1706,34 @@ internal partial class DefaultTagHelperResolutionPhase
                         RazorDiagnosticFactory.CreateParsing_TagHelpersCannotHaveCSharpInTagDeclaration(
                             diagSource, elementNode.TagName));
                     return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Recursively collects all token content (string text) from a node and its descendants,
+        /// tracking the first and last source spans encountered.
+        /// </summary>
+        private static void CollectAllTokenContent(
+            IntermediateNode node,
+            ref PooledArrayBuilder<string> contentParts,
+            ref SourceSpan? firstSpan,
+            ref SourceSpan? lastSpan)
+        {
+            if (node is IntermediateToken token)
+            {
+                contentParts.Add(token.Content);
+                if (token.Source is { } s)
+                {
+                    firstSpan ??= s;
+                    lastSpan = s;
+                }
+            }
+            else
+            {
+                foreach (var child in node.Children)
+                {
+                    CollectAllTokenContent(child, ref contentParts, ref firstSpan, ref lastSpan);
                 }
             }
         }

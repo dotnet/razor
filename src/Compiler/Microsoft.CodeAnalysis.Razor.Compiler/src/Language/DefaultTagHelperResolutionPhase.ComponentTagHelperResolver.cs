@@ -66,6 +66,23 @@ internal partial class DefaultTagHelperResolutionPhase
             }
         }
 
+        protected override void LowerComplexNonStringValues(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            SourceSpan? valueSourceSpan,
+            RazorSourceDocument sourceDocument)
+        {
+            LowerUnresolvedNonStringAttributeValues_Component(htmlAttr, target);
+        }
+
+        protected override void LowerComplexStringValues(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target,
+            RazorSourceDocument sourceDocument)
+        {
+            LowerUnresolvedStringAttributeValues_Component(htmlAttr, target);
+        }
+
         /// <summary>
         /// Builds a <see cref="TagHelperIntermediateNode"/> from a component element. Iterates
         /// through the element's children, converting unresolved and HTML attributes to tag helper
@@ -615,6 +632,110 @@ internal partial class DefaultTagHelperResolutionPhase
             var content = string.Concat(contentParts.ToArray());
             node.Children.Clear();
             node.Children.Add(new CSharpIntermediateToken(content, mergedSpan));
+        }
+
+        /// <summary>Component path for non-string unresolved attribute values.</summary>
+        private static void LowerUnresolvedNonStringAttributeValues_Component(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target)
+        {
+            // Component path: flatten each child individually (no merging).
+            foreach (var child in htmlAttr.Children)
+            {
+                if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteral)
+                {
+                    foreach (var valueChild in unresolvedLiteral.Children)
+                    {
+                        if (valueChild is HtmlIntermediateToken htmlToken)
+                        {
+                            target.Children.Add(ToCSharpToken(htmlToken));
+                        }
+                    }
+                }
+                else if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr)
+                {
+                    FlattenToDirectCSharpTokens(unresolvedExpr, target);
+                }
+                else
+                {
+                    FlattenToDirectCSharpTokens(child, target);
+                }
+            }
+        }
+
+        /// <summary>Component path for string unresolved attribute values.</summary>
+        private static void LowerUnresolvedStringAttributeValues_Component(
+            HtmlAttributeIntermediateNode htmlAttr,
+            IntermediateNode target)
+        {
+            // Component path: process each child individually (no merging).
+            foreach (var child in htmlAttr.Children)
+            {
+                if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteral)
+                {
+                    var htmlContent = new HtmlContentIntermediateNode();
+                    var prefix = unresolvedLiteral.Prefix;
+                    var mergedFirst = false;
+
+                    foreach (var valueChild in unresolvedLiteral.Children)
+                    {
+                        if (!mergedFirst && !string.IsNullOrEmpty(prefix) && valueChild is HtmlIntermediateToken htmlToken)
+                        {
+                            // Merge prefix into first token.
+                            var mergedContent = prefix + htmlToken.Content;
+                            var mergedSource = ExtendSpanBackward(htmlToken.Source, prefix.Length);
+
+                            htmlContent.Children.Add(htmlToken.IsLazy
+                                ? new HtmlIntermediateToken(LazyContent.Create(mergedContent, static s => s), mergedSource)
+                                : new HtmlIntermediateToken(mergedContent, mergedSource));
+                            htmlContent.Source ??= mergedSource;
+                            mergedFirst = true;
+                        }
+                        else
+                        {
+                            htmlContent.Children.Add(valueChild);
+                            htmlContent.Source ??= valueChild.Source;
+                        }
+                    }
+
+                    if (!mergedFirst && !string.IsNullOrEmpty(prefix))
+                    {
+                        htmlContent.Children.Insert(0, new HtmlIntermediateToken(prefix, source: null));
+                    }
+
+                    target.Children.Add(htmlContent);
+                }
+                else if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr)
+                {
+                    // Add prefix (space before @expr) as HtmlContent.
+                    if (!string.IsNullOrEmpty(unresolvedExpr.Prefix))
+                    {
+                        var prefixContent = new HtmlContentIntermediateNode();
+                        prefixContent.Children.Add(new HtmlIntermediateToken(unresolvedExpr.Prefix, source: null));
+                        target.Children.Add(prefixContent);
+                    }
+
+                    // Wrap in CSharpExpression.
+                    var expr = new CSharpExpressionIntermediateNode();
+                    FlattenToDirectCSharpTokens(unresolvedExpr, expr);
+                    expr.Source = expr.Children.Count > 0 ? expr.Children[0].Source : unresolvedExpr.Source;
+                    target.Children.Add(expr);
+                }
+                else if (child is IntermediateToken token)
+                {
+                    // Wrap bare tokens (e.g. from @@ escape) in HtmlContent.
+                    var htmlContent = new HtmlContentIntermediateNode() { Source = token.Source };
+                    htmlContent.Children.Add(token);
+                    target.Children.Add(htmlContent);
+                }
+                else
+                {
+                    target.Children.Add(child);
+                }
+            }
+
+            // Merge adjacent HtmlContent nodes (e.g. @@ escape "@" + "currentCount" -> "@currentCount").
+            MergeAdjacentHtmlContent(target);
         }
 
         /// <summary>
