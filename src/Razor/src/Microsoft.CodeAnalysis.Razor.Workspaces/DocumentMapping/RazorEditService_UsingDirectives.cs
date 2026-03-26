@@ -13,36 +13,13 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using RoslynSyntaxNode = Microsoft.CodeAnalysis.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal partial class RazorEditService
 {
-    private static void AddCSharpLanguageFeatureChanges(
-        ref PooledArrayBuilder<RazorTextChange> edits,
-        RazorCodeDocument codeDocument,
-        RoslynSyntaxNode originalCSharpSyntaxRoot,
-        SourceText originalCSharpSourceText,
-        RoslynSyntaxNode newCSharpSyntaxRoot,
-        SourceText newCSharpSourceText,
-        CancellationToken cancellationToken)
-    {
-        var oldUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(originalCSharpSyntaxRoot, originalCSharpSourceText);
-        var newUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(newCSharpSyntaxRoot, newCSharpSourceText);
-
-        var addedUsings = Delta.Compute(oldUsings, newUsings);
-        var removedUsings = Delta.Compute(newUsings, oldUsings);
-
-        AddUsingsChanges(ref edits, codeDocument, addedUsings, removedUsings, cancellationToken);
-
-        // In future, handle methods, fields, properties, etc.
-    }
-
     /// <summary>
     /// Given a set of new and removed usings, adds text changes to this builder using the following logic:
     ///

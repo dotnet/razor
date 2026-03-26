@@ -10,10 +10,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using RoslynSyntaxNode = Microsoft.CodeAnalysis.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
@@ -68,6 +71,30 @@ internal partial class RazorEditService(
         return NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
     }
 
+    private static void AddCSharpLanguageFeatureChanges(
+        ref PooledArrayBuilder<RazorTextChange> edits,
+        RazorCodeDocument codeDocument,
+        RoslynSyntaxNode originalCSharpSyntaxRoot,
+        SourceText originalCSharpSourceText,
+        RoslynSyntaxNode newCSharpSyntaxRoot,
+        SourceText newCSharpSourceText,
+        CancellationToken cancellationToken)
+    {
+        var oldUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(originalCSharpSyntaxRoot, originalCSharpSourceText);
+        var newUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(newCSharpSyntaxRoot, newCSharpSourceText);
+
+        var addedUsings = Delta.Compute(oldUsings, newUsings);
+        var removedUsings = Delta.Compute(newUsings, oldUsings);
+
+        AddUsingsChanges(ref edits, codeDocument, addedUsings, removedUsings, cancellationToken);
+
+        var oldMethods = FindMethods(originalCSharpSyntaxRoot, originalCSharpSourceText);
+        var newMethods = FindMethods(newCSharpSyntaxRoot, newCSharpSourceText);
+        var addedMethods = Delta.Compute(oldMethods, newMethods);
+
+        AddMethodChanges(ref edits, codeDocument, addedMethods);
+    }
+
     /// <summary>
     /// Go through edits and make sure a few things are true:
     ///
@@ -109,7 +136,7 @@ internal partial class RazorEditService(
                         droppedEdits++;
                     }
                 }
-                else if (editSpan.Contains(nextEditSpan))
+                else if (StrictlyContains(editSpan, nextEditSpan))
                 {
                     // Cases where there was a removal and addition on the same
                     // line err to taking the addition. This can happen in the
@@ -142,7 +169,7 @@ internal partial class RazorEditService(
                         droppedEdits++;
                     }
                 }
-                else if (nextEditSpan.Contains(editSpan))
+                else if (StrictlyContains(nextEditSpan, editSpan))
                 {
                     // Add the edit that is contained in the other edit
                     // and skip the next edit.
@@ -176,6 +203,17 @@ internal partial class RazorEditService(
 
         return normalizedChanges.ToImmutable();
     }
+
+    /// <summary>
+    /// Checks whether <paramref name="outer"/> truly contains <paramref name="inner"/>,
+    /// excluding the case where <paramref name="inner"/> is a zero-width insertion that sits
+    /// exactly at the end of <paramref name="outer"/>. Roslyn's <see cref="TextSpan.Contains(TextSpan)"/>
+    /// treats an empty span at the end boundary as contained (e.g. [24,24) inside [23,24)),
+    /// but for edit normalization purposes those spans are adjacent, not overlapping, and both
+    /// edits should be preserved.
+    /// </summary>
+    private static bool StrictlyContains(TextSpan outer, TextSpan inner)
+        => outer.Contains(inner) && !(inner.IsEmpty && inner.Start == outer.End);
 
     private RazorTextChange? TryGetMappedEdit(
         RazorCSharpDocument csharpDocument,

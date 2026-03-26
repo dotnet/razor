@@ -90,6 +90,219 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
             expectedRazorSource: """
                 @code {
                     public int NewCounter { get; set; } 
+
+                void Method()
+                    {
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task GenerateMethod_ExistingCodeBlock_DoesNotDuplicate()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private void M()
+                    {
+                        NewMethod();
+                    }|}
+                }
+                """,
+            razorSource: """
+                @code {
+                    {|map1:private void M()
+                    {
+                        NewMethod();
+                    }|}
+                }
+                """,
+            newCSharpSource: """
+                using System;
+
+                class MyComponent : ComponentBase
+                {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                    private void NewMethod()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @code {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                private void NewMethod()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task EditInUnmappedMethod_NotAdded()
+       => TestAsync(
+           csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:public int Counter { get; set; }|}
+
+                    void UnmappedMethod()
+                    {
+                    }
+                }
+                """,
+           razorSource: """
+                @code {
+                    {|map1:public int Counter { get; set; }|} 
+                }
+                """,
+           newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    public int NewCounter { get; set; }
+
+                    void UnmappedMethod()
+                    {
+                        // This is new, but the Razor doc shouldn't change.
+                    }
+                }
+                """,
+           expectedRazorSource: """
+                @code {
+                    public int NewCounter { get; set; } 
+                }
+                """);
+
+    [Fact]
+    public Task NewMethod_ExpressionBodied()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:public int Counter { get; set; }|}
+                }
+                """,
+          razorSource: """
+                @code {
+                    {|map1:public int Counter { get; set; }|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    public int NewCounter { get; set; }
+
+                    int UnmappedMethod()
+                        => 5;
+                }
+                """,
+          expectedRazorSource: """
+                @code {
+                    public int NewCounter { get; set; }
+
+                int UnmappedMethod()
+                        => 5;
+                }
+                """);
+
+    [Fact]
+    public Task NewMethod_ExpressionBodied_NoCodeBlock()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+          razorSource: """
+                <div></div>
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    int UnmappedMethod()
+                        => 5;
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code
+                {
+                int UnmappedMethod()
+                        => 5;
+                }
+                """);
+
+    [Fact]
+    public Task NewMethod_Incomplete()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+          razorSource: """
+                <div></div>
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    int UnmappedMethod()
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code
+                {
+                int UnmappedMethod()
+
+                }
+                """);
+
+    [Fact]
+    public Task NewMethod_ExistingIncomplete()
+      => TestAsync(
+          csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:int UnmappedMethod()|}
+                }
+                """,
+          razorSource: """
+                <div></div>
+                @code
+                {
+                    {|map1:int UnmappedMethod()|}
+                }
+                """,
+          newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    int UnmappedMethod()
+
+                    void M()
+                    {
+                    }
+                }
+                """,
+          expectedRazorSource: """
+                <div></div>
+                @code
+                {
+                    int UnmappedMethod()
+
+                void M()
+                    {
+                    }
                 }
                 """);
 
@@ -730,6 +943,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
 
         var newCSharpSourceText = SourceText.From(newCSharpSource);
         var changes = GetChanges(csharpSource.Text, newCSharpSource);
+        Assert.NotEmpty(changes);
 
         var document = CreateProjectAndRazorDocument(razorSource.Text, documentFilePath: razorPath);
 
