@@ -36,11 +36,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 {
     protected override RazorCodeDocument ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
-        var syntaxTree = codeDocument.GetSyntaxTree();
+        var syntaxTree = codeDocument.GetPreTagHelperSyntaxTree() ?? codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);
-
-        // This might not have been set if there are no tag helpers.
-        var tagHelperContext = codeDocument.GetTagHelperContext();
 
         var documentNode = new DocumentIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(documentNode);
@@ -80,13 +77,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
         else
         {
-            visitor = new LegacyFileKindVisitor(documentNode, builder, tagHelperContext?.Prefix, syntaxTree.Options)
+            visitor = new LegacyFileKindVisitor(documentNode, builder, syntaxTree.Options)
             {
                 SourceDocument = syntaxTree.Source,
             };
 
             visitor.Visit(syntaxTree.Root);
         }
+
         // 1. Prioritize non-imported usings over imported ones.
         // 2. Don't import usings that already exist in primary document.
         // 3. Allow duplicate usings in primary document (C# warning).
@@ -297,6 +295,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public override int GetHashCode() => Namespace.GetHashCode();
     }
 
+    /// <summary>
+    /// Base visitor implementing shared lowering logic for all file kinds.
+    /// Subclasses (<see cref="LegacyFileKindVisitor"/>, <see cref="ComponentFileKindVisitor"/>,
+    /// <see cref="ComponentImportFileKindVisitor"/>) override element/attribute visitors to
+    /// handle file-kind-specific semantics. Contains shared attribute value visitors, directive
+    /// handling, and helper methods for source span computation.
+    /// </summary>
     private class LoweringVisitor : SyntaxWalker
     {
         protected readonly IntermediateNodeBuilder _builder;
@@ -309,9 +314,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         /// unresolved-specific IR nodes. Set unconditionally (not just when true) to ensure correct
         /// reset between consecutive attributes.
         /// </summary>
-        #pragma warning disable CS0649 // Assigned in subclass visitor methods (next commit)
         protected bool _insideUnresolvedAttribute;
-#pragma warning restore CS0649
 
         public LoweringVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserOptions options)
         {
@@ -1023,17 +1026,121 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
         }
     }
+
+    /// <summary>
+    /// Handles .cshtml files (MVC views, Razor Pages). Treats HTML markup as text content
+    /// (<see cref="HtmlContentIntermediateNode"/> with merged tokens) and supports Tag Helpers.
+    /// Elements inside potential tag helpers are unresolved via
+    /// <see cref="ElementOrTagHelperIntermediateNode"/>.
+    /// </summary>
     private class LegacyFileKindVisitor : LoweringVisitor
     {
-        private readonly HashSet<string> _renderedBoundAttributeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private readonly string _tagHelperPrefix;
-
-        public LegacyFileKindVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, string tagHelperPrefix, RazorParserOptions options)
+        private bool _insideElementOrTagHelper;
+        public LegacyFileKindVisitor(DocumentIntermediateNode document, IntermediateNodeBuilder builder, RazorParserOptions options)
             : base(document, builder, options)
         {
-            _tagHelperPrefix = tagHelperPrefix;
         }
 
+        /// <summary>
+        /// Lowers a markup element. Creates an <see cref="ElementOrTagHelperIntermediateNode"/> (unresolved)
+        /// because any element could match a tag helper. Extracts attribute data for tag helper binding
+        /// and sets <see cref="ElementOrTagHelperIntermediateNode.StartTagEndIndex"/>/<see cref="ElementOrTagHelperIntermediateNode.BodyEndIndex"/>
+        /// for boundary tracking. Markup transitions (<c>@:</c> and <c>&lt;text&gt;</c>) are not tag
+        /// helpers and fall through to the base visitor.
+        /// </summary>
+        public override void VisitMarkupElement(MarkupElementSyntax node)
+        {
+            // Markup transitions (e.g., @: or <text>) are not tag helpers and should
+            // fall through to the base visitor. We only check StartTag here because
+            // legacy files don't support markup transitions as end tags -- that scenario
+            // is only relevant for component files (handled by ComponentFileKindVisitor).
+            if (node.MarkupStartTag != null && node.MarkupStartTag.IsMarkupTransition)
+            {
+                base.VisitMarkupElement(node);
+                return;
+            }
+
+            var tagName = node.MarkupStartTag?.Name.Content ?? node.MarkupEndTag?.Name.Content ?? string.Empty;
+
+            var attributeData = ExtractAttributeData(node);
+
+            var isSelfClosing = false;
+            if (node.MarkupStartTag != null)
+            {
+                var lastToken = node.MarkupStartTag.GetLastToken();
+                isSelfClosing = lastToken.Parent?.GetContent().EndsWith("/>", StringComparison.Ordinal) ?? false;
+            }
+
+            var element = new ElementOrTagHelperIntermediateNode()
+            {
+                TagName = tagName,
+                Source = BuildSourceSpanFromNode(node),
+                IsComponent = false,
+                IsEscaped = node.MarkupStartTag?.Bang is { Width: > 0 },
+                IsSelfClosing = isSelfClosing,
+                HasEndTag = node.MarkupEndTag != null,
+                EndTagName = node.MarkupEndTag?.GetTagNameWithOptionalBang(),
+                EndTagSpan = node.MarkupEndTag != null ? BuildSourceSpanFromNode(node.MarkupEndTag) : null,
+                IsVoidElement = node.MarkupStartTag?.IsVoidElement() ?? false,
+                StartTagNameSpan = node.MarkupStartTag?.Name.GetSourceSpan(SourceDocument),
+                StartTagSpan = node.MarkupStartTag != null ? BuildSourceSpanFromNode(node.MarkupStartTag) : null,
+                AttributeData = attributeData,
+                HasMissingCloseAngle = node.MarkupStartTag?.CloseAngle.IsMissing ?? false,
+                HasMissingEndCloseAngle = node.MarkupEndTag?.CloseAngle.IsMissing ?? false,
+            };
+
+            _builder.Push(element);
+
+            var previousInsideFlag = _insideElementOrTagHelper;
+            _insideElementOrTagHelper = true;
+
+            if (node.MarkupStartTag != null)
+            {
+                VisitMarkupStartTag(node.MarkupStartTag);
+            }
+
+            // Now that all start-tag children have been lowered, check if any are C# expressions
+            // (e.g. <div @expr>) and record this on the element so the resolution phase doesn't
+            // need to scan children itself.
+            foreach (var child in element.Children)
+            {
+                if (child is CSharpExpressionIntermediateNode or CSharpCodeIntermediateNode)
+                {
+                    element.HasDynamicExpressionChild = true;
+                    break;
+                }
+            }
+
+            _insideElementOrTagHelper = false;
+            element.StartTagEndIndex = element.Children.Count;
+
+            foreach (var item in node.Body)
+            {
+                Visit(item);
+            }
+
+            element.BodyEndIndex = element.Children.Count;
+
+            if (node.MarkupEndTag != null)
+            {
+                VisitMarkupEndTag(node.MarkupEndTag);
+            }
+
+            _insideElementOrTagHelper = previousInsideFlag;
+            _builder.Pop();
+        }
+
+        /// <summary>
+        /// Lowers a non-minimized attribute. If inside a unresolved element (<c>_insideElementOrTagHelper</c>),
+        /// creates a <see cref="MarkupOrTagHelperAttributeIntermediateNode"/> with two pre-lowered fallback
+        /// forms: <c>AsTagHelperAttribute</c> (structured <see cref="HtmlAttributeIntermediateNode"/> with merged
+        /// value tokens - used for unbound attributes when the element IS a tag helper) and
+        /// <c>AsMarkupAttribute</c> (full attribute with individual tokens - used when the element is NOT
+        /// a tag helper and must be unwrapped back to plain HTML markup). Handles the <c>@@</c> escape
+        /// pattern in unresolved attribute values. If NOT inside an unresolved element, falls through to
+        /// create a regular
+        /// <see cref="HtmlAttributeIntermediateNode"/>.
+        /// </summary>
         // Example
         // <input` checked="hello-world @false"`/>
         //  Name=checked
@@ -1041,6 +1148,24 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         //  Suffix="
         public override void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
         {
+            var isUnresolved = _insideElementOrTagHelper;
+
+            if (isUnresolved)
+            {
+                var valueSourceSpan = ComputeAttributeValueSourceSpan(node);
+
+                _builder.Push(new MarkupOrTagHelperAttributeIntermediateNode()
+                {
+                    AttributeName = node.Name.GetContent(),
+                    IsMinimized = false,
+                    Source = BuildSourceSpanFromNode(node),
+                    ValueContent = node.Value?.GetContent(),
+                    ValueSourceSpan = valueSourceSpan,
+                    AttributeStructure = InferAttributeStructure(node),
+                    AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
+                });
+            }
+
             var prefixTokens = MergeTokenLists(
                 node.NamePrefix?.LiteralTokens,
                 node.Name.LiteralTokens,
@@ -1052,40 +1177,182 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens).Green.CreateRed(node, position);
 
             var name = node.Name.GetContent();
+            if (!isUnresolved)
+            {
+                LowerAttributeAsHtml(node, name, prefix);
+            }
+            else
+            {
+                // Capture the pre-lowered fallback form (the non-tag-helper HTML form) by
+                // temporarily resetting state and lowering into the unresolved node's children.
+                // We then extract those children as the fallback before adding the unresolved form.
+                _insideElementOrTagHelper = false;
+                LowerAttributeAsHtml(node, name, prefix);
+                _insideElementOrTagHelper = true;
+
+                var unresolvedAttrNode = (MarkupOrTagHelperAttributeIntermediateNode)_builder.Current;
+                IntermediateNode legacyFallback = null;
+                if (unresolvedAttrNode.Children.Count == 1)
+                {
+                    legacyFallback = unresolvedAttrNode.Children[0];
+                }
+                else if (unresolvedAttrNode.Children.Count > 0)
+                {
+                    var container = new MarkupElementIntermediateNode();
+                    foreach (var child in unresolvedAttrNode.Children)
+                    {
+                        container.Children.Add(child);
+                    }
+
+                    legacyFallback = container;
+                }
+
+                unresolvedAttrNode.AsTagHelperAttribute = legacyFallback;
+                unresolvedAttrNode.AsMarkupAttribute = legacyFallback;
+                unresolvedAttrNode.Children.Clear();
+
+                // Unresolved path: create HtmlAttribute with unresolved value children.
+                _builder.Push(new HtmlAttributeIntermediateNode()
+                {
+                    AttributeName = name,
+                    Prefix = prefix.GetContent(),
+                    Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
+                    Source = BuildSourceSpanFromNode(node),
+                });
+
+                _insideUnresolvedAttribute = isUnresolved;
+                if (isUnresolved && node.Value != null)
+                {
+                    // Check for @@ escape pattern in unresolved attribute values.
+                    var valueChildren = node.Value.ChildNodesAndTokens();
+                    if (valueChildren.Count >= 2 &&
+                        valueChildren[0].AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax atLiteral, MarkupEphemeralTextLiteralSyntax] })
+                    {
+                        // Check if all remaining children are literals (can merge everything).
+                        var allLiteral = true;
+                        for (var i = 1; i < valueChildren.Count; i++)
+                        {
+                            if (valueChildren[i].AsNode() is not MarkupLiteralAttributeValueSyntax)
+                            {
+                                allLiteral = false;
+                                break;
+                            }
+                        }
+
+                        if (allLiteral)
+                        {
+                            // All-literal: merge @ + all literal content into one unresolved node.
+                            using var mergedTokens = new PooledArrayBuilder<SyntaxToken>();
+                            mergedTokens.AddRange(atLiteral.LiteralTokens);
+                            for (var i = 1; i < valueChildren.Count; i++)
+                            {
+                                var literal = (MarkupLiteralAttributeValueSyntax)valueChildren[i].AsNode();
+                                var merged = MergeAttributeValue(literal);
+                                mergedTokens.AddRange(merged.LiteralTokens);
+                            }
+
+                            var atPosition = atLiteral.Position;
+                            var rewritten = SyntaxFactory.MarkupTextLiteral(mergedTokens.ToList()).Green.CreateRed(node.Value.Parent, atPosition);
+                            var rewrittenSource = BuildSourceSpanFromNode(rewritten);
+                            var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
+                            {
+                                Prefix = string.Empty,
+                                Source = rewrittenSource,
+                            };
+                            unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
+                                arg: (MarkupTextLiteralSyntax)rewritten,
+                                contentFactory: static node => node.GetContent() ?? string.Empty,
+                                source: rewrittenSource));
+                            _builder.Add(unresolvedNode);
+                        }
+                        else
+                        {
+                            // Mixed: produce @ as a unresolved literal, then visit remaining children normally.
+                            var atPosition = atLiteral.Position;
+                            var rewritten = SyntaxFactory.MarkupTextLiteral(atLiteral.LiteralTokens).Green.CreateRed(node.Value.Parent, atPosition);
+                            var rewrittenSource = BuildSourceSpanFromNode(rewritten);
+                            var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
+                            {
+                                Prefix = string.Empty,
+                                Source = rewrittenSource,
+                            };
+                            unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
+                                arg: (MarkupTextLiteralSyntax)rewritten,
+                                contentFactory: static node => node.GetContent() ?? string.Empty,
+                                source: rewrittenSource));
+                            _builder.Add(unresolvedNode);
+
+                            // Visit remaining children (expressions, etc.)
+                            for (var i = 1; i < valueChildren.Count; i++)
+                            {
+                                Visit(valueChildren[i].AsNode());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        VisitAttributeValue(node.Value);
+                    }
+                }
+                else
+                {
+                    VisitAttributeValue(node.Value);
+                }
+                _insideUnresolvedAttribute = false;
+
+                _builder.Pop();
+
+                // Store the HtmlAttribute child directly on the unresolved node for O(1) access.
+                if (_builder.Current is MarkupOrTagHelperAttributeIntermediateNode currentUnresolved)
+                {
+                    currentUnresolved.HtmlAttributeNode = (HtmlAttributeIntermediateNode)currentUnresolved.Children[currentUnresolved.Children.Count - 1];
+                }
+            }
+
+            if (isUnresolved)
+            {
+                _builder.Pop();
+            }
+        }
+
+        /// <summary>
+        /// Lowers a <see cref="MarkupAttributeBlockSyntax"/> to its non-tag-helper HTML form.
+        /// Used by both the non-unresolved path (direct lowering) and the unresolved path
+        /// (to capture the fallback form stored on the unresolved node).
+        /// </summary>
+        private void LowerAttributeAsHtml(MarkupAttributeBlockSyntax node, string name, MarkupTextLiteralSyntax prefix)
+        {
             if (!_options.AllowConditionalDataDashAttributes && name.StartsWith("data-", StringComparison.OrdinalIgnoreCase))
             {
                 Visit(prefix);
                 Visit(node.Value);
                 Visit(node.ValueSuffix);
             }
-            else
+            else if (node.Value is { } blockSyntax)
             {
-                if (node.Value is { } blockSyntax)
+                var children = new ChildNodesHelper(blockSyntax.ChildNodesAndTokens());
+
+                if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
                 {
-                    var children = new ChildNodesHelper(blockSyntax.ChildNodesAndTokens());
+                    using var builder = new PooledArrayBuilder<SyntaxToken>();
 
-                    if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
+                    foreach (var literal in attributeLiteralArray)
                     {
-                        using var builder = new PooledArrayBuilder<SyntaxToken>();
-
-                        foreach (var literal in attributeLiteralArray)
-                        {
-                            var mergedValue = MergeAttributeValue(literal);
-                            builder.AddRange(mergedValue.LiteralTokens);
-                        }
-
-                        var rewritten = SyntaxFactory.MarkupTextLiteral(builder.ToList());
-
-                        var mergedLiterals = MergeTokenLists(
-                            prefix?.LiteralTokens,
-                            rewritten.LiteralTokens,
-                            node.ValueSuffix?.LiteralTokens);
-
-                        var mergedAttribute = SyntaxFactory.MarkupTextLiteral(mergedLiterals).Green.CreateRed(node.Parent, node.Position);
-                        Visit(mergedAttribute);
-
-                        return;
+                        var mergedValue = MergeAttributeValue(literal);
+                        builder.AddRange(mergedValue.LiteralTokens);
                     }
+
+                    var rewritten = SyntaxFactory.MarkupTextLiteral(builder.ToList());
+
+                    var mergedLiterals = MergeTokenLists(
+                        prefix?.LiteralTokens,
+                        rewritten.LiteralTokens,
+                        node.ValueSuffix?.LiteralTokens);
+
+                    var mergedAttribute = SyntaxFactory.MarkupTextLiteral(mergedLiterals).Green.CreateRed(node.Parent, node.Position);
+                    Visit(mergedAttribute);
+
+                    return;
                 }
 
                 _builder.Push(new HtmlAttributeIntermediateNode()
@@ -1100,10 +1367,58 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
                 _builder.Pop();
             }
+            else
+            {
+                // No value -- create empty HtmlAttribute.
+                _builder.Push(new HtmlAttributeIntermediateNode()
+                {
+                    AttributeName = name,
+                    Prefix = prefix.GetContent(),
+                    Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
+                    Source = BuildSourceSpanFromNode(node),
+                });
+
+                VisitAttributeValue(node.Value);
+
+                _builder.Pop();
+            }
         }
 
+        /// <summary>
+        /// Lowers a minimized attribute (no value, e.g. <c>checked</c>, <c>disabled</c>). If inside a
+        /// unresolved element, creates a <see cref="MarkupOrTagHelperAttributeIntermediateNode"/> with
+        /// <c>IsMinimized = true</c> and a fallback <see cref="HtmlContentIntermediateNode"/> containing
+        /// the attribute name as text.
+        /// </summary>
         public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
         {
+            if (_insideElementOrTagHelper)
+            {
+                // Produce the fallback: what this minimized attribute looks like as plain HTML.
+                // Minimized attributes are just html content (e.g. "checked" -> HtmlContent " checked").
+                var fallbackTokens = MergeTokenLists(
+                    node.NamePrefix?.LiteralTokens,
+                    node.Name?.LiteralTokens);
+                var fallbackLiteral = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(fallbackTokens).Green.CreateRed(node.Parent, node.Position);
+                var fallbackSource = BuildSourceSpanFromNode(fallbackLiteral);
+                var fallback = new HtmlContentIntermediateNode() { Source = fallbackSource };
+                fallback.Children.Add(IntermediateNodeFactory.HtmlToken(
+                    arg: fallbackLiteral,
+                    contentFactory: static node => node.GetContent(),
+                    fallbackSource));
+
+                _builder.Add(new MarkupOrTagHelperAttributeIntermediateNode()
+                {
+                    AttributeName = node.Name.GetContent(),
+                    IsMinimized = true,
+                    Source = BuildSourceSpanFromNode(node),
+                    AttributeStructure = AttributeStructure.Minimized,
+                    AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
+                    AsMarkupAttribute = fallback,
+                });
+                return;
+            }
+
             if (!_options.AllowConditionalDataDashAttributes)
             {
                 var name = node.Name.GetContent();
@@ -1123,97 +1438,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var literal = SyntaxFactory.MarkupTextLiteral(literals).Green.CreateRed(node.Parent, node.Position);
 
             Visit(literal);
+
         }
 
         // Example
         // <input checked="hello-world `@false`"/>
         //  Prefix= (space)
         //  Children will contain a token for @false.
-        public override void VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
-        {
-            var containsExpression = false;
-
-            // Don't go into sub block. They may contain expressions but we only care about the top level.
-            var descendantNodes = node.DescendantNodes(static n => n.Parent is not CSharpCodeBlockSyntax);
-
-            foreach (var child in descendantNodes)
-            {
-                if (child is CSharpImplicitExpressionSyntax || child is CSharpExplicitExpressionSyntax)
-                {
-                    containsExpression = true;
-                }
-            }
-
-            if (containsExpression)
-            {
-                _builder.Push(new CSharpExpressionAttributeValueIntermediateNode()
-                {
-                    Prefix = node.Prefix?.GetContent() ?? string.Empty,
-                    Source = BuildSourceSpanFromNode(node),
-                });
-            }
-            else
-            {
-                _builder.Push(new CSharpCodeAttributeValueIntermediateNode()
-                {
-                    Prefix = node.Prefix?.GetContent() ?? string.Empty,
-                    Source = BuildSourceSpanFromNode(node),
-                });
-            }
-
-            Visit(node.Value);
-
-            _builder.Pop();
-        }
-
-        public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
-        {
-            _builder.Push(new HtmlAttributeValueIntermediateNode()
-            {
-                Prefix = node.Prefix?.GetContent() ?? string.Empty,
-                Source = BuildSourceSpanFromNode(node),
-            });
-
-            _builder.Add(IntermediateNodeFactory.HtmlToken(
-                arg: node,
-                contentFactory: static node => node.Value?.GetContent() ?? string.Empty,
-                source: BuildSourceSpanFromNode(node.Value)));
-
-            _builder.Pop();
-        }
-
-        public override void VisitCSharpTemplateBlock(CSharpTemplateBlockSyntax node)
-        {
-            var templateNode = new TemplateIntermediateNode();
-            _builder.Push(templateNode);
-
-            base.VisitCSharpTemplateBlock(node);
-
-            _builder.Pop();
-
-            if (templateNode.Children.Count > 0)
-            {
-                var sourceRangeStart = templateNode
-                    .Children
-                    .FirstOrDefault(child => child.Source != null)
-                    ?.Source;
-
-                if (sourceRangeStart != null)
-                {
-                    var contentLength = templateNode.Children.Sum(child => child.Source?.Length ?? 0);
-
-                    templateNode.Source = new SourceSpan(
-                        sourceRangeStart.Value.FilePath ?? SourceDocument.FilePath,
-                        sourceRangeStart.Value.AbsoluteIndex,
-                        sourceRangeStart.Value.LineIndex,
-                        sourceRangeStart.Value.CharacterIndex,
-                        contentLength,
-                        sourceRangeStart.Value.LineCount,
-                        sourceRangeStart.Value.EndCharacterIndex);
-                }
-            }
-        }
-
         // CSharp expressions are broken up into blocks and spans because Razor allows Razor comments
         // inside an expression.
         // Ex:
@@ -1236,27 +1467,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             _builder.Pop();
 
-            if (expressionNode.Children.Count > 0)
-            {
-                var sourceRangeStart = expressionNode
-                    .Children
-                    .FirstOrDefault(child => child.Source != null)
-                    ?.Source;
-
-                if (sourceRangeStart != null)
-                {
-                    var contentLength = expressionNode.Children.Sum(child => child.Source?.Length ?? 0);
-
-                    expressionNode.Source = new SourceSpan(
-                        sourceRangeStart.Value.FilePath ?? SourceDocument.FilePath,
-                        sourceRangeStart.Value.AbsoluteIndex,
-                        sourceRangeStart.Value.LineIndex,
-                        sourceRangeStart.Value.CharacterIndex,
-                        contentLength,
-                        sourceRangeStart.Value.LineCount,
-                        sourceRangeStart.Value.EndCharacterIndex);
-                }
-            }
+            ComputeSourceSpanFromChildren(expressionNode);
         }
 
         public override void VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
@@ -1275,49 +1486,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             _builder.Pop();
 
-            if (expressionNode.Children.Count > 0)
-            {
-                var sourceRangeStart = expressionNode
-                    .Children
-                    .FirstOrDefault(child => child.Source != null)
-                    ?.Source;
-
-                if (sourceRangeStart != null)
-                {
-                    var contentLength = expressionNode.Children.Sum(child => child.Source?.Length ?? 0);
-
-                    expressionNode.Source = new SourceSpan(
-                        sourceRangeStart.Value.FilePath ?? SourceDocument.FilePath,
-                        sourceRangeStart.Value.AbsoluteIndex,
-                        sourceRangeStart.Value.LineIndex,
-                        sourceRangeStart.Value.CharacterIndex,
-                        contentLength,
-                        sourceRangeStart.Value.LineCount,
-                        sourceRangeStart.Value.EndCharacterIndex);
-                }
-            }
+            ComputeSourceSpanFromChildren(expressionNode);
         }
-
-        public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
-        {
-            if (_builder.Current is TagHelperHtmlAttributeIntermediateNode)
-            {
-                // If we are top level in a tag helper HTML attribute, we want to be rendered as markup.
-                // This case happens for duplicate non-string bound attributes. They would be initially be categorized as
-                // CSharp but since they are duplicate, they should just be markup.
-                var markupLiteral = SyntaxFactory.MarkupTextLiteral(node.LiteralTokens).Green.CreateRed(node.Parent, node.Position);
-                Visit(markupLiteral);
-                return;
-            }
-
-            _builder.Add(IntermediateNodeFactory.CSharpToken(
-                arg: node,
-                contentFactory: static node => node.GetContent(),
-                source: BuildSourceSpanFromNode(node)));
-
-            base.VisitCSharpExpressionLiteral(node);
-        }
-
         public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
         {
             if (node.ChunkGenerator is null or StatementChunkGenerator)
@@ -1400,7 +1570,15 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             var source = BuildSourceSpanFromNode(node);
             var currentChildren = _builder.Current.Children;
-            if (currentChildren.Count > 0 && currentChildren[currentChildren.Count - 1] is HtmlContentIntermediateNode)
+
+            // Don't merge HtmlContent across element region boundaries (start-tag -> body -> end-tag).
+            // The pre-computed indices mark where each region begins, so when we're about to add
+            // the first child of a new region, we must start a fresh HtmlContentIntermediateNode.
+            var atBoundary = _builder.Current is ElementOrTagHelperIntermediateNode element
+                && ((element.StartTagEndIndex >= 0 && currentChildren.Count == element.StartTagEndIndex)
+                 || (element.BodyEndIndex >= 0 && currentChildren.Count == element.BodyEndIndex));
+
+            if (!atBoundary && currentChildren.Count > 0 && currentChildren[currentChildren.Count - 1] is HtmlContentIntermediateNode)
             {
                 var existingHtmlContent = (HtmlContentIntermediateNode)currentChildren[currentChildren.Count - 1];
 
@@ -1434,260 +1612,16 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             _builder.Pop();
         }
-
-        public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
-        {
-            var info = node.TagHelperInfo;
-            var tagName = info.TagName;
-            if (_tagHelperPrefix != null)
-            {
-                tagName = tagName.Substring(_tagHelperPrefix.Length);
-            }
-
-            var tagHelperNode = new TagHelperIntermediateNode()
-            {
-                TagName = tagName,
-                TagMode = info.TagMode,
-                Source = BuildSourceSpanFromNode(node),
-                TagHelpers = info.BindingResult.TagHelpers
-            };
-
-            _builder.Push(tagHelperNode);
-
-            _builder.Push(new TagHelperBodyIntermediateNode());
-
-            foreach (var item in node.Body)
-            {
-                Visit(item);
-            }
-
-            _builder.Pop(); // Pop InitializeTagHelperStructureIntermediateNode
-
-            Visit(node.StartTag);
-
-            _builder.Pop(); // Pop TagHelperIntermediateNode
-
-            // No need to visit the end tag because we don't write any IR for it.
-
-            // We don't want to track attributes from a previous tag helper element.
-            _renderedBoundAttributeNames.Clear();
-        }
-
-        public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
-        {
-            foreach (var child in node.Attributes)
-            {
-                if (child is MarkupTagHelperAttributeSyntax || child is MarkupMinimizedTagHelperAttributeSyntax)
-                {
-                    Visit(child);
-                }
-            }
-        }
-
-        public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
-        {
-            if (!_options.AllowMinimizedBooleanTagHelperAttributes)
-            {
-                // Minimized attributes are not valid for non-boolean bound attributes. TagHelperBlockRewriter
-                // has already logged an error if it was a non-boolean bound attribute; so we can skip.
-                return;
-            }
-
-            var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
-            var attributeName = node.Name.GetContent();
-
-            using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
-
-            if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
-            {
-                foreach (var match in matches)
-                {
-                    if (!match.ExpectsBooleanValue)
-                    {
-                        // We do not allow minimized non-boolean bound attributes.
-                        return;
-                    }
-
-                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode(match)
-                    {
-                        AttributeName = attributeName,
-                        AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                        Source = null,
-                    };
-
-                    _builder.Add(setTagHelperProperty);
-                }
-            }
-            else
-            {
-                var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
-                {
-                    AttributeName = attributeName,
-                    AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
-                };
-
-                _builder.Add(addHtmlAttribute);
-            }
-        }
-
-        public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
-        {
-            var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
-            var attributeName = node.Name.GetContent();
-            var attributeValueNode = node.Value;
-
-            using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
-
-            if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
-            {
-                foreach (var match in matches)
-                {
-                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode(match)
-                    {
-                        AttributeName = attributeName,
-                        AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                        Source = BuildSourceSpanFromNode(attributeValueNode),
-                    };
-
-                    _builder.Push(setTagHelperProperty);
-                    VisitAttributeValue(attributeValueNode);
-                    _builder.Pop();
-                }
-            }
-            else
-            {
-                var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
-                {
-                    AttributeName = attributeName,
-                    AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
-                };
-
-                _builder.Push(addHtmlAttribute);
-                VisitAttributeValue(attributeValueNode);
-                _builder.Pop();
-            }
-        }
-
-        private new void VisitAttributeValue(SyntaxNode node)
-        {
-            if (node == null)
-            {
-                return;
-            }
-
-            var children = new ChildNodesHelper(node.ChildNodesAndTokens());
-            var position = node.Position;
-            SyntaxTokenList escapedAtTokens = default;
-            if (children.FirstOrDefault().AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax literalSyntax, MarkupEphemeralTextLiteralSyntax] })
-            {
-                // This is a special case when we have an attribute like attr="@@foo".
-                // Extract the literal @ token from the first child so it can be merged with the rest of the attribute value.
-                // The ephemeral @ token is ignored.
-                escapedAtTokens = literalSyntax.LiteralTokens;
-                children = children.Skip(1);
-                position = children.Count > 0 ? children[0].Position : position;
-            }
-
-            if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
-            {
-                using PooledArrayBuilder<SyntaxToken> builder = [];
-
-                if (escapedAtTokens.Count > 0)
-                {
-                    builder.AddRange(escapedAtTokens);
-                }
-
-                foreach (var literal in attributeLiteralArray)
-                {
-                    var mergedValue = MergeAttributeValue(literal);
-                    builder.AddRange(mergedValue.LiteralTokens);
-                }
-
-                var rewritten = SyntaxFactory.MarkupTextLiteral(builder.ToList()).Green.CreateRed(node.Parent, position);
-                Visit(rewritten);
-            }
-            else if (children.TryCast<MarkupTextLiteralSyntax>(out var markupLiteralArray))
-            {
-                using PooledArrayBuilder<SyntaxToken> builder = [];
-
-                if (escapedAtTokens.Count > 0)
-                {
-                    builder.AddRange(escapedAtTokens);
-                }
-
-                foreach (var literal in markupLiteralArray)
-                {
-                    builder.AddRange(literal.LiteralTokens);
-                }
-
-                var rewritten = SyntaxFactory.MarkupTextLiteral(builder.ToList()).Green.CreateRed(node.Parent, position);
-                Visit(rewritten);
-            }
-            else if (children.TryCast<CSharpExpressionLiteralSyntax>(out var expressionLiteralArray))
-            {
-                using PooledArrayBuilder<SyntaxToken> builder = [];
-
-                if (escapedAtTokens.Count > 0)
-                {
-                    builder.AddRange(escapedAtTokens);
-                }
-
-                SpanEditHandler editHandler = null;
-                ISpanChunkGenerator generator = null;
-                foreach (var literal in expressionLiteralArray)
-                {
-                    generator = literal.ChunkGenerator;
-                    editHandler = literal.EditHandler;
-                    builder.AddRange(literal.LiteralTokens);
-                }
-
-                var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), generator, editHandler).Green.CreateRed(node.Parent, position);
-                Visit(rewritten);
-            }
-            else
-            {
-                if (escapedAtTokens.Count > 0)
-                {
-                    // If we have escaped @ tokens but no other content to merge with,
-                    // create a MarkupTextLiteral just for the escaped @ tokens
-                    var rewritten = SyntaxFactory.MarkupTextLiteral(escapedAtTokens).Green.CreateRed(node.Parent, position);
-                    Visit(rewritten);
-                }
-                else
-                {
-                    Visit(node);
-                }
-            }
-        }
-
-        private new void Combine(HtmlContentIntermediateNode node, SyntaxNode item)
-        {
-            node.Children.Add(IntermediateNodeFactory.HtmlToken(
-                arg: item,
-                contentFactory: static item => item.GetContent(),
-                source: BuildSourceSpanFromNode(item)));
-
-            if (node.Source is SourceSpan source)
-            {
-                node.Source = new SourceSpan(
-                    source.FilePath,
-                    source.AbsoluteIndex,
-                    source.LineIndex,
-                    source.CharacterIndex,
-                    source.Length + item.Width,
-                    source.LineCount,
-                    source.EndCharacterIndex);
-            }
-        }
     }
+
+    /// <summary>
+    /// Handles .razor files (Blazor components). Treats HTML markup as structured nodes
+    /// (<see cref="MarkupElementIntermediateNode"/> with tag name and attributes) and supports
+    /// Components. Every element is wrapped in <see cref="ElementOrTagHelperIntermediateNode"/>
+    /// because any element could match a component.
+    /// </summary>
     private class ComponentFileKindVisitor : LoweringVisitor
     {
-        private readonly HashSet<string> _renderedBoundAttributeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
         public ComponentFileKindVisitor(
             DocumentIntermediateNode document,
             IntermediateNodeBuilder builder,
@@ -1696,30 +1630,44 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         {
         }
 
-        public override void DefaultVisit(SyntaxNode node)
-        {
-            base.DefaultVisit(node);
-        }
-
+        /// <summary>
+        /// Always creates an <see cref="ElementOrTagHelperIntermediateNode"/> because every element
+        /// could be a component. Markup transitions (<c>@:</c> and <c>&lt;text&gt;</c>) are excluded
+        /// and fall through to the base visitor. Extracts attribute data for tag helper binding and
+        /// sets boundary indices for content region tracking.
+        /// </summary>
         public override void VisitMarkupElement(MarkupElementSyntax node)
         {
             if ((node.MarkupStartTag != null && node.MarkupStartTag.IsMarkupTransition) ||
                 (node.MarkupEndTag != null && node.MarkupEndTag.IsMarkupTransition))
             {
-                // We don't want to create a node for Markup transitions (<text></text>). Treat their contents as regular markup.
-                // Technically there shouldn't be an end transition without a start transition but just being defensive.
                 base.VisitMarkupElement(node);
                 return;
             }
 
-            var element = new MarkupElementIntermediateNode()
+            var tagName = node.MarkupStartTag?.Name.Content ?? node.MarkupEndTag?.Name.Content ?? string.Empty;
+
+            var attributeData = ExtractAttributeData(node);
+
+            var element = new ElementOrTagHelperIntermediateNode()
             {
                 Source = BuildSourceSpanFromNode(node),
-
-                // Could be empty while the tag is being typed in.
-                TagName = node.StartTag?.Name.Content ?? node.EndTag?.Name.Content ?? string.Empty,
+                TagName = tagName,
+                IsComponent = true,
+                IsEscaped = node.MarkupStartTag?.Bang is { Width: > 0 },
+                IsSelfClosing = node.MarkupStartTag?.IsSelfClosing() ?? false,
+                HasEndTag = node.MarkupEndTag != null,
+                EndTagName = node.MarkupEndTag?.GetTagNameWithOptionalBang(),
+                EndTagSpan = node.MarkupEndTag != null ? BuildSourceSpanFromNode(node.MarkupEndTag) : null,
+                IsVoidElement = node.MarkupStartTag?.IsVoidElement() ?? false,
+                StartTagNameSpan = node.MarkupStartTag?.Name.GetSourceSpan(SourceDocument),
+                StartTagSpan = node.MarkupStartTag != null ? BuildSourceSpanFromNode(node.MarkupStartTag) : null,
+                AttributeData = attributeData,
+                HasMissingCloseAngle = node.MarkupStartTag?.CloseAngle.IsMissing ?? false,
+                HasMissingEndCloseAngle = node.MarkupEndTag?.CloseAngle.IsMissing ?? false,
             };
 
+            // Preserve diagnostics from the original ComponentFileKindVisitor logic.
             if (node.MarkupStartTag != null && node.MarkupEndTag != null && node.MarkupStartTag.IsVoidElement())
             {
                 element.AddDiagnostic(
@@ -1737,17 +1685,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 element.AddDiagnostic(
                     ComponentDiagnosticFactory.Create_UnexpectedClosingTag(
                         BuildSourceSpanFromNode(node.MarkupEndTag), node.MarkupEndTag.GetTagNameWithOptionalBang()));
-            }
-
-            if (node.MarkupStartTag != null && !_document.Options.SuppressPrimaryMethodBody)
-            {
-                // We only want this error during the second phase of the two phase compilation.
-                var startTagName = node.MarkupStartTag.GetTagNameWithOptionalBang();
-                if (!string.IsNullOrEmpty(startTagName) && LooksLikeAComponentName(_document, startTagName))
-                {
-                    element.AddDiagnostic(
-                        ComponentDiagnosticFactory.Create_UnexpectedMarkupElement(startTagName, BuildSourceSpanFromNode(node.MarkupStartTag)));
-                }
             }
 
             _builder.Push(element);
@@ -1791,10 +1728,63 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         //  Suffix="
         public override void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
         {
-            // For now we're using HtmlAttributeIntermediateNode for these so we're still
-            // building Prefix and Suffix, even though we don't really use them. If we
-            // end up using another node type in the future this can be simplified quite
-            // a lot.
+            var name = node.Name.GetContent();
+            var isUnresolved = _builder.Current is ElementOrTagHelperIntermediateNode;
+
+            if (isUnresolved)
+            {
+                var valueSourceSpan = ComputeAttributeValueSourceSpan(node);
+
+                _builder.Push(new MarkupOrTagHelperAttributeIntermediateNode()
+                {
+                    AttributeName = name,
+                    IsMinimized = false,
+                    Source = BuildSourceSpanFromNode(node),
+                    ValueContent = node.Value?.GetContent(),
+                    ValueSourceSpan = valueSourceSpan,
+                    AttributeStructure = InferAttributeStructure(node),
+                    AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
+                });
+
+                // Capture value-only fallback (merged adjacent literal tokens) by temporarily
+                // lowering into the unresolved node's children with unresolved state reset.
+                var fallbackContainer = new HtmlAttributeIntermediateNode()
+                {
+                    AttributeName = node.Name.GetContent(),
+                    Prefix = SyntaxFactory.MarkupTextLiteral(MergeTokenLists(
+                        node.NamePrefix?.LiteralTokens,
+                        node.Name.LiteralTokens,
+                        node.NameSuffix?.LiteralTokens,
+                        new SyntaxTokenList(node.EqualsToken),
+                        node.ValuePrefix?.LiteralTokens)).GetContent(),
+                    Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
+                    Source = BuildSourceSpanFromNode(node),
+                };
+                if (node.Value != null)
+                {
+                    _builder.Push(fallbackContainer);
+                    VisitAttributeValue(node.Value);
+                    _builder.Pop();
+                }
+                var unresolvedAttrNode = (MarkupOrTagHelperAttributeIntermediateNode)_builder.Current;
+                // Remove fallbackContainer from children -- it was temporarily added by Push.
+                unresolvedAttrNode.Children.Remove(fallbackContainer);
+                unresolvedAttrNode.AsTagHelperAttribute = fallbackContainer;
+
+                // Capture AsMarkupAttribute fallback by lowering the whole attribute in non-unresolved
+                // context. Push a temporary container so _builder.Current is not an
+                // ElementOrTagHelperIntermediateNode, which causes VisitMarkupAttributeBlock to
+                // take the non-unresolved path.
+                var fullFallbackContainer = new MarkupElementIntermediateNode();
+                _builder.Push(fullFallbackContainer);
+                Visit(node);
+                _builder.Pop();
+                unresolvedAttrNode.Children.Remove(fullFallbackContainer);
+                unresolvedAttrNode.AsMarkupAttribute = fullFallbackContainer.Children.Count == 1
+                    ? fullFallbackContainer.Children[0]
+                    : fullFallbackContainer.Children.Count > 0 ? fullFallbackContainer : null;
+            }
+
             var prefixTokens = MergeTokenLists(
                 node.NamePrefix?.LiteralTokens,
                 node.Name.LiteralTokens,
@@ -1805,7 +1795,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var position = node.NamePrefix?.Position ?? node.Name.Position;
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens).Green.CreateRed(node, position);
 
-            var name = node.Name.GetContent();
             _builder.Push(new HtmlAttributeIntermediateNode()
             {
                 AttributeName = name,
@@ -1814,13 +1803,98 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 Source = BuildSourceSpanFromNode(node),
             });
 
-            Visit(node.Value);
+            _insideUnresolvedAttribute = isUnresolved;
+            if (isUnresolved && node.Value != null)
+            {
+                // Check for @@ escape pattern: MarkupBlock(@, ephemeral@) followed by literal content.
+                var valueChildren = node.Value.ChildNodesAndTokens();
+                if (valueChildren.Count >= 2 &&
+                    valueChildren[0].AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax atLiteral, MarkupEphemeralTextLiteralSyntax] } &&
+                    valueChildren[1].AsNode() is MarkupLiteralAttributeValueSyntax)
+                {
+                    // Merge the escaped @ with all following literal children into one unresolved node.
+                    using var mergedTokens = new PooledArrayBuilder<SyntaxToken>();
+                    mergedTokens.AddRange(atLiteral.LiteralTokens);
+                    for (var i = 1; i < valueChildren.Count; i++)
+                    {
+                        if (valueChildren[i].AsNode() is MarkupLiteralAttributeValueSyntax literal)
+                        {
+                            var merged = MergeAttributeValue(literal);
+                            mergedTokens.AddRange(merged.LiteralTokens);
+                        }
+                        else
+                        {
+                            // Mixed content after @@ -- fall through to normal Visit
+                            break;
+                        }
+                    }
+
+                    var atPosition = atLiteral.Position;
+                    var rewritten = SyntaxFactory.MarkupTextLiteral(mergedTokens.ToList()).Green.CreateRed(node.Value.Parent, atPosition);
+                    var rewrittenSource = BuildSourceSpanFromNode(rewritten);
+                    var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
+                    {
+                        Prefix = string.Empty,
+                        Source = rewrittenSource,
+                    };
+                    unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
+                        arg: (MarkupTextLiteralSyntax)rewritten,
+                        contentFactory: static node => node.GetContent() ?? string.Empty,
+                        source: rewrittenSource));
+                    _builder.Add(unresolvedNode);
+                }
+                else
+                {
+                    Visit(node.Value);
+                }
+            }
+            else
+            {
+                Visit(node.Value);
+            }
+            _insideUnresolvedAttribute = false;
 
             _builder.Pop();
-        }
 
-        public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
+            // Store the HtmlAttribute child directly on the unresolved node for O(1) access.
+            if (isUnresolved && _builder.Current is MarkupOrTagHelperAttributeIntermediateNode currentUnresolved)
+            {
+                currentUnresolved.HtmlAttributeNode = (HtmlAttributeIntermediateNode)currentUnresolved.Children[currentUnresolved.Children.Count - 1];
+            }
+
+            if (isUnresolved)
+            {
+                _builder.Pop();
+            }
+        }        public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
         {
+            if (_builder.Current is ElementOrTagHelperIntermediateNode)
+            {
+                // Produce the fallback: what this minimized attribute looks like when NOT a tag helper.
+                var minPrefixTokens = MergeTokenLists(
+                    node.NamePrefix?.LiteralTokens,
+                    node.Name.LiteralTokens);
+                var minPosition = node.NamePrefix?.Position ?? node.Name.Position;
+                var minPrefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(minPrefixTokens).Green.CreateRed(node, minPosition);
+
+                _builder.Add(new MarkupOrTagHelperAttributeIntermediateNode()
+                {
+                    AttributeName = node.Name.GetContent(),
+                    IsMinimized = true,
+                    Source = BuildSourceSpanFromNode(node),
+                    AttributeStructure = AttributeStructure.Minimized,
+                    AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
+                    AsMarkupAttribute = new HtmlAttributeIntermediateNode()
+                    {
+                        AttributeName = node.Name.GetContent(),
+                        Prefix = minPrefix.GetContent(),
+                        Suffix = null,
+                        Source = BuildSourceSpanFromNode(node),
+                    },
+                });
+                return;
+            }
+
             var prefixTokens = MergeTokenLists(
                 node.NamePrefix?.LiteralTokens,
                 node.Name.LiteralTokens);
@@ -1842,63 +1916,28 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         // <input checked="hello-world `@false`"/>
         //  Prefix= (space)
         //  Children will contain a token for @false.
-        public override void VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
-        {
-            var containsExpression = false;
-
-            // Don't go into sub block. They may contain expressions but we only care about the top level.
-            var descendantNodes = node.DescendantNodes(n => n.Parent is not CSharpCodeBlockSyntax);
-
-            foreach (var child in descendantNodes)
-            {
-                if (child is CSharpImplicitExpressionSyntax || child is CSharpExplicitExpressionSyntax)
-                {
-                    containsExpression = true;
-                }
-            }
-
-            if (containsExpression)
-            {
-                _builder.Push(new CSharpExpressionAttributeValueIntermediateNode()
-                {
-                    Prefix = node.Prefix?.GetContent() ?? string.Empty,
-                    Source = BuildSourceSpanFromNode(node),
-                });
-            }
-            else
-            {
-                _builder.Push(new CSharpCodeAttributeValueIntermediateNode()
-                {
-                    Prefix = node.Prefix?.GetContent() ?? string.Empty,
-                    Source = BuildSourceSpanFromNode(node),
-                });
-            }
-
-            Visit(node.Value);
-
-            _builder.Pop();
-        }
-
-        public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
-        {
-            _builder.Push(new HtmlAttributeValueIntermediateNode()
-            {
-                Prefix = node.Prefix?.GetContent() ?? string.Empty,
-                Source = BuildSourceSpanFromNode(node),
-            });
-
-            _builder.Add(IntermediateNodeFactory.HtmlToken(
-                arg: node,
-                contentFactory: static node => node.Value?.GetContent() ?? string.Empty,
-                source: BuildSourceSpanFromNode(node.Value)));
-
-            _builder.Pop();
-        }
-
         public override void VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
         {
             if (_builder.Current is HtmlAttributeIntermediateNode)
             {
+                if (_insideUnresolvedAttribute)
+                {
+                    // Produce unresolved node for @@ escape merged content.
+                    var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
+                    {
+                        Prefix = string.Empty,
+                        Source = BuildSourceSpanFromNode(node),
+                    };
+
+                    unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
+                        arg: node,
+                        contentFactory: static node => node.GetContent() ?? string.Empty,
+                        source: BuildSourceSpanFromNode(node)));
+
+                    _builder.Add(unresolvedNode);
+                    return;
+                }
+
                 // This can happen inside a data- attribute
                 _builder.Push(new HtmlAttributeValueIntermediateNode()
                 {
@@ -1967,39 +2006,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         {
             // Comments are ignored by components. We skip over anything that appears inside.
         }
-
-        public override void VisitCSharpTemplateBlock(CSharpTemplateBlockSyntax node)
-        {
-            var templateNode = new TemplateIntermediateNode();
-            _builder.Push(templateNode);
-
-            base.VisitCSharpTemplateBlock(node);
-
-            _builder.Pop();
-
-            if (templateNode.Children.Count > 0)
-            {
-                var sourceRangeStart = templateNode
-                    .Children
-                    .FirstOrDefault(child => child.Source != null)
-                    ?.Source;
-
-                if (sourceRangeStart != null)
-                {
-                    var contentLength = templateNode.Children.Sum(child => child.Source?.Length ?? 0);
-
-                    templateNode.Source = new SourceSpan(
-                        sourceRangeStart.Value.FilePath ?? SourceDocument.FilePath,
-                        sourceRangeStart.Value.AbsoluteIndex,
-                        sourceRangeStart.Value.LineIndex,
-                        sourceRangeStart.Value.CharacterIndex,
-                        contentLength,
-                        sourceRangeStart.Value.LineCount,
-                        sourceRangeStart.Value.EndCharacterIndex);
-                }
-            }
-        }
-
         // CSharp expressions are broken up into blocks and spans because Razor allows Razor comments
         // inside an expression.
         // Ex:
@@ -2038,27 +2044,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             _builder.Pop();
 
-            if (expressionNode.Children.Count > 0)
-            {
-                var sourceRangeStart = expressionNode
-                    .Children
-                    .FirstOrDefault(child => child.Source != null)
-                    ?.Source;
-
-                if (sourceRangeStart != null)
-                {
-                    var contentLength = expressionNode.Children.Sum(child => child.Source?.Length ?? 0);
-
-                    expressionNode.Source = new SourceSpan(
-                        sourceRangeStart.Value.FilePath ?? SourceDocument.FilePath,
-                        sourceRangeStart.Value.AbsoluteIndex,
-                        sourceRangeStart.Value.LineIndex,
-                        sourceRangeStart.Value.CharacterIndex,
-                        contentLength,
-                        sourceRangeStart.Value.LineCount,
-                        sourceRangeStart.Value.EndCharacterIndex);
-                }
-            }
+            ComputeSourceSpanFromChildren(expressionNode);
         }
 
         public override void VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
@@ -2093,49 +2079,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             _builder.Pop();
 
-            if (expressionNode.Children.Count > 0)
-            {
-                var sourceRangeStart = expressionNode
-                    .Children
-                    .FirstOrDefault(child => child.Source != null)
-                    ?.Source;
-
-                if (sourceRangeStart != null)
-                {
-                    var contentLength = expressionNode.Children.Sum(child => child.Source?.Length ?? 0);
-
-                    expressionNode.Source = new SourceSpan(
-                        sourceRangeStart.Value.FilePath ?? SourceDocument.FilePath,
-                        sourceRangeStart.Value.AbsoluteIndex,
-                        sourceRangeStart.Value.LineIndex,
-                        sourceRangeStart.Value.CharacterIndex,
-                        contentLength,
-                        sourceRangeStart.Value.LineCount,
-                        sourceRangeStart.Value.EndCharacterIndex);
-                }
-            }
+            ComputeSourceSpanFromChildren(expressionNode);
         }
-
-        public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
-        {
-            if (_builder.Current is TagHelperHtmlAttributeIntermediateNode)
-            {
-                // If we are top level in a tag helper HTML attribute, we want to be rendered as markup.
-                // This case happens for duplicate non-string bound attributes. They would be initially be categorized as
-                // CSharp but since they are duplicate, they should just be markup.
-                var markupLiteral = SyntaxFactory.MarkupTextLiteral(node.LiteralTokens).Green.CreateRed(node.Parent, node.Position);
-                Visit(markupLiteral);
-                return;
-            }
-
-            _builder.Add(IntermediateNodeFactory.CSharpToken(
-                arg: node,
-                contentFactory: static node => node.GetContent(),
-                source: BuildSourceSpanFromNode(node)));
-
-            base.VisitCSharpExpressionLiteral(node);
-        }
-
         public override void VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
         {
             if (node.ChunkGenerator is null or StatementChunkGenerator)
@@ -2165,399 +2110,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             base.VisitCSharpStatementLiteral(node);
         }
 
-        public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
-        {
-            var info = node.TagHelperInfo;
-            var tagName = info.TagName;
-            var tagHelperNode = new TagHelperIntermediateNode()
-            {
-                TagName = tagName,
-                TagMode = info.TagMode,
-                Source = BuildSourceSpanFromNode(node),
-                TagHelpers = info.BindingResult.TagHelpers,
-                StartTagSpan = node.StartTag.Name.GetSourceSpan(SourceDocument)
-            };
-
-            if (node.StartTag != null &&
-                // We only want this error during the second phase of the two phase compilation.
-                !_document.Options.SuppressPrimaryMethodBody &&
-                // Don't report this warning for components, only for other tag helpers like @ref, @key, etc.
-                info.BindingResult.IsAttributeMatch)
-            {
-                if (!string.IsNullOrEmpty(tagName) && LooksLikeAComponentName(_document, tagName))
-                {
-                    tagHelperNode.AddDiagnostic(
-                        ComponentDiagnosticFactory.Create_UnexpectedMarkupElement(tagName, BuildSourceSpanFromNode(node.StartTag)));
-                }
-            }
-
-            _builder.Push(tagHelperNode);
-
-            _builder.Push(new TagHelperBodyIntermediateNode());
-
-            foreach (var item in node.Body)
-            {
-                Visit(item);
-            }
-
-            _builder.Pop(); // Pop InitializeTagHelperStructureIntermediateNode
-
-            Visit(node.StartTag);
-
-            _builder.Pop(); // Pop TagHelperIntermediateNode
-
-            // No need to visit the end tag because we don't write any IR for it.
-
-            // We don't want to track attributes from a previous tag helper element.
-            _renderedBoundAttributeNames.Clear();
-
-            if (node.StartTag != null && node.EndTag != null)
-            {
-                var startTagName = node.StartTag.Name.Content;
-                var endTagName = node.EndTag.Name.Content;
-                if (!string.Equals(startTagName, endTagName, StringComparison.Ordinal))
-                {
-                    // This is most likely a case mismatch in start and end tags. Otherwise the parser wouldn't have grouped them together.
-                    // But we can't have case mismatch in start and end tags in components. Add a diagnostic.
-                    tagHelperNode.AddDiagnostic(
-                        ComponentDiagnosticFactory.Create_InconsistentStartAndEndTagName(startTagName, endTagName, BuildSourceSpanFromNode(node.EndTag)));
-                }
-            }
-        }
-
-        public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
-        {
-            foreach (var child in node.Attributes)
-            {
-                if (child is MarkupTagHelperAttributeSyntax ||
-                    child is MarkupMinimizedTagHelperAttributeSyntax ||
-                    child is MarkupTagHelperDirectiveAttributeSyntax ||
-                    child is MarkupMinimizedTagHelperDirectiveAttributeSyntax)
-                {
-                    Visit(child);
-                }
-            }
-        }
-
-        public override void VisitMarkupMinimizedTagHelperAttribute(MarkupMinimizedTagHelperAttributeSyntax node)
-        {
-            if (!_options.AllowMinimizedBooleanTagHelperAttributes)
-            {
-                // Minimized attributes are not valid for non-boolean bound attributes. TagHelperBlockRewriter
-                // has already logged an error if it was a non-boolean bound attribute; so we can skip.
-                return;
-            }
-
-            var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
-            var attributeName = node.Name.GetContent();
-
-            using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
-
-            if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
-            {
-                foreach (var match in matches)
-                {
-                    if (!match.ExpectsBooleanValue)
-                    {
-                        // We do not allow minimized non-boolean bound attributes.
-                        return;
-                    }
-
-                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode(match)
-                    {
-                        AttributeName = attributeName,
-                        AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                        Source = null,
-                        OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
-                    };
-
-                    _builder.Add(setTagHelperProperty);
-                }
-            }
-            else
-            {
-                var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
-                {
-                    AttributeName = attributeName,
-                    AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
-                };
-
-                _builder.Add(addHtmlAttribute);
-            }
-        }
-
-        public override void VisitMarkupMinimizedTagHelperDirectiveAttribute(MarkupMinimizedTagHelperDirectiveAttributeSyntax node)
-        {
-            if (!_options.AllowMinimizedBooleanTagHelperAttributes)
-            {
-                // Minimized attributes are not valid for non-boolean bound attributes. TagHelperBlockRewriter
-                // has already logged an error if it was a non-boolean bound attribute; so we can skip.
-                return;
-            }
-
-            var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
-            var attributeName = node.FullName;
-
-            using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
-
-            if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
-            {
-                var directiveAttributeName = new DirectiveAttributeName(attributeName);
-
-                foreach (var match in matches)
-                {
-                    if (!match.ExpectsBooleanValue)
-                    {
-                        // We do not allow minimized non-boolean bound attributes.
-                        return;
-                    }
-
-                    IntermediateNode attributeNode = match.IsParameterMatch && directiveAttributeName.HasParameter
-                        ? new TagHelperDirectiveAttributeParameterIntermediateNode(match)
-                        {
-                            AttributeName = directiveAttributeName.Text,
-                            AttributeNameWithoutParameter = directiveAttributeName.TextWithoutParameter,
-                            OriginalAttributeName = attributeName,
-                            AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                            Source = null
-                        }
-                        : new TagHelperDirectiveAttributeIntermediateNode(match)
-                        {
-                            AttributeName = directiveAttributeName.Text,
-                            OriginalAttributeName = attributeName,
-                            AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                            Source = null,
-                        };
-
-                    _builder.Add(attributeNode);
-                }
-            }
-            else
-            {
-                var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
-                {
-                    AttributeName = attributeName,
-                    AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
-                };
-
-                _builder.Add(addHtmlAttribute);
-            }
-        }
-
-        public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
-        {
-            var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
-            var attributeName = node.Name.GetContent();
-            var attributeValueNode = node.Value;
-
-            using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
-
-            if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
-            {
-                foreach (var match in matches)
-                {
-                    var setTagHelperProperty = new TagHelperPropertyIntermediateNode(match)
-                    {
-                        AttributeName = attributeName,
-                        AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                        Source = BuildSourceSpanFromNode(attributeValueNode),
-                        OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
-                    };
-
-                    _builder.Push(setTagHelperProperty);
-                    VisitAttributeValue(attributeValueNode);
-                    _builder.Pop();
-                }
-            }
-            else
-            {
-                var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
-                {
-                    AttributeName = attributeName,
-                    AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
-                };
-
-                _builder.Push(addHtmlAttribute);
-                VisitAttributeValue(attributeValueNode);
-                _builder.Pop();
-            }
-        }
-
-        public override void VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
-        {
-            var element = node.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-            var tagHelpers = element.TagHelperInfo.BindingResult.TagHelpers;
-            var attributeName = node.FullName;
-            var attributeValueNode = node.Value;
-
-            using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-            TagHelperMatchingConventions.GetAttributeMatches(tagHelpers, attributeName, ref matches.AsRef());
-
-            if (matches.Any() && _renderedBoundAttributeNames.Add(attributeName))
-            {
-                var directiveAttributeName = new DirectiveAttributeName(attributeName);
-
-                foreach (var match in matches)
-                {
-                    IntermediateNode attributeNode = match.IsParameterMatch && directiveAttributeName.HasParameter
-                        ? new TagHelperDirectiveAttributeParameterIntermediateNode(match)
-                        {
-                            AttributeName = directiveAttributeName.Text,
-                            AttributeNameWithoutParameter = directiveAttributeName.TextWithoutParameter,
-                            OriginalAttributeName = attributeName,
-                            AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                            Source = BuildSourceSpanFromNode(attributeValueNode),
-                            OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
-                        }
-                        : new TagHelperDirectiveAttributeIntermediateNode(match)
-                        {
-                            AttributeName = directiveAttributeName.Text,
-                            OriginalAttributeName = attributeName,
-                            AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure,
-                            Source = BuildSourceSpanFromNode(attributeValueNode),
-                            OriginalAttributeSpan = BuildSourceSpanFromNode(node.Name)
-                        };
-
-                    _builder.Push(attributeNode);
-                    VisitAttributeValue(attributeValueNode);
-                    _builder.Pop();
-                }
-            }
-            else
-            {
-                var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
-                {
-                    AttributeName = attributeName,
-                    AttributeStructure = node.TagHelperAttributeInfo.AttributeStructure
-                };
-
-                _builder.Push(addHtmlAttribute);
-                VisitAttributeValue(attributeValueNode);
-                _builder.Pop();
-            }
-        }
-
-        private new void VisitAttributeValue(SyntaxNode node)
-        {
-            if (node == null)
-            {
-                return;
-            }
-
-            var children = new ChildNodesHelper(node.ChildNodesAndTokens());
-            var position = node.Position;
-            SyntaxTokenList escapedAtTokens = default;
-            if (children.FirstOrDefault().AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax literalSyntax, MarkupEphemeralTextLiteralSyntax] })
-            {
-                // This is a special case when we have an attribute like attr="@@foo".
-                // Extract the literal @ token from the first child so it can be merged with the rest of the attribute value.
-                // The ephemeral @ token is ignored.
-                escapedAtTokens = literalSyntax.LiteralTokens;
-                children = children.Skip(1);
-                position = children.Count > 0 ? children[0].Position : position;
-            }
-
-            if (children.TryCast<MarkupLiteralAttributeValueSyntax>(out var attributeLiteralArray))
-            {
-                using PooledArrayBuilder<SyntaxToken> valueTokens = [];
-
-                if (escapedAtTokens.Count > 0)
-                {
-                    valueTokens.AddRange(escapedAtTokens);
-                }
-
-                foreach (var literal in attributeLiteralArray)
-                {
-                    var mergedValue = MergeAttributeValue(literal);
-                    valueTokens.AddRange(mergedValue.LiteralTokens);
-                }
-
-                var rewritten = SyntaxFactory.MarkupTextLiteral(valueTokens.ToList()).Green.CreateRed(node.Parent, position);
-                Visit(rewritten);
-            }
-            else if (children.TryCast<MarkupTextLiteralSyntax>(out var markupLiteralArray))
-            {
-                using PooledArrayBuilder<SyntaxToken> builder = [];
-
-                if (escapedAtTokens.Count > 0)
-                {
-                    builder.AddRange(escapedAtTokens);
-                }
-
-                foreach (var literal in markupLiteralArray)
-                {
-                    builder.AddRange(literal.LiteralTokens);
-                }
-
-                var rewritten = SyntaxFactory.MarkupTextLiteral(builder.ToList()).Green.CreateRed(node.Parent, position);
-                Visit(rewritten);
-            }
-            else if (children.TryCast<CSharpExpressionLiteralSyntax>(out var expressionLiteralArray))
-            {
-                using PooledArrayBuilder<SyntaxToken> builder = [];
-
-                if (escapedAtTokens.Count > 0)
-                {
-                    builder.AddRange(escapedAtTokens);
-                }
-
-                ISpanChunkGenerator generator = null;
-                SpanEditHandler editHandler = null;
-                foreach (var literal in expressionLiteralArray)
-                {
-                    generator = literal.ChunkGenerator;
-                    editHandler = literal.EditHandler;
-                    builder.AddRange(literal.LiteralTokens);
-                }
-
-                var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), generator, editHandler).Green.CreateRed(node.Parent, position);
-
-                Visit(rewritten);
-            }
-            else
-            {
-                if (escapedAtTokens.Count > 0)
-                {
-                    // If we have escaped @ tokens but no other content to merge with,
-                    // create a MarkupTextLiteral just for the escaped @ tokens
-                    var rewritten = SyntaxFactory.MarkupTextLiteral(escapedAtTokens).Green.CreateRed(node.Parent, position);
-                    Visit(rewritten);
-                }
-                else
-                {
-                    Visit(node);
-                }
-            }
-        }
-
-        private new void Combine(HtmlContentIntermediateNode node, SyntaxNode item)
-        {
-            node.Children.Add(IntermediateNodeFactory.HtmlToken(
-                arg: item,
-                contentFactory: static item => item.GetContent(),
-                source: BuildSourceSpanFromNode(item)));
-
-            if (node.Source is SourceSpan source)
-            {
-                Debug.Assert(source.FilePath != null);
-
-                node.Source = new SourceSpan(
-                    source.FilePath,
-                    source.AbsoluteIndex,
-                    source.LineIndex,
-                    source.CharacterIndex,
-                    source.Length + item.Width,
-                    source.LineCount,
-                    source.EndCharacterIndex);
-            }
-        }
     }
+
     private ref struct DirectiveAttributeName(string original)
     {
         // Directive attributes should start with '@' unless the descriptors are misconfigured.
@@ -2574,6 +2128,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             => field ??= Span.IndexOf(':') is int index && index >= 0 ? Span[..index].ToString() : Text;
     }
 
+    /// <summary>
+    /// Handles <c>_Imports.razor</c> files. Only processes directives (<c>@using</c>,
+    /// <c>@namespace</c>) and code expressions. Does not support HTML elements or attributes
+    /// (no components in import files) -- markup and expressions produce diagnostics.
+    /// </summary>
     private class ComponentImportFileKindVisitor : LoweringVisitor
     {
         public ComponentImportFileKindVisitor(
@@ -2582,11 +2141,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             RazorParserOptions options)
             : base(document, builder, options)
         {
-        }
-
-        public override void DefaultVisit(SyntaxNode node)
-        {
-            base.DefaultVisit(node);
         }
 
         public override void VisitMarkupElement(MarkupElementSyntax node)
@@ -2603,14 +2157,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
 
             base.VisitMarkupCommentBlock(node);
-        }
-
-        public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
-        {
-            _document.AddDiagnostic(
-                ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(BuildSourceSpanFromNode(node)));
-
-            base.VisitMarkupTagHelperElement(node);
         }
 
         public override void VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
@@ -2640,27 +2186,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             _builder.Pop();
 
-            if (expressionNode.Children.Count > 0)
-            {
-                var sourceRangeStart = expressionNode
-                    .Children
-                    .FirstOrDefault(child => child.Source != null)
-                    ?.Source;
-
-                if (sourceRangeStart != null)
-                {
-                    var contentLength = expressionNode.Children.Sum(child => child.Source?.Length ?? 0);
-
-                    expressionNode.Source = new SourceSpan(
-                        sourceRangeStart.Value.FilePath ?? SourceDocument.FilePath,
-                        sourceRangeStart.Value.AbsoluteIndex,
-                        sourceRangeStart.Value.LineIndex,
-                        sourceRangeStart.Value.CharacterIndex,
-                        contentLength,
-                        sourceRangeStart.Value.LineCount,
-                        sourceRangeStart.Value.EndCharacterIndex);
-                }
-            }
+            ComputeSourceSpanFromChildren(expressionNode);
 
             _document.AddDiagnostic(
                 ComponentDiagnosticFactory.Create_UnsupportedComponentImportContent(expressionNode.Source));
