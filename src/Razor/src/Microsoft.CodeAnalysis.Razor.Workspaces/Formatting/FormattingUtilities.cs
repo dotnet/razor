@@ -478,21 +478,71 @@ internal static class FormattingUtilities
                         formattingChanges.Add(new TextChange(new TextSpan(originalStart, length), replacementText));
                     }
 
-                    if (lineInfo.CheckForNewLines)
+                    if (!lineInfo.CheckForNewLines)
                     {
+                        // The formatter may have inserted a blank line after the current line. In that case we
+                        // need to make sure we advance the formatted line pointer past it, but also include it.
+                        // This only applies if the line after the blank line matches the next original line and
+                        // the next original line isn't blank (ie, an actual insertion).
+                        // When CheckForNewLines is true, this same check is handled in the shared block below
+                        // (after ConsumeNewLines has advanced iFormatted).
+                        if (iFormatted + 1 < formattedText.Lines.Count &&
+                            formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
+                            iOriginal + 1 < originalText.Lines.Count &&
+                            originalText.Lines[iOriginal + 1] is { } nextOriginalLine &&
+                            nextOriginalLine.Span.Length != 0)
+                        {
+                            // Next formatted line is blank but next original line isn't, so the
+                            // formatter inserted a blank line. Consume it and preserve it in the output.
+                            iFormatted++;
+                            formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), context.NewLineString));
+                        }
+                    }
+                }
+
+                // Handle new lines added by the formatter, for both the ProcessFormatting=true and
+                // ProcessFormatting=false cases. This runs after the main content replacement above so
+                // that ConsumeNewLines sees the correct iFormatted position.
+                if (lineInfo.CheckForNewLines)
+                {
+                    // The offset properties of the line info are relative to the indented content; for HTML
+                    // lines OriginOffset and FormattedOffset are always 0, so this is equivalent to
+                    // originalLine.Start + originalLineOffset / formattedLine.Start + formattedIndentation.
+                    var originalStart = originalLine.Start + originalLineOffset + lineInfo.OriginOffset;
+                    var formattedStart = formattedLine.Start + formattedIndentation + lineInfo.FormattedOffset;
+
+                    if (lineInfo.ProcessFormatting)
+                    {
+                        // The ProcessFormatting block already replaced the content of this line. ConsumeNewLines
+                        // just needs to insert any additional lines that the formatter split it into.
                         Debug.Assert(lineInfo.FormattedLength == 0, "Can't have a FormattedLength if we're looking for new lines. The logic is incompatible.");
                         Debug.Assert(lineInfo.FormattedOffsetFromEndOfLine == 0, "Can't have a FormattedOffsetFromEndOfLine if we're looking for new lines. The logic is incompatible.");
+                    }
+                    else
+                    {
+                        // ProcessFormatting didn't run, so we need to explicitly truncate this line to match
+                        // the first formatted line before ConsumeNewLines inserts the split-off lines.
+                        // For example, " *@    <tr>" can be split by the HTML formatter into "*@" and "<tr>".
+                        var originalNonWhitespace = CountNonWhitespaceChars(originalText, originalStart, originalLine.End);
+                        var formattedNonWhitespace = CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End);
 
-                        ConsumeNewLines(
-                            context, originalText, formattedText, logger, shouldKeepInsertedNewlineAtPosition,
-                            ref formattingChanges, ref iOriginal, ref iFormatted, ref originalLine, ref formattedLine,
-                            originalStart, formattedStart, fixedIndentationWidth);
+                        if (originalNonWhitespace > formattedNonWhitespace)
+                        {
+                            formattingChanges.Add(new TextChange(
+                                TextSpan.FromBounds(originalStart, originalLine.End),
+                                formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End))));
+                        }
                     }
 
-                    // The above "CheckForNewLines" means new lines inserted in the middle of a line of the original text, but
-                    // the formatter may have inserted a blank line after the current line too. In that case we need to make sure
-                    // we advance the formatted line pointer past it, but also include it. This only applies if the line after the
-                    // blank line matches the next original line and the next original line isn't blank (ie, an actual insertion)
+                    ConsumeNewLines(
+                        context, originalText, formattedText, logger, shouldKeepInsertedNewlineAtPosition,
+                        ref formattingChanges, ref iOriginal, ref iFormatted, ref originalLine, ref formattedLine,
+                        originalStart, formattedStart, fixedIndentationWidth);
+
+                    // The formatter may also have inserted a blank line after the current line. In that case
+                    // we advance the formatted line pointer past it and include it in the output.
+                    // This only applies if the line after the blank line matches the next original line and
+                    // the next original line isn't blank (ie, an actual insertion).
                     if (iFormatted + 1 < formattedText.Lines.Count &&
                         formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
                         iOriginal + 1 < originalText.Lines.Count &&
@@ -505,34 +555,6 @@ internal static class FormattingUtilities
                         // wrapped lines that ConsumeNewLines inserted (which also use EndIncludingLineBreak).
                         iFormatted++;
                         formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), context.NewLineString));
-                    }
-                }
-                else if (lineInfo.CheckForNewLines)
-                {
-                    // Even when not processing formatting (e.g., a line starting inside a Razor comment
-                    // that has HTML content after the comment close), we still need to keep iFormatted in
-                    // sync in case the HTML formatter split this line. For example, a line like
-                    // " *@    <tr>" can be split by the formatter into "*@" and "<tr>" on separate lines.
-                    // Mirror what the ProcessFormatting path does: truncate the original line to match the
-                    // first formatted line, then let ConsumeNewLines insert the split-off lines after it.
-                    var originalStart = originalLine.Start + originalLineOffset;
-                    var formattedStart = formattedLine.Start + formattedIndentation;
-
-                    var originalNonWhitespace = CountNonWhitespaceChars(originalText, originalStart, originalLine.End);
-                    var formattedNonWhitespace = CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End);
-
-                    if (originalNonWhitespace > formattedNonWhitespace)
-                    {
-                        // Truncate the original line's content to match what the formatter kept on the
-                        // first line, then insert the remaining split-off lines.
-                        formattingChanges.Add(new TextChange(
-                            TextSpan.FromBounds(originalStart, originalLine.End),
-                            formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End))));
-
-                        ConsumeNewLines(
-                            context, originalText, formattedText, logger, shouldKeepInsertedNewlineAtPosition,
-                            ref formattingChanges, ref iOriginal, ref iFormatted, ref originalLine, ref formattedLine,
-                            originalStart, formattedStart, fixedIndentationWidth);
                     }
                 }
             }
