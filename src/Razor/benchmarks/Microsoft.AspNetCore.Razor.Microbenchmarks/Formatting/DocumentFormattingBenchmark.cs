@@ -33,6 +33,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Formatting;
 
 public class DocumentFormattingBenchmark
 {
+    private const int FormatOperationCount = 100;
     private const string BenchmarkRootPath = @"C:\Benchmark";
     private const string ProjectName = "DocumentFormattingBenchmark";
     private const string ProjectFilePath = @"C:\Benchmark\FormattingBenchmark.csproj";
@@ -48,7 +49,7 @@ public class DocumentFormattingBenchmark
         AnalyzerAssemblyLoader.Instance);
 
     private AdhocWorkspace? _workspace;
-    private RemoteDocumentSnapshot? _documentSnapshot;
+    private DocumentContext? _documentContext;
     private SourceText? _sourceText;
     private ImmutableArray<TextChange> _htmlChanges;
     private RazorFormattingService? _formattingService;
@@ -72,7 +73,8 @@ public class DocumentFormattingBenchmark
         var document = _workspace.CurrentSolution.GetAdditionalDocument(documentId).AssumeNotNull();
         var filePathService = new RemoteFilePathService();
         var snapshotManager = new RemoteSnapshotManager(filePathService, NoOpTelemetryReporter.Instance);
-        _documentSnapshot = snapshotManager.GetSnapshot(document);
+        var documentSnapshot = snapshotManager.GetSnapshot(document);
+        _documentContext = new DocumentContext(s_documentUri, documentSnapshot, projectContext: null);
 
         var hostServicesProvider = new RemoteHostServicesProvider();
         hostServicesProvider.SetWorkspaceProvider(new WorkspaceProvider(_workspace));
@@ -85,7 +87,7 @@ public class DocumentFormattingBenchmark
 
         _options = new RazorFormattingOptions
         {
-            InsertSpaces = true,
+            InsertSpaces = false,
             TabSize = 4,
             CSharpSyntaxFormattingOptions = RazorCSharpSyntaxFormattingOptions.Default,
         };
@@ -105,42 +107,45 @@ public class DocumentFormattingBenchmark
         _workspace?.Dispose();
     }
 
-    [Benchmark(Baseline = true, Description = "Full document formatting of Razor file (indent cache on)")]
+    [Benchmark(Baseline = true, Description = "100x full document formatting of Razor file (indent cache on)")]
     public int FormatDocument()
     {
-        return FormatDocumentCore(useIndentCache: true);
+        IndentCache.UseCache = true;
+
+        var totalChangeCount = 0;
+        for (var i = 0; i < FormatOperationCount; i++)
+        {
+            totalChangeCount += FormatDocumentCore();
+        }
+
+        return totalChangeCount;
     }
 
-    [Benchmark(Description = "Full document formatting of Razor file (indent cache off)")]
+    [Benchmark(Description = "100x full document formatting of Razor file (indent cache off)")]
     public int FormatDocumentWithoutIndentCache()
     {
-        return FormatDocumentCore(useIndentCache: false);
+        IndentCache.UseCache = false;
+
+        var totalChangeCount = 0;
+        for (var i = 0; i < FormatOperationCount; i++)
+        {
+            totalChangeCount += FormatDocumentCore();
+        }
+
+        return totalChangeCount;
     }
 
-    private int FormatDocumentCore(bool useIndentCache = true)
+    private int FormatDocumentCore()
     {
-        var previousUseCache = IndentCache.UseCache;
-        IndentCache.UseCache = useIndentCache;
+        var changes = _formattingService.AssumeNotNull().GetDocumentFormattingChangesAsync(
+            _documentContext.AssumeNotNull(),
+            _htmlChanges,
+            range: null,
+            _options,
+            CancellationToken.None).GetAwaiter().GetResult();
 
-        try
-        {
-            var changes = _formattingService.AssumeNotNull().GetDocumentFormattingChangesAsync(
-                CreateDocumentContext(),
-                _htmlChanges,
-                range: null,
-                _options,
-                CancellationToken.None).GetAwaiter().GetResult();
-
-            return changes.Length;
-        }
-        finally
-        {
-            IndentCache.UseCache = previousUseCache;
-        }
+        return changes.Length;
     }
-
-    private DocumentContext CreateDocumentContext()
-        => new(s_documentUri, _documentSnapshot.AssumeNotNull(), projectContext: null);
 
     private static Solution CreateBenchmarkSolution(Solution solution, SourceText sourceText, out DocumentId documentId)
     {
