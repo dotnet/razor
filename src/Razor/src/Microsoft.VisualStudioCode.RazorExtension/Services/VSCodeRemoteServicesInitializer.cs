@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Composition;
 using System.IO;
 using System.Threading;
@@ -10,8 +11,10 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
@@ -22,12 +25,16 @@ internal class VSCodeRemoteServicesInitializer(
     LanguageServerFeatureOptions featureOptions,
     ISemanticTokensLegendService semanticTokensLegendService,
     IWorkspaceProvider workspaceProvider,
+    IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory) : IRazorCohostStartupService
 {
     private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
     private readonly IWorkspaceProvider _workspaceProvider = workspaceProvider;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
+
+    private IRemoteClientSettingsService? _clientSettingsService;
 
     public int Order => WellKnownStartupOrder.RemoteServices;
 
@@ -58,5 +65,24 @@ internal class VSCodeRemoteServicesInitializer(
             TokenTypes = _semanticTokensLegendService.TokenTypes.All,
             TokenModifiers = _semanticTokensLegendService.TokenModifiers.All,
         }, cancellationToken).ConfigureAwait(false);
+
+        _clientSettingsService = await InProcServiceFactory.CreateServiceAsync<IRemoteClientSettingsService>(serviceInterceptor, _workspaceProvider, _loggerFactory).ConfigureAwait(false);
+        // Client settings are initialized after this service, so there is no point updating settings at startup.
+        _clientSettingsManager.ClientSettingsChanged += ClientSettingsManager_ClientSettingsChanged;
+    }
+
+    private void ClientSettingsManager_ClientSettingsChanged(object? sender, EventArgs e)
+    {
+        UpdateClientSettingsAsync(CancellationToken.None).Forget();
+    }
+
+    private Task UpdateClientSettingsAsync(CancellationToken cancellationToken)
+    {
+        if (_clientSettingsService is not { } clientSettingsService)
+        {
+            throw new InvalidOperationException($"{nameof(VSCodeRemoteServicesInitializer)} has not been started.");
+        }
+
+        return clientSettingsService.UpdateAsync(_clientSettingsManager.GetClientSettings(), cancellationToken).AsTask();
     }
 }
