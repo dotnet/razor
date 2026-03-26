@@ -12765,9 +12765,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                 <th>Group A</th>
                             </tr>
                  *@
-                        <tr>
-                            <th>ID</th>
-                        </tr>
+                            <tr>
+                                <th>ID</th>
+                            </tr>
                         </thead>
                     </table>
                 </div>
