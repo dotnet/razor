@@ -12780,11 +12780,12 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             <tr class="row-1">
                                 <th>Group A</th>
                             </tr>
-                 *@         <tr>
-                            <th>ID</th>
-                        </tr>
-                    </thead>
-                </table>
+                 *@
+                            <tr>
+                                <th>ID</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
                 """,
             validateHtmlFormattedMatchesWebTools: false);

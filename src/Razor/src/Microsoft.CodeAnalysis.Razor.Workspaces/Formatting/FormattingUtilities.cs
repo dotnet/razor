@@ -511,16 +511,29 @@ internal static class FormattingUtilities
                 {
                     // Even when not processing formatting (e.g., a line starting inside a Razor comment
                     // that has HTML content after the comment close), we still need to keep iFormatted in
-                    // sync in case the HTML formatter inserted extra lines here. For example, a line like
+                    // sync in case the HTML formatter split this line. For example, a line like
                     // " *@    <tr>" can be split by the formatter into "*@" and "<tr>" on separate lines.
-                    // We absorb those extra formatted lines without emitting any changes.
+                    // Mirror what the ProcessFormatting path does: truncate the original line to match the
+                    // first formatted line, then let ConsumeNewLines insert the split-off lines after it.
                     var originalStart = originalLine.Start + originalLineOffset;
                     var formattedStart = formattedLine.Start + formattedIndentation;
-                    ConsumeNewLines(
-                        context, originalText, formattedText, logger, shouldKeepInsertedNewlineAtPosition,
-                        ref formattingChanges, ref iOriginal, ref iFormatted, ref originalLine, ref formattedLine,
-                        originalStart, formattedStart, fixedIndentationWidth,
-                        emitChanges: false);
+
+                    var originalNonWhitespace = CountNonWhitespaceChars(originalText, originalStart, originalLine.End);
+                    var formattedNonWhitespace = CountNonWhitespaceChars(formattedText, formattedStart, formattedLine.End);
+
+                    if (originalNonWhitespace > formattedNonWhitespace)
+                    {
+                        // Truncate the original line's content to match what the formatter kept on the
+                        // first line, then insert the remaining split-off lines.
+                        formattingChanges.Add(new TextChange(
+                            TextSpan.FromBounds(originalStart, originalLine.End),
+                            formattedText.ToString(TextSpan.FromBounds(formattedStart, formattedLine.End))));
+
+                        ConsumeNewLines(
+                            context, originalText, formattedText, logger, shouldKeepInsertedNewlineAtPosition,
+                            ref formattingChanges, ref iOriginal, ref iFormatted, ref originalLine, ref formattedLine,
+                            originalStart, formattedStart, fixedIndentationWidth);
+                    }
                 }
             }
 
@@ -711,8 +724,7 @@ internal static class FormattingUtilities
         ref TextLine formattedLine,
         int originalStart,
         int formattedStart,
-        int fixedIndentationWidth,
-        bool emitChanges = true)
+        int fixedIndentationWidth)
     {
         // We assume the external formatter won't change anything but whitespace, so we can just apply the
         // changes directly, but it could very well be adding whitespace in the form of newlines, for example
@@ -779,7 +791,7 @@ internal static class FormattingUtilities
 
             // When we haven't consumed from the secondary side, the formatter purely added or removed lines,
             // so we emit per-line text changes.
-            if (!consumedFromSecondarySide && emitChanges)
+            if (!consumedFromSecondarySide)
             {
                 if (formatterInsertedNewLines)
                 {
@@ -805,7 +817,7 @@ internal static class FormattingUtilities
             }
         }
 
-        if (consumedFromSecondarySide && emitChanges)
+        if (consumedFromSecondarySide)
         {
             // The formatter re-wrapped content at a different point, consuming lines from both sides.
             // Update the formatting change to cover the full range of consumed original and formatted lines.
