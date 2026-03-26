@@ -18,6 +18,8 @@ internal static class IndentCache
     internal const int MaxTabCount = 64;
     internal const int MaxSpaceCount = 128;
 
+    internal const int MaxSpaceCountInMixedString = 8;
+
     private static readonly string?[] s_tabStrings = new string[MaxTabCount + 1];
     private static readonly string?[] s_spaceStrings = new string[MaxSpaceCount + 1];
     // Mixed tab+space indentation is sparser than tab-only or space-only lookups, so we keep
@@ -75,7 +77,7 @@ internal static class IndentCache
 
     private static string GetMixedString(int tabCount, int spaceCount)
     {
-        if (tabCount > MaxTabCount || spaceCount > MaxSpaceCount || !UseCache)
+        if (tabCount > MaxTabCount || spaceCount > MaxSpaceCountInMixedString || !UseCache)
         {
             return CreateMixedString(tabCount, spaceCount);
         }
@@ -83,7 +85,7 @@ internal static class IndentCache
         var tabStrings = s_mixedStrings[tabCount];
         if (tabStrings is null)
         {
-            tabStrings = new string?[MaxSpaceCount + 1];
+            tabStrings = new string?[MaxSpaceCountInMixedString + 1];
             s_mixedStrings[tabCount] = tabStrings;
         }
 
