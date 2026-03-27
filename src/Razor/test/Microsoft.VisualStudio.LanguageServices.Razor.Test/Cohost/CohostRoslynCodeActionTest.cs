@@ -51,6 +51,47 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                 <Component></Component>
                 
                 The end.
+                @code {
+                    internal void NewMethod()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+
+    [Fact]
+    public async Task GenerateMethod_NoCodeBlock_CodeBlockBraceOnNextLine()
+    {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
+        await VerifyCodeActionAsync(
+                csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private void M()
+                    {
+                        new Component().$$NewMethod();
+                    }
+                }
+                """,
+                razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+                expectedRazorFile: """
+                @using System
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                The end.
                 @code
                 {
                     internal void NewMethod()
@@ -59,7 +100,8 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                     }
                 }
                 """,
-            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+                codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+    }
 
     [Fact]
     public Task GenerateMethod_ExistingCodeBlock()

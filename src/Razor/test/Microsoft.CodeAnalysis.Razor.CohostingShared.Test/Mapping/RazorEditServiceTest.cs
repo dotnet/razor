@@ -456,6 +456,41 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """);
 
     [Fact]
+    public async Task NewMethod_NoCodeBlock_CodeBlockBraceOnNextLine()
+    {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
+        await TestAsync(
+             csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+             razorSource: """
+                <div></div>
+                """,
+             newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+             expectedRazorSource: """
+                <div></div>
+                @code
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """);
+    }
+
+    [Fact]
     public Task NewMethod_ExpressionBodied_NoCodeBlock()
       => TestAsync(
           csharpSource: """
@@ -475,8 +510,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """,
           expectedRazorSource: """
                 <div></div>
-                @code
-                {
+                @code {
                     int UnmappedMethod()
                         => 5;
                 }
@@ -501,8 +535,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """,
           expectedRazorSource: """
                 <div></div>
-                @code
-                {
+                @code {
                     int UnmappedMethod()
                 }
                 """);

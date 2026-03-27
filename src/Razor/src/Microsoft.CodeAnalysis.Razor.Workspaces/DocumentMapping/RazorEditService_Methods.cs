@@ -84,9 +84,18 @@ internal partial class RazorEditService
         }
 
         builder.Append('@');
-        builder.AppendLine(codeDocument.FileKind == RazorFileKind.Legacy
+        builder.Append(codeDocument.FileKind == RazorFileKind.Legacy
             ? FunctionsDirective.Directive.Directive
             : ComponentCodeDirective.Directive.Directive);
+        if (options.CodeBlockBraceOnNextLine)
+        {
+            builder.AppendLine();
+        }
+        else
+        {
+            builder.Append(' ');
+        }
+
         builder.Append('{');
         builder.AppendLine();
         builder.AppendLine(GetMethodsText(methods, options));

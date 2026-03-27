@@ -101,8 +101,31 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
     }
 
     [Fact]
-    public async Task GenerateMethod_FromImplicitExpression_ExistingCodeBlock()
+    public async Task GenerateMethod_FromImplicitExpression_WithoutCodeBlock()
     {
+        var input = """
+            @New[||]Method()
+            """;
+
+        var expected = """
+            @using System
+            @NewMethod()
+            @code {
+                private string NewMethod()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
+    public async Task GenerateMethod_FromImplicitExpression_WithoutCodeBlock_CodeBlockBraceOnNextLine()
+    {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
         var input = """
             @New[||]Method()
             """;
@@ -134,8 +157,7 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
         var expected = """
             @using System
             @NewMethod()
-            @code
-            {
+            @code {
             	private string NewMethod()
             	{
             		throw new NotImplementedException();
@@ -289,8 +311,10 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
     }
 
     [Fact]
-    public async Task GenerateMethod_Legacy_WithoutFunctionsBlock()
+    public async Task GenerateMethod_Legacy_WithoutFunctionsBlock_CodeBlockBraceOnNextLine()
     {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
         var input = """
             @{
                 [||]NewMethod();
@@ -303,6 +327,30 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
             }
             @functions
             {
+                private void NewMethod()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.GenerateMethod, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task GenerateMethod_Legacy_WithoutFunctionsBlock()
+    {
+        var input = """
+            @{
+                [||]NewMethod();
+            }
+            """;
+
+        var expected = """
+            @{
+                NewMethod();
+            }
+            @functions {
                 private void NewMethod()
                 {
                     throw new NotImplementedException();
