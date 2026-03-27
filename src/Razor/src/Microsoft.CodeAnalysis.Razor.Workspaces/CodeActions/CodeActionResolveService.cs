@@ -12,10 +12,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
@@ -23,15 +23,17 @@ internal class CodeActionResolveService(
     IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
     IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
     IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
+    IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory) : ICodeActionResolveService
 
 {
     private readonly FrozenDictionary<string, IRazorCodeActionResolver> _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
     private readonly FrozenDictionary<string, ICSharpCodeActionResolver> _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
     private readonly FrozenDictionary<string, IHtmlCodeActionResolver> _htmlCodeActionResolvers = CreateResolverMap(htmlCodeActionResolvers);
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CodeActionResolveService>();
 
-    public async Task<CodeAction> ResolveCodeActionAsync(DocumentContext documentContext, CodeAction request, CodeAction? resolvedDelegatedCodeAction, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<CodeAction> ResolveCodeActionAsync(DocumentContext documentContext, CodeAction request, CodeAction? resolvedDelegatedCodeAction, CancellationToken cancellationToken)
     {
         var resolutionParams = GetRazorCodeActionResolutionParams(request);
 
@@ -54,7 +56,6 @@ internal class CodeActionResolveService(
                     documentContext,
                     request,
                     resolutionParams,
-                    options,
                     cancellationToken).ConfigureAwait(false);
             case RazorLanguageKind.CSharp:
                 return await ResolveCSharpCodeActionAsync(
@@ -94,7 +95,6 @@ internal class CodeActionResolveService(
         DocumentContext documentContext,
         CodeAction codeAction,
         RazorCodeActionResolutionParams resolutionParams,
-        RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
         if (!_razorCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
@@ -104,6 +104,8 @@ internal class CodeActionResolveService(
             Debug.Fail($"No resolver registered for {codeActionId}.");
             return codeAction;
         }
+
+        var options = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
 
         if (resolutionParams.Data is not JsonElement data)
         {
@@ -174,8 +176,8 @@ internal class CodeActionResolveService(
 
     internal readonly struct TestAccessor(CodeActionResolveService instance)
     {
-        public Task<CodeAction> ResolveRazorCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, RazorFormattingOptions options, CancellationToken cancellationToken)
-            => instance.ResolveRazorCodeActionAsync(documentContext, codeAction, resolutionParams, options, cancellationToken);
+        public Task<CodeAction> ResolveRazorCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+            => instance.ResolveRazorCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);
 
         public Task<CodeAction> ResolveCSharpCodeActionAsync(DocumentContext documentContext, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
             => instance.ResolveCSharpCodeActionAsync(documentContext, codeAction, resolutionParams, cancellationToken);

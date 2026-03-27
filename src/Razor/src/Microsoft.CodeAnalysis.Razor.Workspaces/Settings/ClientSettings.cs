@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Internal;
 
@@ -25,6 +26,15 @@ internal record ClientSettings(
     [property: JsonPropertyName("advancedSettings")] ClientAdvancedSettings AdvancedSettings)
 {
     public static readonly ClientSettings Default = new(ClientSpaceSettings.Default, ClientCompletionSettings.Default, ClientAdvancedSettings.Default);
+
+    public RazorFormattingOptions ToRazorFormattingOptions()
+        => new()
+        {
+            InsertSpaces = !ClientSpaceSettings.IndentWithTabs,
+            TabSize = ClientSpaceSettings.IndentSize,
+            CodeBlockBraceOnNextLine = AdvancedSettings.CodeBlockBraceOnNextLine,
+            AttributeIndentStyle = AdvancedSettings.AttributeIndentStyle,
+        };
 }
 
 internal sealed record ClientCompletionSettings(
@@ -36,12 +46,9 @@ internal sealed record ClientCompletionSettings(
 
 internal sealed record ClientSpaceSettings(
     [property: JsonPropertyName("indentWithTabs")] bool IndentWithTabs,
-    int IndentSize)
+    [property: JsonPropertyName("indentSize")] int IndentSize)
 {
     public static readonly ClientSpaceSettings Default = new(IndentWithTabs: false, IndentSize: 4);
-
-    [JsonPropertyName("indentSize")]
-    public int IndentSize { get; } = IndentSize >= 0 ? IndentSize : throw new ArgumentOutOfRangeException(nameof(IndentSize));
 }
 
 internal sealed record ClientAdvancedSettings(
