@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -106,6 +107,57 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                 The end.
                 """,
             codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+
+    [Fact]
+    public Task GenerateMethod_ExistingCodeBlock_UsesTabsWhenConfigured()
+    {
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 4));
+
+        return VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private void M()
+                    {
+                        new Component().$$NewMethod();
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentnName = nameof(Component);
+                }
+
+                The end.
+                """,
+            expectedRazorFile: """
+                @using System
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                @code
+                {
+                    private string componentnName = nameof(Component);
+
+                	internal void NewMethod()
+                	{
+                		throw new NotImplementedException();
+                	}
+                }
+
+                The end.
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateMethod);
+    }
 
     private protected override TestComposition ConfigureLocalComposition(TestComposition composition)
     {

@@ -4,6 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -122,6 +123,30 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
     }
 
     [Fact]
+    public async Task GenerateMethod_FromImplicitExpression_WithoutCodeBlock_UsesTabsWhenConfigured()
+    {
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 4));
+
+        var input = """
+            @New[||]Method()
+            """;
+
+        var expected = """
+            @using System
+            @NewMethod()
+            @code
+            {
+            	private string NewMethod()
+            	{
+            		throw new NotImplementedException();
+            	}
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
     public async Task GenerateMethod_FromImplicitExpression_EmptyCodeBlock()
     {
         var input = """
@@ -142,6 +167,35 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
                 {
                     throw new NotImplementedException();
                 }
+            }
+            """;
+
+        await VerifyCodeActionAsync(input, expected, RazorPredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
+    public async Task GenerateMethod_FromImplicitExpression_EmptyCodeBlock_UsesConfiguredIndentSize()
+    {
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: false, IndentSize: 2));
+
+        var input = """
+            @New[||]Method()
+
+            @code
+            {
+            }
+            """;
+
+        var expected = """
+            @using System
+            @NewMethod()
+
+            @code
+            {
+              private string NewMethod()
+              {
+                throw new NotImplementedException();
+              }
             }
             """;
 

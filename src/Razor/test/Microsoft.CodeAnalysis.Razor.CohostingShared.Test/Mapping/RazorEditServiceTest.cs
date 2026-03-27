@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -202,6 +203,192 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                     }
                 }
                 """);
+
+    [Fact]
+    public Task GenerateMethod_ExistingCodeBlock_UsesTabsWithMixedIndentation()
+    {
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 3));
+
+        return TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private void M()
+                    {
+                        NewMethod();
+                    }|}
+                }
+                """,
+            razorSource: """
+                @code {
+                    {|map1:private void M()
+                    {
+                        NewMethod();
+                    }|}
+                }
+                """,
+            newCSharpSource: """
+                using System;
+
+                class MyComponent : ComponentBase
+                {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                    private void NewMethod()
+                    {
+                        if (true)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @code {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                	private void NewMethod()
+                	{
+                		 if (true)
+                		 {
+                			  throw new NotImplementedException();
+                		 }
+                	}
+                }
+                """);
+    }
+
+    [Fact]
+    public Task GenerateMethod_ExistingCodeBlock_UsesConfiguredTabSizeForTabIndentedSource()
+    {
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 3));
+
+        return TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    {|map1:private void M()
+                    {
+                        NewMethod();
+                    }|}
+                }
+                """,
+            razorSource: """
+                @code {
+                    {|map1:private void M()
+                    {
+                        NewMethod();
+                    }|}
+                }
+                """,
+            newCSharpSource: """
+                using System;
+
+                class MyComponent : ComponentBase
+                {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                	private void NewMethod()
+                	{
+                		if (true)
+                		{
+                			throw new NotImplementedException();
+                		}
+                	}
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @code {
+                    private void M()
+                    {
+                        NewMethod();
+                    }
+
+                	private void NewMethod()
+                	{
+                		if (true)
+                		{
+                			throw new NotImplementedException();
+                		}
+                	}
+                }
+                """);
+    }
+
+    [Fact]
+    public Task GenerateMethod_ExistingCodeBlock_UsesConfiguredSpaceIndentation()
+    {
+        // This test is a test for our indentation handling code, but the end result could be better if we knew what Roslyn
+        // was using as the tabsize for C# files.
+
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: false, IndentSize: 2));
+
+        return TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                  {|map1:private void M()
+                  {
+                    NewMethod();
+                  }|}
+                }
+                """,
+            razorSource: """
+                @code {
+                  {|map1:private void M()
+                  {
+                    NewMethod();
+                  }|}
+                }
+                """,
+            newCSharpSource: """
+                using System;
+
+                class MyComponent : ComponentBase
+                {
+                  private void M()
+                  {
+                    NewMethod();
+                  }
+
+                    private void NewMethod()
+                    {
+                        if (true)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @code {
+                  private void M()
+                  {
+                    NewMethod();
+                  }
+
+                  private void NewMethod()
+                  {
+                      if (true)
+                      {
+                          throw new NotImplementedException();
+                      }
+                  }
+                }
+                """);
+    }
 
     [Fact]
     public Task EditInUnmappedMethod_NotAdded()

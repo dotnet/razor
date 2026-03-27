@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal partial class RazorEditService
 {
-    private static void AddMethodChanges(ref PooledArrayBuilder<RazorTextChange> edits, RazorCodeDocument codeDocument, ImmutableArray<CSharpMethod> addedMethods)
+    private static void AddMethodChanges(ref PooledArrayBuilder<RazorTextChange> edits, RazorCodeDocument codeDocument, ImmutableArray<CSharpMethod> addedMethods, RazorFormattingOptions options)
     {
         if (addedMethods.Length == 0)
         {
@@ -36,7 +36,7 @@ internal partial class RazorEditService
             !csharpCodeBlock.Children.TryGetOpenBraceNode(out var openBrace) ||
             !csharpCodeBlock.Children.TryGetCloseBraceNode(out var closeBrace))
         {
-            AddMethodsInNewCodeBlock(ref edits, codeDocument, addedMethods);
+            AddMethodsInNewCodeBlock(ref edits, codeDocument, addedMethods, options);
             return;
         }
 
@@ -61,7 +61,7 @@ internal partial class RazorEditService
             }
         }
 
-        var methodsText = GetMethodsText(addedMethods, new RazorFormattingOptions());
+        var methodsText = GetMethodsText(addedMethods, options);
         var newText = FormatMethodsInExistingCodeBlock(sourceText, openBraceLine, closeBraceLocation.LineIndex, insertLineIndex, methodsText);
 
         edits.Add(new RazorTextChange()
@@ -71,7 +71,7 @@ internal partial class RazorEditService
         });
     }
 
-    private static void AddMethodsInNewCodeBlock(ref PooledArrayBuilder<RazorTextChange> edits, RazorCodeDocument codeDocument, ImmutableArray<CSharpMethod> methods)
+    private static void AddMethodsInNewCodeBlock(ref PooledArrayBuilder<RazorTextChange> edits, RazorCodeDocument codeDocument, ImmutableArray<CSharpMethod> methods, RazorFormattingOptions options)
     {
         var sourceText = codeDocument.Source.Text;
         var lastLine = sourceText.Lines[^1];
@@ -89,7 +89,7 @@ internal partial class RazorEditService
             : ComponentCodeDirective.Directive.Directive);
         builder.Append('{');
         builder.AppendLine();
-        builder.AppendLine(GetMethodsText(methods, new RazorFormattingOptions()));
+        builder.AppendLine(GetMethodsText(methods, options));
         builder.Append('}');
 
         edits.Add(new RazorTextChange()
@@ -152,7 +152,7 @@ internal partial class RazorEditService
 
         foreach (var line in method.EnumerateLines())
         {
-            var currentIndentation = line.GetIndentationSize(tabSize: 4);
+            var currentIndentation = line.GetIndentationSize(options.TabSize);
 
             if (initialIndentation is null)
             {

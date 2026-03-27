@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Text;
 using RoslynSyntaxNode = Microsoft.CodeAnalysis.SyntaxNode;
 
@@ -22,9 +23,11 @@ namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
 internal partial class RazorEditService(
     IDocumentMappingService documentMappingService,
+    IClientSettingsManager clientSettingsManager,
     ITelemetryReporter telemetryReporter) : IRazorEditService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     /// <summary>
@@ -66,7 +69,8 @@ internal partial class RazorEditService(
         var newCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(newCSharpSourceText);
         var newCSharpSyntaxRoot = await newCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, cancellationToken);
+        var options = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
+        AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, options, cancellationToken);
 
         return NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
     }
@@ -78,6 +82,7 @@ internal partial class RazorEditService(
         SourceText originalCSharpSourceText,
         RoslynSyntaxNode newCSharpSyntaxRoot,
         SourceText newCSharpSourceText,
+        RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
         var oldUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(originalCSharpSyntaxRoot, originalCSharpSourceText);
@@ -92,7 +97,7 @@ internal partial class RazorEditService(
         var newMethods = FindMethods(newCSharpSyntaxRoot, newCSharpSourceText);
         var addedMethods = Delta.Compute(oldMethods, newMethods);
 
-        AddMethodChanges(ref edits, codeDocument, addedMethods);
+        AddMethodChanges(ref edits, codeDocument, addedMethods, options);
     }
 
     /// <summary>
