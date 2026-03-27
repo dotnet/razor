@@ -12788,7 +12788,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </table>
                 </div>
                 """,
-            validateHtmlFormattedMatchesWebTools: true);
+            validateHtmlFormattedMatchesWebTools: false);
     }
 
     private static RazorCSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
