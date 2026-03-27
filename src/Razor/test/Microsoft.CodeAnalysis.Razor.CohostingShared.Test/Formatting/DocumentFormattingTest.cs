@@ -12760,11 +12760,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div class="table-container">
                     <table>
                         <thead>
-                @*
+                            @*
                             <tr class="row-1">
-                                <th>Group A</th>
+                            <th>Group A</th>
                             </tr>
-                 *@
+                            *@
                             <tr>
                                 <th>ID</th>
                             </tr>
@@ -12788,7 +12788,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </table>
                 </div>
                 """,
-            validateHtmlFormattedMatchesWebTools: false);
+            validateHtmlFormattedMatchesWebTools: true);
     }
 
     private static RazorCSharpSyntaxFormattingOptions GetNewLineBeforeBraceInLambdaExpressionOptions(bool newLineBeforeBraceInLambda)
