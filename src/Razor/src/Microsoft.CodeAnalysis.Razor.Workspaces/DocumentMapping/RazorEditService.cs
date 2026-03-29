@@ -30,14 +30,6 @@ internal partial class RazorEditService(
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
-    /// <summary>
-    /// Maps the given text edits for a razor file based on changes in csharp. It special
-    /// cases usings directives to insure they are added correctly. All other edits
-    /// are applied if they map to the razor document.
-    /// </summary>
-    /// <remarks>
-    /// Note that the changes coming in are in the generated C# file. This method will map them appropriately.
-    /// </remarks>
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         ImmutableArray<RazorTextChange> textChanges,
         IDocumentSnapshot snapshot,
