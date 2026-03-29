@@ -66,7 +66,11 @@ internal partial class RazorEditService
 
         edits.Add(new RazorTextChange()
         {
-            Span = new TextSpan(insertAbsoluteIndex, 0).ToRazorTextSpan(),
+            Span = new RazorTextSpan
+            {
+                Start = insertAbsoluteIndex,
+                Length = 0
+            },
             NewText = newText
         });
     }
@@ -103,7 +107,11 @@ internal partial class RazorEditService
 
         edits.Add(new RazorTextChange()
         {
-            Span = new TextSpan(lastLine.End, 0).ToRazorTextSpan(),
+            Span = new RazorTextSpan
+            {
+                Start = lastLine.End,
+                Length = 0
+            },
             NewText = builder.ToString()
         });
     }

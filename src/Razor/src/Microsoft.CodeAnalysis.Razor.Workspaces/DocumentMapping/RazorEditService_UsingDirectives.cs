@@ -84,7 +84,7 @@ internal partial class RazorEditService
             var newText = GetUsingsText(usingDirectives: [], addedUsings, removedUsings: []);
             edits.Add(new RazorTextChange()
             {
-                Span = span.ToRazorTextSpan(),
+                Span = span,
                 NewText = newText
             });
 
@@ -93,7 +93,7 @@ internal partial class RazorEditService
 
         AddNewUsingsToBlock(ref edits, firstBlockOfUsings, addedUsings);
 
-        static TextSpan FindFirstTopLevelSpotForUsing(RazorCodeDocument codeDocument)
+        static RazorTextSpan FindFirstTopLevelSpotForUsing(RazorCodeDocument codeDocument)
         {
             var root = codeDocument.GetRequiredSyntaxRoot();
             var nodeToInsertAfter = root
@@ -105,11 +105,15 @@ internal partial class RazorEditService
 
             if (nodeToInsertAfter is null)
             {
-                return new TextSpan();
+                return new RazorTextSpan();
             }
 
             var start = nodeToInsertAfter.Span.End;
-            return new TextSpan(start, 0);
+            return new RazorTextSpan
+            {
+                Start = start,
+                Length = 0
+            };
         }
 
         void AddNewUsingsToBlock(ref PooledArrayBuilder<RazorTextChange> edits, ImmutableArray<RazorUsingDirectiveSyntax> existingUsings, ImmutableArray<string> addedUsings)
@@ -163,10 +167,9 @@ internal partial class RazorEditService
 
             endPosition = AdjustPositionToEndOfLine(endPosition, codeDocument.Source.Text);
 
-            var span = TextSpan.FromBounds(startPosition, endPosition);
             edits.Add(new RazorTextChange()
             {
-                Span = span.ToRazorTextSpan(),
+                Span = RazorTextSpan.FromBounds(startPosition, endPosition),
                 NewText = builder.ToString()
             });
         }
@@ -208,11 +211,10 @@ internal partial class RazorEditService
 
         endPosition = AdjustPositionToEndOfLine(endPosition, codeDocument.Source.Text);
 
-        var span = TextSpan.FromBounds(startPosition, endPosition);
         var newText = GetUsingsText(firstBlockOfUsings, addedUsings, removedUsings);
         edits.Add(new RazorTextChange()
         {
-            Span = span.ToRazorTextSpan(),
+            Span = RazorTextSpan.FromBounds(startPosition, endPosition),
             NewText = newText
         });
 
@@ -227,10 +229,9 @@ internal partial class RazorEditService
     {
         var start = node.Span.Start;
         var end = AdjustPositionToEndOfLine(node.Span.End, text);
-        var removeSpan = TextSpan.FromBounds(start, end);
         edits.Add(new RazorTextChange()
         {
-            Span = removeSpan.ToRazorTextSpan(),
+            Span = RazorTextSpan.FromBounds(start, end),
             NewText = ""
         });
     }

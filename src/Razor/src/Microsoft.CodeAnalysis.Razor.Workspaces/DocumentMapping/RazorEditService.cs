@@ -248,7 +248,7 @@ internal partial class RazorEditService(
             // below for a more info.
             return new RazorTextChange()
             {
-                Span = TextSpan.FromBounds(hostStartIndex, hostEndIndex).ToRazorTextSpan(),
+                Span = RazorTextSpan.FromBounds(hostStartIndex, hostEndIndex),
                 NewText = (lastNewLineAddedToLine == startLine ? " " : "") + newText
             };
         }
@@ -285,7 +285,7 @@ internal partial class RazorEditService(
             {
                 return new RazorTextChange()
                 {
-                    Span = TextSpan.FromBounds(hostStartIndex, hostEndIndex).ToRazorTextSpan(),
+                    Span = RazorTextSpan.FromBounds(hostStartIndex, hostEndIndex),
                     NewText = newText[lastNewLine..]
                 };
             }
@@ -309,7 +309,7 @@ internal partial class RazorEditService(
                 var firstNewLine = newText.IndexOfAny(['\n', '\r']);
                 return new RazorTextChange()
                 {
-                    Span = TextSpan.FromBounds(hostStartIndex, hostEndIndex).ToRazorTextSpan(),
+                    Span = RazorTextSpan.FromBounds(hostStartIndex, hostEndIndex),
                     NewText = firstNewLine >= 0
                         ? newText[..firstNewLine]
                         : newText
@@ -366,7 +366,11 @@ internal partial class RazorEditService(
                     // will have swallowed it.
                     return new RazorTextChange()
                     {
-                        Span = new TextSpan(hostEndIndex, 0).ToRazorTextSpan(),
+                        Span = new RazorTextSpan
+                        {
+                            Start = hostEndIndex,
+                            Length = 0
+                        },
                         NewText = " " + newText
                     };
                 }
@@ -375,7 +379,11 @@ internal partial class RazorEditService(
                 lastNewLineAddedToLine = startLine;
                 return new RazorTextChange()
                 {
-                    Span = new TextSpan(hostEndIndex, 0).ToRazorTextSpan(),
+                    Span = new RazorTextSpan
+                    {
+                        Start = hostEndIndex,
+                        Length = 0
+                    },
                     NewText = " " + Environment.NewLine + new string(' ', startChar) + newText
                 };
             }
