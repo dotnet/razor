@@ -21,12 +21,12 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 [Shared]
 [Export(typeof(IRazorCohostStartupService))]
 [method: ImportingConstructor]
-internal class VSCodeRemoteServicesInitializer(
+internal sealed class VSCodeRemoteServicesInitializer(
     LanguageServerFeatureOptions featureOptions,
     ISemanticTokensLegendService semanticTokensLegendService,
     IWorkspaceProvider workspaceProvider,
     IClientSettingsManager clientSettingsManager,
-    ILoggerFactory loggerFactory) : IRazorCohostStartupService
+    ILoggerFactory loggerFactory) : IRazorCohostStartupService, IDisposable
 {
     private readonly LanguageServerFeatureOptions _featureOptions = featureOptions;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
@@ -69,6 +69,11 @@ internal class VSCodeRemoteServicesInitializer(
         _clientSettingsService = await InProcServiceFactory.CreateServiceAsync<IRemoteClientSettingsService>(serviceInterceptor, _workspaceProvider, _loggerFactory).ConfigureAwait(false);
         // Client settings are initialized after this service, so there is no point updating settings at startup.
         _clientSettingsManager.ClientSettingsChanged += ClientSettingsManager_ClientSettingsChanged;
+    }
+
+    public void Dispose()
+    {
+        _clientSettingsManager?.ClientSettingsChanged -= ClientSettingsManager_ClientSettingsChanged;
     }
 
     private void ClientSettingsManager_ClientSettingsChanged(object? sender, EventArgs e)
