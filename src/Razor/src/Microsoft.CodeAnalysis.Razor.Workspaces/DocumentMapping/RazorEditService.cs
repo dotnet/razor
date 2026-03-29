@@ -42,8 +42,8 @@ internal partial class RazorEditService(
         using var edits = new PooledArrayBuilder<RazorTextChange>();
         AddDirectlyMappedEdits(ref edits.AsRef(), textChanges, codeDocument, cancellationToken, out var skippedEdits);
 
-        // If everything was successfully mapped, then we're done
-        if (skippedEdits.Length == 0)
+        // If we're not doing extra work for unmapped changes, or everything was successfully mapped, then we're done
+        if (!includeCSharpLanguageFeatureEdits || skippedEdits.Length == 0)
         {
             return NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
         }
