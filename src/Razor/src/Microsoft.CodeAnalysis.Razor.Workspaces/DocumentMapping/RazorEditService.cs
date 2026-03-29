@@ -198,6 +198,11 @@ internal partial class RazorEditService(
                 new Property("droppedEditCount", droppedEdits));
         }
 
+        if (normalizedChanges.Count == changes.Length)
+        {
+            return changes;
+        }
+
         return normalizedChanges.ToImmutable();
     }
 
