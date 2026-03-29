@@ -219,13 +219,14 @@ internal partial class RazorEditService(
 
     private RazorTextChange? TryGetMappedEdit(
         RazorCSharpDocument csharpDocument,
-        SourceText csharpSourceText,
         RazorTextChange change,
         ref int lastNewLineAddedToLine)
     {
         var spanStart = change.Span.Start;
         var spanEnd = spanStart + change.Span.Length;
         var newText = change.NewText ?? "";
+
+        var csharpSourceText = csharpDocument.Text;
 
         // Deliberately doing a naive check to avoid telemetry for truly bad data
         if (spanStart <= 0 || spanStart >= csharpSourceText.Length || spanEnd <= 0 || spanEnd >= csharpSourceText.Length)
@@ -398,7 +399,6 @@ internal partial class RazorEditService(
     {
         var root = codeDocument.GetRequiredSyntaxRoot();
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
-        var csharpSourceText = csharpDocument.Text;
         var lastNewLineAddedToLine = 0;
         using var skipped = new PooledArrayBuilder<RazorTextChange>();
 
@@ -406,7 +406,10 @@ internal partial class RazorEditService(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (TryGetMappedEdit(csharpDocument, csharpSourceText, csharpEdit, ref lastNewLineAddedToLine) is not { } mappedEdit)
+            // First try to map the edit directly from the generated C# document to the Razor document, as that means it can be applied
+            // directly. There is some special handling in here for edits where only one end can be mapped, but in general if we can't
+            // directly map the edit then we skip it and handle it later with more complex processing.
+            if (TryGetMappedEdit(csharpDocument, csharpEdit, ref lastNewLineAddedToLine) is not { } mappedEdit)
             {
                 skipped.Add(csharpEdit);
                 continue;
