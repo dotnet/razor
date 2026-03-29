@@ -105,13 +105,12 @@ internal class CodeActionResolveService(
             return codeAction;
         }
 
-        var options = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
-
         if (resolutionParams.Data is not JsonElement data)
         {
             return codeAction;
         }
 
+        var options = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
         var edit = await resolver.ResolveAsync(documentContext, data, options, cancellationToken).ConfigureAwait(false);
         codeAction.Edit = edit;
         return codeAction;
