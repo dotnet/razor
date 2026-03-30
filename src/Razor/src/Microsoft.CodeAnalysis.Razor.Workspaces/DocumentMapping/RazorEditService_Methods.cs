@@ -45,11 +45,12 @@ internal partial class RazorEditService
         var sourceText = source.Text;
         var openBraceLine = openBrace.GetSourceLocation(source).LineIndex;
         var closeBraceLocation = closeBrace.GetSourceLocation(source);
+        var closeBraceLine = closeBraceLocation.LineIndex;
 
         var insertAbsoluteIndex = closeBraceLocation.AbsoluteIndex;
-        var insertLineIndex = closeBraceLocation.LineIndex;
+        var insertLineIndex = closeBraceLine;
 
-        if (openBraceLine != closeBraceLocation.LineIndex && closeBraceLocation.AbsoluteIndex > 0)
+        if (openBraceLine != closeBraceLine && closeBraceLocation.AbsoluteIndex > 0)
         {
             var previousLineAbsoluteIndex = closeBraceLocation.AbsoluteIndex - closeBraceLocation.CharacterIndex - 1;
             var previousLinePosition = sourceText.GetLinePosition(previousLineAbsoluteIndex);
@@ -63,8 +64,7 @@ internal partial class RazorEditService
         }
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        AppendMethodsText(builder, addedMethods, options);
-        FormatMethodsInExistingCodeBlock(sourceText, builder, openBraceLine, closeBraceLocation.LineIndex, insertLineIndex);
+        AddMethodsInExistingCodeBlock(builder, sourceText, addedMethods, options, openBraceLine, closeBraceLine, insertLineIndex);
 
         edits.Add(new RazorTextChange()
         {
@@ -119,29 +119,20 @@ internal partial class RazorEditService
         });
     }
 
-    private static void FormatMethodsInExistingCodeBlock(SourceText sourceText, StringBuilder builder, int openBraceLineIndex, int closeBraceLineIndex, int insertLineIndex)
+    private static void AddMethodsInExistingCodeBlock(StringBuilder builder, SourceText sourceText, ImmutableArray<CSharpMethod> addedMethods, RazorFormattingOptions options, int openBraceLineIndex, int closeBraceLineIndex, int insertLineIndex)
     {
-        if (openBraceLineIndex == closeBraceLineIndex)
-        {
-            builder.Insert(0, Environment.NewLine);
-            builder.AppendLine();
-            return;
-        }
-
-        if (insertLineIndex == closeBraceLineIndex)
+        var lineAboveInsertionIsNotEmpty = insertLineIndex - 1 != openBraceLineIndex &&
+            !IsLineEmpty(sourceText.Lines[insertLineIndex - 1]);
+        if (openBraceLineIndex == closeBraceLineIndex || lineAboveInsertionIsNotEmpty)
         {
             builder.AppendLine();
         }
 
-        if (insertLineIndex - 1 == openBraceLineIndex)
-        {
-            return;
-        }
+        AppendMethodsText(builder, addedMethods, options);
 
-        var previousLine = sourceText.Lines[insertLineIndex - 1];
-        if (!IsLineEmpty(previousLine))
+        if (openBraceLineIndex == closeBraceLineIndex || insertLineIndex == closeBraceLineIndex)
         {
-            builder.Insert(0, Environment.NewLine);
+            builder.AppendLine();
         }
     }
 
@@ -169,7 +160,8 @@ internal partial class RazorEditService
         int? initialIndentation = null;
         var sourceText = method.Text;
 
-        for (var i = method.GetStartLineNumber(); i <= method.GetEndLineNumber(); i++)
+        var endLine = method.GetEndLineNumber();
+        for (var i = method.GetStartLineNumber(); i <= endLine; i++)
         {
             var line = sourceText.Lines[i];
             var currentIndentation = line.GetIndentationSize(options.TabSize);
