@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -61,8 +62,9 @@ internal partial class RazorEditService
             }
         }
 
-        var methodsText = GetMethodsText(addedMethods, options);
-        var newText = FormatMethodsInExistingCodeBlock(sourceText, openBraceLine, closeBraceLocation.LineIndex, insertLineIndex, methodsText);
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        AppendMethodsText(builder, addedMethods, options);
+        FormatMethodsInExistingCodeBlock(sourceText, builder, openBraceLine, closeBraceLocation.LineIndex, insertLineIndex);
 
         edits.Add(new RazorTextChange()
         {
@@ -71,7 +73,7 @@ internal partial class RazorEditService
                 Start = insertAbsoluteIndex,
                 Length = 0
             },
-            NewText = newText
+            NewText = builder.ToString()
         });
     }
 
@@ -102,7 +104,8 @@ internal partial class RazorEditService
 
         builder.Append('{');
         builder.AppendLine();
-        builder.AppendLine(GetMethodsText(methods, options));
+        AppendMethodsText(builder, methods, options);
+        builder.AppendLine();
         builder.Append('}');
 
         edits.Add(new RazorTextChange()
@@ -116,51 +119,50 @@ internal partial class RazorEditService
         });
     }
 
-    private static string FormatMethodsInExistingCodeBlock(SourceText sourceText, int openBraceLineIndex, int closeBraceLineIndex, int insertLineIndex, string methodsText)
+    private static void FormatMethodsInExistingCodeBlock(SourceText sourceText, StringBuilder builder, int openBraceLineIndex, int closeBraceLineIndex, int insertLineIndex)
     {
         if (openBraceLineIndex == closeBraceLineIndex)
         {
-            return $"{Environment.NewLine}{methodsText}{Environment.NewLine}";
+            builder.Insert(0, Environment.NewLine);
+            builder.AppendLine();
+            return;
         }
 
         if (insertLineIndex == closeBraceLineIndex)
         {
-            methodsText += Environment.NewLine;
+            builder.AppendLine();
         }
 
         if (insertLineIndex - 1 == openBraceLineIndex)
         {
-            return methodsText;
+            return;
         }
 
         var previousLine = sourceText.Lines[insertLineIndex - 1];
         if (!IsLineEmpty(previousLine))
         {
-            methodsText = $"{Environment.NewLine}{methodsText}";
+            builder.Insert(0, Environment.NewLine);
         }
-
-        return methodsText;
     }
 
-    private static string GetMethodsText(ImmutableArray<CSharpMethod> methods, RazorFormattingOptions options)
+    private static void AppendMethodsText(StringBuilder builder, ImmutableArray<CSharpMethod> methods, RazorFormattingOptions options)
     {
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
-
+        var first = true;
         foreach (var method in methods)
         {
-            if (builder.Length > 0)
+            if (!first)
             {
                 builder.AppendLine();
                 builder.AppendLine();
             }
 
+            first = true;
+
             AppendIndentedMethod(builder, method, options);
         }
-
-        return builder.ToString();
     }
 
-    private static void AppendIndentedMethod(System.Text.StringBuilder builder, CSharpMethod method, RazorFormattingOptions options)
+    private static void AppendIndentedMethod(StringBuilder builder, CSharpMethod method, RazorFormattingOptions options)
     {
         // Roslyn will have indented the method by an appropriate amount for the generated file, but we need it to be placed nicely in the Razor
         // file, so we add each line of the method one at a time, adjusting the indentation as we go.
