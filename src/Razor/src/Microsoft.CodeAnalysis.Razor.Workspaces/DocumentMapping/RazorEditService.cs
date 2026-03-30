@@ -374,8 +374,8 @@ internal partial class RazorEditService(
 
                 // Otherwise, add a newline and the real content, and remember where we added it
                 lastNewLineAddedToLine = startLine;
-                // Tab size is not used since we only want spaces, so passing 0 is fine.
-                var indent = FormattingUtilities.GetIndentationString(startChar, insertSpaces: true, tabSize: 0);
+                // Tab size is irrelevant when inserting spaces, but the helper requires a positive value.
+                var indent = FormattingUtilities.GetIndentationString(startChar, insertSpaces: true, tabSize: 1);
                 return new RazorTextChange()
                 {
                     Span = new RazorTextSpan
