@@ -265,7 +265,7 @@ internal partial class RazorEditService(
             // important, so we make sure that the text before the last line is all whitespace. If not, we'll let the
             // skipped edit handling deal with this change. The C# formatter doesn't produce this sort of change due
             // to the other processes the edits go through before they get to us.
-            if (lastNewLine != 0 && newText[..(lastNewLine - 1)].Any(static c => !char.IsWhiteSpace(c)))
+            if (lastNewLine != 0 && ContainsNonWhitespaceBefore(newText, lastNewLine))
             {
                 return null;
             }
@@ -389,6 +389,21 @@ internal partial class RazorEditService(
         }
 
         return null;
+    }
+
+    private static bool ContainsNonWhitespaceBefore(string newText, int lastNewLine)
+    {
+        var span = newText.AsSpan();
+
+        for (var i = 0; i < lastNewLine; i++)
+        {
+            if (!char.IsWhiteSpace(span[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
