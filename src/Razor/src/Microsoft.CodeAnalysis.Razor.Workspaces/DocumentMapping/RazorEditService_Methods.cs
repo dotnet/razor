@@ -169,8 +169,9 @@ internal partial class RazorEditService
         int? initialIndentation = null;
         var sourceText = method.Text;
 
-        foreach (var line in method.EnumerateLines())
+        for (var i = method.GetStartLineNumber(); i <= method.GetEndLineNumber(); i++)
         {
+            var line = sourceText.Lines[i];
             var currentIndentation = line.GetIndentationSize(options.TabSize);
 
             if (initialIndentation is null)
@@ -249,17 +250,12 @@ internal partial class RazorEditService
             return 0;
         }
 
-        public IEnumerable<TextLine> EnumerateLines()
-        {
-            // We don't want trivia, because it will include generated artifacts like #line directives, so using Span instead of FullSpan is deliberate
+        // We don't want trivia, because it will include generated artifacts like #line directives, so using Span instead of FullSpan in the two
+        // methods below is deliberate
+        public int GetStartLineNumber()
+            => Text.Lines.GetLineFromPosition(Method.SpanStart).LineNumber;
 
-            var firstLineNumber = Text.Lines.GetLineFromPosition(Method.SpanStart).LineNumber;
-            var lastLineNumber = Text.Lines.GetLineFromPosition(Math.Max(Method.SpanStart, Method.Span.End - 1)).LineNumber;
-
-            for (var i = firstLineNumber; i <= lastLineNumber; i++)
-            {
-                yield return Text.Lines[i];
-            }
-        }
+        public int GetEndLineNumber()
+            => Text.Lines.GetLineFromPosition(Math.Max(Method.SpanStart, Method.Span.End - 1)).LineNumber;
     }
 }
