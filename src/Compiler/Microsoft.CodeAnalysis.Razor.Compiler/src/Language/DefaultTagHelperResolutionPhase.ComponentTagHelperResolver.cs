@@ -116,7 +116,7 @@ internal partial class DefaultTagHelperResolutionPhase
         }
 
         /// <summary>
-        /// Resolves a unresolved attribute against the tag helper binding for a component element.
+        /// Resolves an unresolved attribute against the tag helper binding for a component element.
         /// Handles directive attributes (e.g., <c>@bind-Value</c>), regular bound properties,
         /// and unbound HTML attributes. Directive attributes require additional processing for
         /// parameter matches, mixed content detection, and bind:get/set wrapping.
@@ -139,15 +139,7 @@ internal partial class DefaultTagHelperResolutionPhase
 
             if (hasMatches && !isDuplicateBound)
             {
-                var hasDirectiveMatch = false;
-                foreach (var m in matches)
-                {
-                    if (m.Attribute.IsDirectiveAttribute)
-                    {
-                        hasDirectiveMatch = true;
-                        break;
-                    }
-                }
+                var hasDirectiveMatch = matches.Any(static m => m.Attribute.IsDirectiveAttribute);
 
                 foreach (var match in matches)
                 {
@@ -190,12 +182,12 @@ internal partial class DefaultTagHelperResolutionPhase
             var directiveAttributeName = new DirectiveAttributeName(attributeName);
             var nameSpan = unresolvedAttr.AttributeNameSpan;
             var directiveNameSpan = nameSpan;
-            if (directiveNameSpan is SourceSpan ns && attributeName.StartsWith("@", StringComparison.Ordinal))
+            if (directiveNameSpan is SourceSpan ns && attributeName.StartsWith('@'))
             {
                 directiveNameSpan = new SourceSpan(ns.FilePath, ns.AbsoluteIndex + 1, ns.LineIndex, ns.CharacterIndex + 1, ns.Length - 1, ns.LineCount, ns.EndCharacterIndex);
             }
 
-            // Fix 4: Strip parameter suffix from OriginalAttributeSpan for parameter matches
+            // Strip parameter suffix from OriginalAttributeSpan for parameter matches
             var parameterOriginalSpan = directiveNameSpan;
             if (match.IsParameterMatch && directiveAttributeName.HasParameter && parameterOriginalSpan is SourceSpan ps)
             {
@@ -225,7 +217,6 @@ internal partial class DefaultTagHelperResolutionPhase
                 // Try unresolved children for MIXED string content (literal + expressions).
                 // This avoids MarkupBlock issues from LowerAttributeValue.
                 var htmlAttrChild = unresolvedAttr.HtmlAttributeNode;
-                var hasMixedStringContent = false;
                 if (htmlAttrChild != null)
                 {
                     // Check if it has both literal and expression children.
@@ -244,11 +235,8 @@ internal partial class DefaultTagHelperResolutionPhase
                         }
                     }
 
-                    hasMixedStringContent = hasLiteral && hasExpression;
-                }
+                    var hasMixedStringContent = hasLiteral && hasExpression;
 
-                if (htmlAttrChild != null)
-                {
                     if (hasMixedStringContent && match.ExpectsStringValue)
                     {
                         // Use unresolved string path for mixed content -- produces correct HtmlContent + CSharpExpression.
@@ -296,12 +284,8 @@ internal partial class DefaultTagHelperResolutionPhase
                     directiveNode.Children[0] is not CSharpExpressionIntermediateNode)
                 {
                     var expr = new CSharpExpressionIntermediateNode();
-                    while (directiveNode.Children.Count > 0)
-                    {
-                        var child = directiveNode.Children[0];
-                        directiveNode.Children.RemoveAt(0);
-                        expr.Children.Add(child);
-                    }
+                    expr.Children.AddRange(directiveNode.Children);
+                    directiveNode.Children.Clear();
                     expr.Source = expr.Children.Count > 0 ? expr.Children[0].Source : directiveNode.Source;
                     directiveNode.Children.Add(expr);
                 }
@@ -386,10 +370,7 @@ internal partial class DefaultTagHelperResolutionPhase
             if (!unresolvedAttr.IsMinimized && unresolvedAttr.AsTagHelperAttribute is HtmlAttributeIntermediateNode fallbackAttr)
             {
                 // Use the pre-lowered fallback form's value children.
-                foreach (var fallbackChild in fallbackAttr.Children)
-                {
-                    htmlAttrNode.Children.Add(fallbackChild);
-                }
+                htmlAttrNode.Children.AddRange(fallbackAttr.Children);
 
                 // For duplicate bound directive attributes (e.g. second @formname="@y"),
                 // convert CSharpExpressionAttributeValue to CSharpExpression.
@@ -441,7 +422,7 @@ internal partial class DefaultTagHelperResolutionPhase
                         // first token and reuse it (avoiding double-wrapping).
                         if (csharpExprAttrValue.Children is [CSharpExpressionIntermediateNode innerExpr])
                         {
-                            if (innerExpr.Children.Count > 0 && innerExpr.Children[0] is CSharpIntermediateToken firstToken)
+                            if (innerExpr.Children is [CSharpIntermediateToken firstToken, ..])
                             {
                                 innerExpr.Children[0] = new CSharpIntermediateToken(
                                     csharpExprAttrValue.Prefix + "@" + firstToken.Content, firstToken.Source);
@@ -483,10 +464,7 @@ internal partial class DefaultTagHelperResolutionPhase
                         {
                             // CSharpExpressionAttributeValue -> CSharpExpression (always wrapped)
                             var expr = new CSharpExpressionIntermediateNode() { Source = csharpExprAttrValue.Source };
-                            foreach (var token in csharpExprAttrValue.Children)
-                            {
-                                expr.Children.Add(token);
-                            }
+                            expr.Children.AddRange(csharpExprAttrValue.Children);
 
                             newChildren.Add(expr);
                         }
@@ -496,10 +474,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     // CSharpCodeAttributeValue -> CSharpExpression (always wrapped)
                     var expr = new CSharpExpressionIntermediateNode() { Source = csharpCodeAttrValue.Source };
-                    foreach (var token in csharpCodeAttrValue.Children)
-                    {
-                        expr.Children.Add(token);
-                    }
+                    expr.Children.AddRange(csharpCodeAttrValue.Children);
 
                     newChildren.Add(expr);
                 }
@@ -843,8 +818,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     var htmlContent = new HtmlContentIntermediateNode();
                     var prefix = htmlAttrValue.Prefix;
 
-                    if (!string.IsNullOrEmpty(prefix) && htmlAttrValue.Children.Count > 0 &&
-                        htmlAttrValue.Children[0] is IntermediateToken firstToken)
+                    if (!string.IsNullOrEmpty(prefix) && htmlAttrValue.Children is [IntermediateToken firstToken, ..])
                     {
                         var mergedContent = prefix + firstToken.Content;
                         var mergedSource = ExtendSpanBackward(firstToken.Source, prefix.Length);
@@ -862,10 +836,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     else
                     {
                         htmlContent.Source = htmlAttrValue.Source;
-                        foreach (var token in htmlAttrValue.Children)
-                        {
-                            htmlContent.Children.Add(token);
-                        }
+                        htmlContent.Children.AddRange(htmlAttrValue.Children);
                     }
 
                     node.Children[i] = htmlContent;
@@ -874,10 +845,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     // Convert CSharpCodeAttributeValue to CSharpCode.
                     var csharpCode = new CSharpCodeIntermediateNode() { Source = csharpCodeAttrValue.Source };
-                    foreach (var token in csharpCodeAttrValue.Children)
-                    {
-                        csharpCode.Children.Add(token);
-                    }
+                    csharpCode.Children.AddRange(csharpCodeAttrValue.Children);
                     csharpCode.Source = csharpCode.Children.Count > 0 ? csharpCode.Children[0].Source : csharpCodeAttrValue.Source;
 
                     node.Children[i] = csharpCode;
@@ -886,10 +854,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     // Convert MarkupBlock to HtmlContent.
                     var htmlContent = new HtmlContentIntermediateNode() { Source = markupBlock.Source };
-                    foreach (var token in markupBlock.Children)
-                    {
-                        htmlContent.Children.Add(token);
-                    }
+                    htmlContent.Children.AddRange(markupBlock.Children);
 
                     node.Children[i] = htmlContent;
                 }
@@ -954,7 +919,7 @@ internal partial class DefaultTagHelperResolutionPhase
                             // the attribute name WITHOUT the leading '@' (e.g., "bind-Value" not "@bind-Value").
                             // Downstream passes like ComponentBindLoweringPass offset from this span.
                             var directiveNameSpan = attributeNameSpan;
-                            if (directiveNameSpan is SourceSpan nameSpan && attributeName.StartsWith("@", StringComparison.Ordinal))
+                            if (directiveNameSpan is SourceSpan nameSpan && attributeName.StartsWith('@'))
                             {
                                 directiveNameSpan = new SourceSpan(
                                     nameSpan.FilePath,
@@ -1023,10 +988,7 @@ internal partial class DefaultTagHelperResolutionPhase
                         AttributeStructure = InferAttributeStructure(htmlAttr),
                     };
 
-                    foreach (var child in htmlAttr.Children)
-                    {
-                        thHtml.Children.Add(child);
-                    }
+                    thHtml.Children.AddRange(htmlAttr.Children);
 
                     // Convert CSharpExpressionAttributeValue to CSharpExpression for unbound
                     // attributes that have expression values (e.g. duplicate @formname="@y").
@@ -1052,9 +1014,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 // Merge all literal pieces (including their prefixes) into a single HtmlContent.
                 var mergedContent = new HtmlContentIntermediateNode()
                 {
-                    Source = source.Source is { } s
-                        ? new SourceSpan(s.FilePath, s.AbsoluteIndex, s.LineIndex, s.CharacterIndex, s.Length, s.LineCount, s.EndCharacterIndex)
-                        : null,
+                    Source = source.Source,
                 };
 
                 using var contentParts = new PooledArrayBuilder<string>();
@@ -1073,7 +1033,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 if (spanSource is { } fs)
                 {
                     // Span from first value start to end of the full attribute value
-                    var totalLength = source.Children[source.Children.Count - 1] is HtmlAttributeValueIntermediateNode lastValue && lastValue.Source is { } ls
+                    var totalLength = source.Children[^1] is HtmlAttributeValueIntermediateNode lastValue && lastValue.Source is { } ls
                         ? (ls.AbsoluteIndex + ls.Length) - fs.AbsoluteIndex
                         : mergedText.Length;
                     spanSource = new SourceSpan(fs.FilePath, fs.AbsoluteIndex, fs.LineIndex, fs.CharacterIndex, totalLength, fs.LineCount, fs.EndCharacterIndex);
@@ -1097,23 +1057,14 @@ internal partial class DefaultTagHelperResolutionPhase
                         Source = htmlValue.Source,
                     };
 
-                    foreach (var valueChild in htmlValue.Children)
-                    {
-                        htmlContent.Children.Add(valueChild);
-                    }
+                    htmlContent.Children.AddRange(htmlValue.Children);
 
                     target.Children.Add(htmlContent);
                 }
-                else if (child is CSharpExpressionAttributeValueIntermediateNode csharpExprValue)
+                else if (child is CSharpExpressionAttributeValueIntermediateNode or CSharpCodeAttributeValueIntermediateNode)
                 {
-                    // Expression value path: VisitAttributeValue -> CSharpExpressionLiteral -> VisitCSharpExpressionLiteral
-                    // produces direct CSharpIntermediateToken (no wrapper node).
-                    FlattenToDirectCSharpTokens(csharpExprValue, target);
-                }
-                else if (child is CSharpCodeAttributeValueIntermediateNode csharpCodeValue)
-                {
-                    // Code value: also flatten to direct tokens.
-                    FlattenToDirectCSharpTokens(csharpCodeValue, target);
+                    // Expression/code value: flatten to direct CSharp tokens.
+                    FlattenToDirectCSharpTokens(child, target);
                 }
                 else
                 {
@@ -1159,7 +1110,7 @@ internal partial class DefaultTagHelperResolutionPhase
         private static SourceSpan? ComputeAttributeValueSpan(HtmlAttributeIntermediateNode htmlAttr)
         {
             // Try to get the value span directly from the children, which is more accurate.
-            if (htmlAttr.Children.Count > 0 && htmlAttr.Children[0].Source is SourceSpan childSource)
+            if (htmlAttr.Children is [{ Source: SourceSpan childSource }, ..])
             {
                 // If there's a single child, use its source. For multiple children, merge spans.
                 if (htmlAttr.Children.Count == 1)
@@ -1168,7 +1119,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 }
 
                 // Merge spans of all children.
-                var lastChild = htmlAttr.Children[htmlAttr.Children.Count - 1];
+                var lastChild = htmlAttr.Children[^1];
                 if (lastChild.Source is SourceSpan lastSource)
                 {
                     var endIndex = lastSource.AbsoluteIndex + lastSource.Length;
@@ -1233,23 +1184,14 @@ internal partial class DefaultTagHelperResolutionPhase
                 //   @onclick:preventDefault (with parameter)
 
                 // Strip leading @
-                var span = fullAttributeName.StartsWith("@", StringComparison.Ordinal)
+                var span = fullAttributeName.StartsWith('@')
                     ? fullAttributeName.Substring(1)
                     : fullAttributeName;
 
                 var colonIndex = span.IndexOf(':');
-                if (colonIndex >= 0)
-                {
-                    TextWithoutParameter = span.Substring(0, colonIndex);
-                    HasParameter = true;
-                    Text = span;
-                }
-                else
-                {
-                    TextWithoutParameter = span;
-                    HasParameter = false;
-                    Text = span;
-                }
+                HasParameter = colonIndex >= 0;
+                TextWithoutParameter = HasParameter ? span[..colonIndex] : span;
+                Text = span;
             }
         }
 

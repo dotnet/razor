@@ -98,7 +98,7 @@ internal partial class DefaultTagHelperResolutionPhase
         }
 
         /// <summary>
-        /// Resolves a unresolved attribute against the tag helper binding for a legacy (non-component)
+        /// Resolves an unresolved attribute against the tag helper binding for a legacy (non-component)
         /// tag helper. If the attribute matches a bound property, creates a <see cref="TagHelperPropertyIntermediateNode"/>
         /// with appropriately lowered value children. Otherwise, creates a <see cref="TagHelperHtmlAttributeIntermediateNode"/>.
         /// </summary>
@@ -114,6 +114,9 @@ internal partial class DefaultTagHelperResolutionPhase
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
             TagHelperMatchingConventions.GetAttributeMatches(binding.TagHelpers, attributeName, ref matches.AsRef());
 
+            // Track this attribute name to detect duplicates. The Add call intentionally
+            // uses short-circuit evaluation: if there are no matches, we skip adding so
+            // a later minimized attribute with the same name can still match.
             if (!matches.Any() || !renderedBoundAttributeNames.Add(attributeName))
             {
                 // Not bound -- convert unresolved children to TagHelperHtmlAttribute.
@@ -261,6 +264,7 @@ internal partial class DefaultTagHelperResolutionPhase
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
             TagHelperMatchingConventions.GetAttributeMatches(binding.TagHelpers, attributeName, ref matches.AsRef());
 
+            // Add returns false for duplicates — only the first match for each name gets converted.
             if (matches.Any() && renderedBoundAttributeNames.Add(attributeName))
             {
                 foreach (var match in matches)
@@ -299,26 +303,18 @@ internal partial class DefaultTagHelperResolutionPhase
             }
             else
             {
-                if (attributeStructure == AttributeStructure.Minimized)
+                var htmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
                 {
-                    var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
-                    {
-                        AttributeName = attributeName,
-                        AttributeStructure = AttributeStructure.Minimized,
-                    };
-                    tagHelperNode.Children.Add(addHtmlAttribute);
-                }
-                else
-                {
-                    var addHtmlAttribute = new TagHelperHtmlAttributeIntermediateNode()
-                    {
-                        AttributeName = attributeName,
-                        AttributeStructure = attributeStructure,
-                    };
+                    AttributeName = attributeName,
+                    AttributeStructure = attributeStructure,
+                };
 
-                    PopulateUnboundAttributeValue(addHtmlAttribute, htmlAttr, sourceDocument);
-                    tagHelperNode.Children.Add(addHtmlAttribute);
+                if (attributeStructure != AttributeStructure.Minimized)
+                {
+                    PopulateUnboundAttributeValue(htmlAttribute, htmlAttr, sourceDocument);
                 }
+
+                tagHelperNode.Children.Add(htmlAttribute);
             }
         }
 
@@ -329,7 +325,7 @@ internal partial class DefaultTagHelperResolutionPhase
         /// and empty values get a placeholder HtmlContent.
         /// </summary>
         private static void PopulateUnboundAttributeValue(
-            TagHelperHtmlAttributeIntermediateNode addHtmlAttribute,
+            TagHelperHtmlAttributeIntermediateNode htmlAttribute,
             HtmlAttributeIntermediateNode htmlAttr,
             RazorSourceDocument sourceDocument)
         {
@@ -340,10 +336,7 @@ internal partial class DefaultTagHelperResolutionPhase
             {
                 if (child is CSharpExpressionAttributeValueIntermediateNode csharpSeg)
                 {
-                    if (!IsLiteralEscapeSegment(csharpSeg))
-                    {
-                        hasTrueDynamicSegments = true;
-                    }
+                    hasTrueDynamicSegments |= !IsLiteralEscapeSegment(csharpSeg);
                 }
                 else if (child is CSharpCodeAttributeValueIntermediateNode)
                 {
@@ -358,34 +351,31 @@ internal partial class DefaultTagHelperResolutionPhase
             if (hasTrueDynamicSegments)
             {
                 // True dynamic segments: keep children as-is for AddHtmlAttributeValue pattern.
-                foreach (var child in htmlAttr.Children)
-                {
-                    addHtmlAttribute.Children.Add(child);
-                }
+                htmlAttribute.Children.AddRange(htmlAttr.Children);
             }
             else if (hasHtmlAttributeValues)
             {
-                PopulateUnboundLiteralOrMixedValue(addHtmlAttribute, htmlAttr);
+                PopulateUnboundLiteralOrMixedValue(htmlAttribute, htmlAttr);
             }
             else if (htmlAttr.Children.Count == 0)
             {
                 // Empty value (like class=""): create empty HtmlContent for preallocation.
                 var emptyHtml = new HtmlContentIntermediateNode() { Source = htmlAttr.Source };
                 emptyHtml.Children.Add(new HtmlIntermediateToken(string.Empty, htmlAttr.Source));
-                addHtmlAttribute.Children.Add(emptyHtml);
+                htmlAttribute.Children.Add(emptyHtml);
             }
             else
             {
                 // No HtmlAttributeValues, no dynamic segments, but has children (e.g. @@-escaped content):
                 // collect into a single HtmlContentIntermediateNode for preallocation.
-                ConvertValueChildren(addHtmlAttribute, htmlAttr, isBoundStringProperty: true, sourceDocument);
+                ConvertValueChildren(htmlAttribute, htmlAttr, isBoundStringProperty: true, sourceDocument);
             }
 
             // Merge adjacent HtmlContent in the unbound html attribute,
             // but only if children were processed (not transferred as-is).
             if (hasTrueDynamicSegments || hasHtmlAttributeValues)
             {
-                DefaultTagHelperResolutionPhase.MergeAdjacentHtmlContent(addHtmlAttribute);
+                DefaultTagHelperResolutionPhase.MergeAdjacentHtmlContent(htmlAttribute);
             }
         }
 
@@ -395,7 +385,7 @@ internal partial class DefaultTagHelperResolutionPhase
         /// HtmlContent, or unwraps mixed values individually.
         /// </summary>
         private static void PopulateUnboundLiteralOrMixedValue(
-            TagHelperHtmlAttributeIntermediateNode addHtmlAttribute,
+            TagHelperHtmlAttributeIntermediateNode htmlAttribute,
             HtmlAttributeIntermediateNode htmlAttr)
         {
             // Check if all content is literal.
@@ -420,7 +410,7 @@ internal partial class DefaultTagHelperResolutionPhase
             if (allLiteral)
             {
                 // All literal segments: flatten to single HtmlContentIntermediateNode for preallocation.
-                FlattenLiteralAttributeValue(addHtmlAttribute, htmlAttr);
+                FlattenLiteralAttributeValue(htmlAttribute, htmlAttr);
             }
             else
             {
@@ -435,12 +425,12 @@ internal partial class DefaultTagHelperResolutionPhase
                         {
                             var htmlContent = new HtmlContentIntermediateNode() { Source = tokenSource };
                             htmlContent.Children.Add(new HtmlIntermediateToken(content, tokenSource));
-                            addHtmlAttribute.Children.Add(htmlContent);
+                            htmlAttribute.Children.Add(htmlContent);
                         }
                     }
                     else
                     {
-                        addHtmlAttribute.Children.Add(child);
+                        htmlAttribute.Children.Add(child);
                     }
                 }
             }
@@ -487,6 +477,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 else if (child is not HtmlAttributeValueIntermediateNode &&
                          child is not HtmlContentIntermediateNode)
                 {
+                    // Non-literal, non-dynamic (e.g. unresolved wrapper nodes).
                     allLiteral = false;
                     break;
                 }
@@ -569,21 +560,16 @@ internal partial class DefaultTagHelperResolutionPhase
             // Check if this is a @@expr pattern (escape + explicit expression)
             // which needs special token handling. Detected by an @@ literal escape
             // segment among the children.
-            var isEscapePattern = false;
             foreach (var child in htmlAttr.Children)
             {
                 if (child is CSharpExpressionAttributeValueIntermediateNode csharpSeg && IsLiteralEscapeSegment(csharpSeg))
                 {
-                    isEscapePattern = true;
-                    break;
+                    ConvertEscapedAtExpressionValue(targetNode, htmlAttr);
+                    return;
                 }
             }
 
-            if (isEscapePattern)
-            {
-                ConvertEscapedAtExpressionValue(targetNode, htmlAttr);
-            }
-            else if (htmlAttr.Source is SourceSpan attrSource && sourceDocument != null)
+            if (htmlAttr.Source is SourceSpan attrSource && sourceDocument != null)
             {
                 // Non-escape mixed content: extract value from source text.
                 var prefix = htmlAttr.Prefix ?? string.Empty;
@@ -592,19 +578,18 @@ internal partial class DefaultTagHelperResolutionPhase
                 var valueLength = attrSource.Length - prefix.Length - suffix.Length;
                 if (valueLength > 0)
                 {
-                    var sourceText = sourceDocument.Text.GetSubText(
-                        new Microsoft.CodeAnalysis.Text.TextSpan(valueStart, valueLength)).ToString();
-
                     // If the value starts with @ (Razor transition for the first expression),
                     // strip it to get the C# code (e.g., @DateTimeOffset.Now.Year -> DateTimeOffset.Now.Year).
-                    if (sourceText.StartsWith("@", StringComparison.Ordinal) &&
+                    if (sourceDocument.Text[valueStart] == '@' &&
                         htmlAttr.Children.Count > 0 &&
                         htmlAttr.Children[0] is CSharpExpressionAttributeValueIntermediateNode)
                     {
-                        sourceText = sourceText.Substring(1);
                         valueStart++;
                         valueLength--;
                     }
+
+                    var sourceText = sourceDocument.Text.ToString(
+                        new Microsoft.CodeAnalysis.Text.TextSpan(valueStart, valueLength));
 
                     // Compute value source span with correct line/char positions.
                     var valueCharIndex = attrSource.CharacterIndex + prefix.Length + (attrSource.AbsoluteIndex + prefix.Length < valueStart ? 1 : 0);
@@ -654,20 +639,20 @@ internal partial class DefaultTagHelperResolutionPhase
                         }
                     }
                 }
-                else if (child is HtmlAttributeValueIntermediateNode attrValue2)
+                else if (child is HtmlAttributeValueIntermediateNode htmlAttrValue)
                 {
-                    var content2 = (attrValue2.Prefix ?? string.Empty);
-                    foreach (var token in attrValue2.Children)
+                    var attrContent = (htmlAttrValue.Prefix ?? string.Empty);
+                    foreach (var token in htmlAttrValue.Children)
                     {
                         if (token is IntermediateToken intermediateToken)
                         {
-                            content2 += intermediateToken.Content;
+                            attrContent += intermediateToken.Content;
                         }
                     }
-                    if (content2.Length > 0)
+                    if (attrContent.Length > 0)
                     {
-                        var tokenSource = attrValue2.Children.Count > 0 ? attrValue2.Children[0].Source : attrValue2.Source;
-                        if (content2 == "@" && tokenSource is SourceSpan ats)
+                        var tokenSource = htmlAttrValue.Children.Count > 0 ? htmlAttrValue.Children[0].Source : htmlAttrValue.Source;
+                        if (attrContent == "@" && tokenSource is SourceSpan ats)
                         {
                             if (lastAtTokenSource is SourceSpan last && last.AbsoluteIndex == ats.AbsoluteIndex)
                             {
@@ -675,10 +660,10 @@ internal partial class DefaultTagHelperResolutionPhase
                             }
                             lastAtTokenSource = ats;
                         }
-                        targetNode.Children.Add(new CSharpIntermediateToken(content2, tokenSource));
+                        targetNode.Children.Add(new CSharpIntermediateToken(attrContent, tokenSource));
                     }
                 }
-                else if (child is CSharpExpressionAttributeValueIntermediateNode exprChild2)
+                else if (child is CSharpExpressionAttributeValueIntermediateNode csharpExprValue)
                 {
                     // Before the explicit expression, add empty + @ transition tokens
                     // to match the baseline's VisitAttributeValue @@-pattern handling.
@@ -695,9 +680,9 @@ internal partial class DefaultTagHelperResolutionPhase
                     }
 
                     // For explicit expression @(expr): produce (, expr, ) tokens
-                    if (exprChild2.Children.Count > 0)
+                    if (csharpExprValue.Children.Count > 0)
                     {
-                        var firstInnerChild = exprChild2.Children[0];
+                        var firstInnerChild = csharpExprValue.Children[0];
                         if (firstInnerChild.Source is SourceSpan innerSource)
                         {
                             var openAbsIndex = innerSource.AbsoluteIndex - 1;
@@ -705,19 +690,12 @@ internal partial class DefaultTagHelperResolutionPhase
                             var openSource = new SourceSpan(innerSource.FilePath, openAbsIndex, innerSource.LineIndex, openCharIndex, 1, 0, openCharIndex + 1);
                             targetNode.Children.Add(new CSharpIntermediateToken("(", openSource));
 
-                            foreach (var innerChild in exprChild2.Children)
+                            foreach (var innerChild in csharpExprValue.Children)
                             {
-                                if (innerChild is CSharpIntermediateToken innerToken)
-                                {
-                                    targetNode.Children.Add(new CSharpIntermediateToken(innerToken.Content, innerToken.Source));
-                                }
-                                else
-                                {
-                                    targetNode.Children.Add(innerChild);
-                                }
+                                targetNode.Children.Add(innerChild);
                             }
 
-                            var lastInnerChild = exprChild2.Children[exprChild2.Children.Count - 1];
+                            var lastInnerChild = csharpExprValue.Children[^1];
                             if (lastInnerChild.Source is SourceSpan lastSource)
                             {
                                 var closeAbsIndex = lastSource.AbsoluteIndex + lastSource.Length;
@@ -746,8 +724,8 @@ internal partial class DefaultTagHelperResolutionPhase
                 var valueLength = attrSource.Length - prefix.Length - suffix.Length;
                 if (valueLength > 0)
                 {
-                    var rawText = sourceDocument.Text.GetSubText(
-                        new Microsoft.CodeAnalysis.Text.TextSpan(valueStart, valueLength)).ToString();
+                    var rawText = sourceDocument.Text.ToString(
+                        new Microsoft.CodeAnalysis.Text.TextSpan(valueStart, valueLength));
                     // Only use source text extraction for explicit expressions @(...)
                     // which have delimiters that are lost in the IR.
                     // For implicit expressions @expr, use UnwrapValueChildrenToTokens
@@ -959,18 +937,7 @@ internal partial class DefaultTagHelperResolutionPhase
             // @@ escape produces a CSharpExpressionAttributeValueIntermediateNode with:
             // - Empty or whitespace prefix
             // - A single CSharpIntermediateToken or HtmlIntermediateToken with "@" content
-            if (segment.Children.Count != 1)
-            {
-                return false;
-            }
-
-            if (segment.Children[0] is IntermediateToken token)
-            {
-                // Single token with "@" content is the @@ literal escape.
-                return token.Content == "@";
-            }
-
-            return false;
+            return segment.Children is [IntermediateToken { Content: "@" }];
         }
 
         /// <summary>
@@ -1175,17 +1142,14 @@ internal partial class DefaultTagHelperResolutionPhase
             var mergeStart = Math.Max(0, index - 1);
             var mergeEnd = Math.Min(parent.Children.Count - 1, insertIndex);
 
-            for (var i = mergeStart; i < mergeEnd && i < parent.Children.Count - 1; )
+            for (var i = mergeStart; i < mergeEnd; )
             {
                 if (parent.Children[i] is HtmlContentIntermediateNode current &&
                     parent.Children[i + 1] is HtmlContentIntermediateNode next &&
                     CanMerge(current, next))
                 {
                     // Merge next into current.
-                    foreach (var child in next.Children)
-                    {
-                        current.Children.Add(child);
-                    }
+                    current.Children.AddRange(next.Children);
                     if (current.Source is SourceSpan currentSource && next.Source is SourceSpan nextSource)
                     {
                         current.Source = new SourceSpan(
@@ -1316,14 +1280,11 @@ internal partial class DefaultTagHelperResolutionPhase
 
             // Case 3: Mixed content (literals + expressions).
             // For @@ escape cases, use children-based collection to avoid double-counting
-            // the escaped @ that was already added as a unresolved literal.
+            // the escaped @ that was already added as an unresolved literal.
             var hasEscapedAt = false;
             foreach (var child in htmlAttr.Children)
             {
-                if (child is MarkupOrTagHelperAttributeValueIntermediateNode lit &&
-                    lit.Children.Count == 1 &&
-                    lit.Children[0] is HtmlIntermediateToken ht &&
-                    ht.Content == "@")
+                if (child is MarkupOrTagHelperAttributeValueIntermediateNode { Children: [HtmlIntermediateToken { Content: "@" }] })
                 {
                     hasEscapedAt = true;
                     break;
@@ -1373,8 +1334,8 @@ internal partial class DefaultTagHelperResolutionPhase
                     }
                 }
 
-                var text = sourceDocument.Text.GetSubText(
-                    new Microsoft.CodeAnalysis.Text.TextSpan(contentStart, contentLength)).ToString();
+                var text = sourceDocument.Text.ToString(
+                    new Microsoft.CodeAnalysis.Text.TextSpan(contentStart, contentLength));
 
                 // For explicit expressions @(...), split into 3 tokens: (, content, )
                 if (text.Length >= 2 && text[0] == '(' && text[text.Length - 1] == ')')
@@ -1446,10 +1407,7 @@ internal partial class DefaultTagHelperResolutionPhase
             CSharpOrTagHelperExpressionAttributeValueIntermediateNode soleCodeBlock,
             IntermediateNode target)
         {
-            foreach (var innerChild in soleCodeBlock.Children)
-            {
-                target.Children.Add(innerChild);
-            }
+            target.Children.AddRange(soleCodeBlock.Children);
         }
 
         /// <summary>
@@ -1462,7 +1420,7 @@ internal partial class DefaultTagHelperResolutionPhase
             SourceSpan vss,
             RazorSourceDocument sourceDocument)
         {
-            var text = sourceDocument.Text.GetSubText(new Microsoft.CodeAnalysis.Text.TextSpan(vss.AbsoluteIndex, vss.Length)).ToString();
+            var text = sourceDocument.Text.ToString(new Microsoft.CodeAnalysis.Text.TextSpan(vss.AbsoluteIndex, vss.Length));
             target.Children.Add(new CSharpIntermediateToken(
                 LazyContent.Create(text, static s => s), vss));
         }
@@ -1522,10 +1480,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     else
                     {
                         // Code block or no source: flatten to tokens.
-                        foreach (var innerChild in unresolvedExpr.Children)
-                        {
-                            target.Children.Add(innerChild);
-                        }
+                        target.Children.AddRange(unresolvedExpr.Children);
                     }
                 }
             }
@@ -1619,10 +1574,7 @@ internal partial class DefaultTagHelperResolutionPhase
                         {
                             // Code block (@if{}, @{...}): preserve internal structure
                             // (CSharpCode + HtmlContent interleaving).
-                            foreach (var innerChild in unresolvedExpr.Children)
-                            {
-                                target.Children.Add(innerChild);
-                            }
+                            target.Children.AddRange(unresolvedExpr.Children);
                         }
                     }
                     else
@@ -1739,3 +1691,4 @@ internal partial class DefaultTagHelperResolutionPhase
         }
     }
 }
+

@@ -360,6 +360,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         for (var j = index + resultCount - 1; j >= index; j--)
         {
+            // Guard: ResolveElement can modify parent.Children (e.g., StartTagOnly promotion
+            // inserts siblings), so j may exceed the updated count.
             if (j < parent.Children.Count)
             {
                 if (parent.Children[j] is ElementOrTagHelperIntermediateNode promotedElement)
@@ -381,18 +383,16 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     /// </summary>
     private static void MergeAdjacentHtmlContent(IntermediateNode parent)
     {
-        for (var i = 0; i < parent.Children.Count - 1;)
+        for (var i = 0; i < parent.Children.Count - 1; i++)
         {
             if (parent.Children[i] is HtmlContentIntermediateNode current &&
                 parent.Children[i + 1] is HtmlContentIntermediateNode next)
             {
-                foreach (var child in next.Children)
-                {
-                    current.Children.Add(child);
-                }
+                current.Children.AddRange(next.Children);
                 if (current.Source is SourceSpan cs && next.Source is SourceSpan ns)
                 {
-                    var end = Math.Max(cs.AbsoluteIndex + cs.Length, ns.AbsoluteIndex + ns.Length);
+                    // Adjacent nodes are sequential, so next always ends after current.
+                    var end = ns.AbsoluteIndex + ns.Length;
                     var lineCount = (ns.LineIndex + ns.LineCount) - cs.LineIndex;
                     current.Source = new SourceSpan(cs.FilePath, cs.AbsoluteIndex, cs.LineIndex, cs.CharacterIndex,
                         end - cs.AbsoluteIndex, lineCount, ns.EndCharacterIndex);
@@ -402,10 +402,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                     current.Source = next.Source;
                 }
                 parent.Children.RemoveAt(i + 1);
-            }
-            else
-            {
-                i++;
+                i--;
             }
         }
     }
@@ -420,17 +417,13 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var hasDirectiveAttribute = false;
         foreach (var boundRulesInfo in binding.AllBoundRules)
         {
-            var nonDefaultRule = boundRulesInfo.Rules.FirstOrDefault(static rule => rule.TagStructure != TagStructure.Unspecified);
-            if (nonDefaultRule?.TagStructure == TagStructure.WithoutEndTag)
+            if (boundRulesInfo.Rules.Any(static rule => rule.TagStructure == TagStructure.WithoutEndTag))
             {
                 return TagMode.StartTagOnly;
             }
 
             var descriptor = boundRulesInfo.Descriptor;
-            if (descriptor.IsAnyComponentDocumentTagHelper() && !descriptor.IsComponentOrChildContentTagHelper())
-            {
-                hasDirectiveAttribute = true;
-            }
+            hasDirectiveAttribute |= descriptor.IsAnyComponentDocumentTagHelper() && !descriptor.IsComponentOrChildContentTagHelper();
         }
 
         if (hasDirectiveAttribute && elementNode.IsVoidElement && !elementNode.HasEndTag)
@@ -495,20 +488,15 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             else if (child is HtmlContentIntermediateNode htmlContent)
             {
                 // Check if content is non-whitespace
-                var hasNonWhitespace = false;
                 foreach (var token in htmlContent.Children)
                 {
                     if (token is IntermediateToken t && !string.IsNullOrWhiteSpace(t.Content))
                     {
-                        hasNonWhitespace = true;
+                        htmlContent.AddDiagnostic(
+                            RazorDiagnosticFactory.CreateTagHelper_CannotHaveNonTagContent(
+                                child.Source ?? SourceSpan.Undefined, parentTagName, allowedChildrenString));
                         break;
                     }
-                }
-                if (hasNonWhitespace)
-                {
-                    htmlContent.AddDiagnostic(
-                        RazorDiagnosticFactory.CreateTagHelper_CannotHaveNonTagContent(
-                            child.Source ?? SourceSpan.Undefined, parentTagName, allowedChildrenString));
                 }
             }
             else if (child is CSharpExpressionIntermediateNode or CSharpCodeIntermediateNode)
@@ -553,7 +541,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             if (htmlContent.Children.Count > 0)
             {
                 var firstSrc = htmlContent.Children[0].Source;
-                var lastSrc = htmlContent.Children[htmlContent.Children.Count - 1].Source;
+                var lastSrc = htmlContent.Children[^1].Source;
                 if (firstSrc is { } fs && lastSrc is { } ls)
                 {
                     htmlContent.Source = new SourceSpan(fs.FilePath, fs.AbsoluteIndex, fs.LineIndex, fs.CharacterIndex,
@@ -575,10 +563,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                     Source = unresolvedLiteral.Source,
                 };
 
-                foreach (var valueChild in unresolvedLiteral.Children)
-                {
-                    htmlAttrValue.Children.Add(valueChild);
-                }
+                htmlAttrValue.Children.AddRange(unresolvedLiteral.Children);
 
                 target.Children.Add(htmlAttrValue);
             }
@@ -603,17 +588,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 {
                     if (unwrapExpressions && valueChild is CSharpExpressionIntermediateNode csharpExpr)
                     {
-                        foreach (var token in csharpExpr.Children)
-                        {
-                            exprNode.Children.Add(token);
-                        }
+                        exprNode.Children.AddRange(csharpExpr.Children);
                     }
                     else if (valueChild is CSharpCodeIntermediateNode csharpCode)
                     {
-                        foreach (var token in csharpCode.Children)
-                        {
-                            exprNode.Children.Add(token);
-                        }
+                        exprNode.Children.AddRange(csharpCode.Children);
                     }
                     else
                     {
@@ -814,8 +793,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         int exprLength,
         RazorSourceDocument sourceDocument)
     {
-        var exprText = sourceDocument.Text.GetSubText(
-            new Microsoft.CodeAnalysis.Text.TextSpan(exprStart, exprLength)).ToString();
+        var exprText = sourceDocument.Text.ToString(
+            new Microsoft.CodeAnalysis.Text.TextSpan(exprStart, exprLength));
         var filePath = sourceDocument.FilePath;
 
         if (exprText.Length >= 3 && exprText[0] == '@' && exprText[1] == '(')
@@ -863,8 +842,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var innerLen = parenLength - 2; // skip ( and )
         if (innerLen > 0)
         {
-            var innerText = sourceDocument.Text.GetSubText(
-                new Microsoft.CodeAnalysis.Text.TextSpan(innerStart, innerLen)).ToString();
+            var innerText = sourceDocument.Text.ToString(
+                new Microsoft.CodeAnalysis.Text.TextSpan(innerStart, innerLen));
             var innerLoc = sourceDocument.Text.Lines.GetLinePosition(innerStart);
             target.Children.Add(new CSharpIntermediateToken(
                 LazyContent.Create(innerText, static s => s),
