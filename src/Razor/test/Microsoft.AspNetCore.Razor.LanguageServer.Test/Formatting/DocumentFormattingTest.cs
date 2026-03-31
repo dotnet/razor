@@ -19,6 +19,294 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9658#issuecomment-3943605712")]
+    public async Task MultilineIfStatement()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                    @if (true ||
+                        true ||
+                        true ||
+                        true)
+                        {
+                            // Hi
+                        }
+                    </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    @if (true ||
+                    true ||
+                    true ||
+                    true)
+                    {
+                    // Hi
+                    }
+                </div>
+                """,
+            expected: """
+                <div>
+                    @if (true ||
+                        true ||
+                        true ||
+                        true)
+                    {
+                        // Hi
+                    }
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://developercommunity.visualstudio.com/t/Format-Document-in-a-blazor-documents-ad/11046727")]
+    public async Task MultilineRawStringLiteral()
+    {
+        await RunFormattingTestAsync(
+            input: """"
+                <PageTitle>
+                    <PageTitle>
+                        @("""
+                          <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+
+                          <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                          <Title>Aanmaak scherm</Title>
+                          <Body>
+                                <label>Vul hier een tekst in</label>
+                                <input @bind=_createItem />
+                          </Body>
+                          <Footer>
+                                <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                                <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                          </Footer>
+                          </FCBS5Modal>
+                          """)</PageTitle>
+                </PageTitle>
+                """",
+            htmlFormatted: """"
+                <PageTitle>
+                    <PageTitle>
+                        @("""
+                        <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+
+                        <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                        <Title>Aanmaak scherm</Title>
+                        <Body>
+                        <label>Vul hier een tekst in</label>
+                        <input @bind=_createItem />
+                        </Body>
+                        <Footer>
+                        <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                        <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                        </Footer>
+                        </FCBS5Modal>
+                        """)
+                    </PageTitle>
+                </PageTitle>
+                """",
+            expected: """"
+                <PageTitle>
+                    <PageTitle>
+                        @("""
+                          <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+
+                          <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                          <Title>Aanmaak scherm</Title>
+                          <Body>
+                                <label>Vul hier een tekst in</label>
+                                <input @bind=_createItem />
+                          </Body>
+                          <Footer>
+                                <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                                <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                          </Footer>
+                          </FCBS5Modal>
+                          """)
+                    </PageTitle>
+                </PageTitle>
+                """");
+    }
+
+    [Fact]
+    [WorkItem("https://developercommunity.visualstudio.com/t/Razor-Formatting-Feature-internal-error/11041869")]
+    public async Task TextAndTagOnSameLine()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                 <div>
+                 	@if (b)
+                 	{
+                 		<text>:</text> <InputFile OnChange="StateHasChanged" />
+                 	}
+                 </div>
+
+                 @code
+                 {
+                 	bool b;
+                 }
+                 
+                 """,
+            htmlFormatted: """
+                 <div>
+                 	@if (b)
+                 	{
+                 	<text>:</text> <InputFile OnChange="StateHasChanged" />
+                 	}
+                 </div>
+                 
+                 @code
+                 {
+                 	bool b;
+                 }
+                 
+                 """,
+            expected: """
+                 <div>
+                 	@if (b)
+                 	{
+                 		<text>:</text> <InputFile OnChange="StateHasChanged" />
+                 	}
+                 </div>
+                 
+                 @code
+                 {
+                 	bool b;
+                 }
+                 
+                 """,
+            insertSpaces: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public async Task DifferentAttributeWrappingPoint1()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                             aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            htmlFormatted: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            expected: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public async Task DifferentAttributeWrappingPoint2()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                             data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            htmlFormatted: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            expected: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public async Task DifferentAttributeWrappingPoint3()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                 <div>
+                     <button class="navbar-toggler"
+                             type="button" data-bs-toggle="collapse"
+                             data-bs-target=".navbar-collapse"
+                             aria-controls="navbarSupportedContent"
+                             aria-expanded="false"
+                             aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            htmlFormatted: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            expected: """
+                 <div>
+                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                 </div>
+                 """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public async Task NewBlankLines()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <html>
+                <head>
+                <title>Goo</title>
+                </head>
+                <body>
+                <div>
+                </div>
+                </body>
+                </html>
+                """,
+            htmlFormatted: """
+                <html>
+
+                <head>
+                    <title>Goo</title>
+                </head>
+
+                <body>
+                    <div>
+                    </div>
+                </body>
+
+                </html>
+                """,
+            expected: """
+                <html>
+            
+                <head>
+                    <title>Goo</title>
+                </head>
+            
+                <body>
+                    <div>
+                    </div>
+                </body>
+            
+                </html>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     public async Task EmptyDocument()
     {
         await RunFormattingTestAsync(
@@ -10054,6 +10342,169 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
 
     [Fact]
+    internal Task PreTag_InIf()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <pre>
+                    a
+                        @if (true)
+                        {
+                        b
+                            }
+                            c
+                    </pre>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <pre>
+                    a
+                        @if (true)
+                        {
+                        b
+                            }
+                            c
+                    </pre>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <pre>
+                    a
+                        @if (true)
+                        {
+                        b
+                            }
+                            c
+                    </pre>
+                }
+                """);
+
+    [Fact]
+    internal Task PreTag()
+        => RunFormattingTestAsync(
+            input: """
+                <pre>
+                    a
+                        @if (true)
+                        {
+                        b
+                            }
+                            c
+                    </pre>
+                """,
+            htmlFormatted: """
+                <pre>
+                    a
+                        @if (true)
+                        {
+                        b
+                            }
+                            c
+                    </pre>
+                """,
+            expected: """
+                <pre>
+                    a
+                        @if (true)
+                        {
+                        b
+                            }
+                            c
+                    </pre>
+                """);
+
+    [Fact]
+    internal Task PreTag_Nested()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <pre>
+                            a
+                                @if (true)
+                                {
+                                b
+                                    }
+                                    c
+                        </pre>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <pre>
+                            a
+                                @if (true)
+                                {
+                                b
+                                    }
+                                    c
+                        </pre>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <pre>
+                            a
+                                @if (true)
+                                {
+                                b
+                                    }
+                                    c
+                        </pre>
+                </div>
+                """);
+
+    [Fact]
+    internal Task PreTag_WithAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <pre class="code"
+                                    id="foo">some content
+                           more content</pre>
+                """,
+            htmlFormatted: """
+                <pre class="code"
+                     id="foo">some content
+                           more content</pre>
+                """,
+            expected: """
+                <pre class="code"
+                     id="foo">some content
+                           more content</pre>
+                """);
+
+    [Fact]
+    public async Task PreTag_IndentStartTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                        <pre>
+                    content here
+                        </pre>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <pre>
+                    content here
+                        </pre>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <pre>
+                    content here
+                        </pre>
+                </div>
+                """);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/11777")]
     public Task RangeFormat_AfterProperty()
         => RunFormattingTestAsync(
@@ -11208,5 +11659,20 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         <tr>
                             <td>
                     """,
+            allowDiagnostics: true);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/12807")]
+    public Task TernaryInAttribute()
+        => RunFormattingTestAsync(
+            input: """
+                <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)"/>
+                """,
+            htmlFormatted: """
+                <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)" />
+                """,
+            expected: """
+                <Icon Name="@(expanded ? ParentDataGrid.SelfReferenceCollapseIcon : ParentDataGrid.SelfReferenceExpandIcon)" />
+                """,
             allowDiagnostics: true);
 }
