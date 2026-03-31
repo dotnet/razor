@@ -2,9 +2,39 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../Resources.resx">
     <body>
+      <trans-unit id="Add_CSS_Isolation_File">
+        <source>Add CSS Isolation File</source>
+        <target state="new">Add CSS Isolation File</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_Code_Behind_File">
+        <source>Add C# Code-Behind File</source>
+        <target state="new">Add C# Code-Behind File</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_JavaScript_Isolation_File">
+        <source>Add JavaScript Isolation File</source>
+        <target state="new">Add JavaScript Isolation File</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_EDITORNAME">
         <source>LSP Razor Editor</source>
         <target state="translated">LSP Razor 编辑器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="View_CSS_Isolation_File">
+        <source>View CSS Isolation File</source>
+        <target state="new">View CSS Isolation File</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="View_Code_Behind_File">
+        <source>View C# Code-Behind File</source>
+        <target state="new">View C# Code-Behind File</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="View_JavaScript_Isolation_File">
+        <source>View JavaScript Isolation File</source>
+        <target state="new">View JavaScript Isolation File</target>
         <note />
       </trans-unit>
     </body>

@@ -120,4 +120,22 @@
   <data name="IDS_EDITORNAME" xml:space="preserve">
     <value>LSP Razor Editor</value>
   </data>
+  <data name="Add_CSS_Isolation_File" xml:space="preserve">
+    <value>Add CSS Isolation File</value>
+  </data>
+  <data name="View_CSS_Isolation_File" xml:space="preserve">
+    <value>View CSS Isolation File</value>
+  </data>
+  <data name="Add_Code_Behind_File" xml:space="preserve">
+    <value>Add C# Code-Behind File</value>
+  </data>
+  <data name="View_Code_Behind_File" xml:space="preserve">
+    <value>View C# Code-Behind File</value>
+  </data>
+  <data name="Add_JavaScript_Isolation_File" xml:space="preserve">
+    <value>Add JavaScript Isolation File</value>
+  </data>
+  <data name="View_JavaScript_Isolation_File" xml:space="preserve">
+    <value>View JavaScript Isolation File</value>
+  </data>
 </root>
