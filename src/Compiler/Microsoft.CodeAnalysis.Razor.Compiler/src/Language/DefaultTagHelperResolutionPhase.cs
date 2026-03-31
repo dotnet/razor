@@ -24,6 +24,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 {
     private TagHelperResolver _resolver;
+
     /// <summary>
     /// Entry point: resolves all unresolved <see cref="ElementOrTagHelperIntermediateNode"/> nodes
     /// in the IR tree. For each, matches against tag helper bindings and either converts to a
@@ -37,8 +38,6 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         {
             return codeDocument;
         }
-
-        var sourceDocument = codeDocument.Source;
 
         var tagHelperContext = codeDocument.GetTagHelperContext();
         var syntaxTree = codeDocument.GetPreTagHelperSyntaxTree() ?? codeDocument.GetSyntaxTree();
@@ -65,6 +64,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var prefix = tagHelperContext.Prefix;
 
         using var usedHelpers = new TagHelperCollection.Builder();
+        var sourceDocument = codeDocument.Source;
         var context = new ResolutionContext(sourceDocument, parserOptions, documentNode);
         ResolveElements(documentNode, binder, prefix, usedHelpers, in context);
 
@@ -141,8 +141,6 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         in ResolutionContext context,
         TagHelperIntermediateNode tagHelperParent = null)
     {
-        var tagName = elementNode.TagName;
-
         // Check for escaped tag helpers (<!tagname>) - these should NOT be matched.
         if (elementNode.IsEscaped)
         {
@@ -151,6 +149,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         }
 
         // Use pre-extracted attribute data for binding.
+        var tagName = elementNode.TagName;
         var attributes = elementNode.AttributeData;
 
         // End-tag-only elements (e.g. </body> without matching <body>) should not match tag helpers.
@@ -163,10 +162,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             // Transfer element diagnostics to the converted/unwrapped node.
             // ConvertToMarkupElement already copies diagnostics, but UnwrapElement does not,
             // so this is needed for the legacy path.
-            if (elementNode.HasDiagnostics)
-            {
-                parent.Children[index].AddDiagnosticsFromNode(elementNode);
-            }
+            parent.Children[index].AddDiagnosticsFromNode(elementNode);
             return;
         }
 
@@ -179,10 +175,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         }
 
         // It IS a tag helper. Track the used helpers.
-        foreach (var th in binding.TagHelpers)
-        {
-            usedHelpers.Add(th);
-        }
+        usedHelpers.AddRange(binding.TagHelpers);
 
         // Determine tag name (strip prefix if present).
         var resolvedTagName = tagName;
@@ -215,52 +208,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         // structural diagnostics -- the rewriter doesn't emit them for such matches.
         if (!IsDirectiveAttributeOnly(binding))
         {
-            // Missing close angle diagnostics (RZ1035) -- emitted before RZ1034 to match rewriter ordering.
-            if (elementNode.HasMissingCloseAngle)
-            {
-                var diagSource = elementNode.StartTagNameSpan ?? elementNode.Source;
-                if (diagSource is SourceSpan ds)
-                {
-                    tagHelperNode.AddDiagnostic(
-                        RazorDiagnosticFactory.CreateParsing_TagHelperMissingCloseAngle(ds, tagName));
-                }
-            }
-            if (elementNode.HasMissingEndCloseAngle && elementNode.EndTagSpan is SourceSpan endDs)
-            {
-                tagHelperNode.AddDiagnostic(
-                    RazorDiagnosticFactory.CreateParsing_TagHelperMissingCloseAngle(endDs, elementNode.EndTagName ?? tagName));
-            }
-
-            // Structural diagnostics: RZ1034 (malformed tag helper without end tag).
-            // Only for non-void, non-self-closing elements without end tags,
-            // and only when TagMode expects an end tag (StartTagAndEndTag).
-            if (!elementNode.HasEndTag && !elementNode.IsSelfClosing && !isResolvedVoidElement
-                && tagMode == TagMode.StartTagAndEndTag)
-            {
-                var diagSource = elementNode.StartTagNameSpan ?? elementNode.Source;
-                if (diagSource is SourceSpan ds)
-                {
-                    tagHelperNode.AddDiagnostic(
-                        RazorDiagnosticFactory.CreateParsing_TagHelperFoundMalformedTagHelper(ds, tagName));
-                }
-            }
-
-            // RZ1042: void element without end tag (parser treated it as void).
-            // Fires when a void-element-named tag helper has no end tag and
-            // TagMode is StartTagAndEndTag (meaning the binding expected an end tag
-            // but the parser treated the element as void). Elements with TagMode
-            // StartTagOnly (e.g., TagStructure.WithoutEndTag) are handled without
-            // diagnostics since the tag structure explicitly permits no end tag.
-            if (isResolvedVoidElement && !elementNode.HasEndTag
-                && tagMode == TagMode.StartTagAndEndTag)
-            {
-                var diagSource = elementNode.StartTagNameSpan ?? elementNode.Source;
-                if (diagSource is SourceSpan ds)
-                {
-                    tagHelperNode.AddDiagnostic(
-                        RazorDiagnosticFactory.CreateParsing_VoidElement(ds, tagName));
-                }
-            }
+            AddStructuralDiagnostics(tagHelperNode, elementNode, tagName, tagMode, isResolvedVoidElement);
         }
 
         // Check for inconsistent TagStructure across bound rules (RZ2011).
@@ -325,6 +273,66 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 {
                     parent.Children.Insert(insertIdx++, elementNode.Children[i]);
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds structural diagnostics (RZ1035 missing close angle, RZ1034 malformed tag helper,
+    /// RZ1042 void element) to a matched tag helper node.
+    /// </summary>
+    private static void AddStructuralDiagnostics(
+        TagHelperIntermediateNode tagHelperNode,
+        ElementOrTagHelperIntermediateNode elementNode,
+        string tagName,
+        TagMode tagMode,
+        bool isResolvedVoidElement)
+    {
+        // Missing close angle diagnostics (RZ1035) -- emitted before RZ1034 to match rewriter ordering.
+        if (elementNode.HasMissingCloseAngle)
+        {
+            var diagSource = elementNode.StartTagNameSpan ?? elementNode.Source;
+            if (diagSource is SourceSpan ds)
+            {
+                tagHelperNode.AddDiagnostic(
+                    RazorDiagnosticFactory.CreateParsing_TagHelperMissingCloseAngle(ds, tagName));
+            }
+        }
+
+        if (elementNode.HasMissingEndCloseAngle && elementNode.EndTagSpan is SourceSpan endDs)
+        {
+            tagHelperNode.AddDiagnostic(
+                RazorDiagnosticFactory.CreateParsing_TagHelperMissingCloseAngle(endDs, elementNode.EndTagName ?? tagName));
+        }
+
+        // Structural diagnostics: RZ1034 (malformed tag helper without end tag).
+        // Only for non-void, non-self-closing elements without end tags,
+        // and only when TagMode expects an end tag (StartTagAndEndTag).
+        if (!elementNode.HasEndTag && !elementNode.IsSelfClosing && !isResolvedVoidElement
+            && tagMode == TagMode.StartTagAndEndTag)
+        {
+            var diagSource = elementNode.StartTagNameSpan ?? elementNode.Source;
+            if (diagSource is SourceSpan ds)
+            {
+                tagHelperNode.AddDiagnostic(
+                    RazorDiagnosticFactory.CreateParsing_TagHelperFoundMalformedTagHelper(ds, tagName));
+            }
+        }
+
+        // RZ1042: void element without end tag (parser treated it as void).
+        // Fires when a void-element-named tag helper has no end tag and
+        // TagMode is StartTagAndEndTag (meaning the binding expected an end tag
+        // but the parser treated the element as void). Elements with TagMode
+        // StartTagOnly (e.g., TagStructure.WithoutEndTag) are handled without
+        // diagnostics since the tag structure explicitly permits no end tag.
+        if (isResolvedVoidElement && !elementNode.HasEndTag
+            && tagMode == TagMode.StartTagAndEndTag)
+        {
+            var diagSource = elementNode.StartTagNameSpan ?? elementNode.Source;
+            if (diagSource is SourceSpan ds)
+            {
+                tagHelperNode.AddDiagnostic(
+                    RazorDiagnosticFactory.CreateParsing_VoidElement(ds, tagName));
             }
         }
     }

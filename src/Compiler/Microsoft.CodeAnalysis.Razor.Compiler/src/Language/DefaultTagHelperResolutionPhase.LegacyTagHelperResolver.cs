@@ -1,7 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -147,10 +147,10 @@ internal partial class DefaultTagHelperResolutionPhase
                     var propertyType = match.IsIndexerMatch ? match.Attribute.IndexerTypeName : match.Attribute.TypeName;
                     tagHelperNode.AddDiagnostic(
                         RazorDiagnosticFactory.CreateTagHelper_EmptyBoundAttribute(
-                            unresolvedAttr.AttributeNameSpan ?? SourceSpan.Undefined, attributeName, tagHelperNode.TagName, propertyType));
+                            unresolvedAttr.AttributeNameSpan ?? SourceSpan.Undefined, attributeName, tagHelperNode.TagName, propertyType!));
                 }
 
-                prop.Source = unresolvedAttr.ValueSourceSpan ?? (prop.Children.Count > 0 ? prop.Children[0].Source : null);
+                prop.Source= unresolvedAttr.ValueSourceSpan ?? (prop.Children.Count > 0 ? prop.Children[0].Source : null);
 
                 tagHelperNode.Children.Add(prop);
             }
@@ -172,7 +172,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 var propertyType = match.IsIndexerMatch ? match.Attribute.IndexerTypeName : match.Attribute.TypeName;
                 tagHelperNode.AddDiagnostic(
                     RazorDiagnosticFactory.CreateTagHelper_EmptyBoundAttribute(
-                        unresolvedAttr.AttributeNameSpan ?? SourceSpan.Undefined, attributeName, tagHelperNode.TagName, propertyType));
+                        unresolvedAttr.AttributeNameSpan ?? SourceSpan.Undefined, attributeName, tagHelperNode.TagName, propertyType!));
                 return;
             }
 

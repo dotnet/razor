@@ -1148,24 +1148,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         //  Suffix="
         public override void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
         {
-            var isUnresolved = _insideElementOrTagHelper;
-
-            if (isUnresolved)
-            {
-                var valueSourceSpan = ComputeAttributeValueSourceSpan(node);
-
-                _builder.Push(new MarkupOrTagHelperAttributeIntermediateNode()
-                {
-                    AttributeName = node.Name.GetContent(),
-                    IsMinimized = false,
-                    Source = BuildSourceSpanFromNode(node),
-                    ValueContent = node.Value?.GetContent(),
-                    ValueSourceSpan = valueSourceSpan,
-                    AttributeStructure = InferAttributeStructure(node),
-                    AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
-                });
-            }
-
             var prefixTokens = MergeTokenLists(
                 node.NamePrefix?.LiteralTokens,
                 node.Name.LiteralTokens,
@@ -1177,142 +1159,74 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens).Green.CreateRed(node, position);
 
             var name = node.Name.GetContent();
-            if (!isUnresolved)
+
+            if (!_insideElementOrTagHelper)
             {
                 LowerAttributeAsHtml(node, name, prefix);
+                return;
             }
-            else
+
+            // Unresolved path: create deferred attribute node with fallback forms.
+            var valueSourceSpan = ComputeAttributeValueSourceSpan(node);
+
+            _builder.Push(new MarkupOrTagHelperAttributeIntermediateNode()
             {
-                // Capture the pre-lowered fallback form (the non-tag-helper HTML form) by
-                // temporarily resetting state and lowering into the unresolved node's children.
-                // We then extract those children as the fallback before adding the unresolved form.
-                _insideElementOrTagHelper = false;
-                LowerAttributeAsHtml(node, name, prefix);
-                _insideElementOrTagHelper = true;
+                AttributeName = name,
+                IsMinimized = false,
+                Source = BuildSourceSpanFromNode(node),
+                ValueContent = node.Value?.GetContent(),
+                ValueSourceSpan = valueSourceSpan,
+                AttributeStructure = InferAttributeStructure(node),
+                AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
+            });
 
-                var unresolvedAttrNode = (MarkupOrTagHelperAttributeIntermediateNode)_builder.Current;
-                IntermediateNode legacyFallback = null;
-                if (unresolvedAttrNode.Children.Count == 1)
-                {
-                    legacyFallback = unresolvedAttrNode.Children[0];
-                }
-                else if (unresolvedAttrNode.Children.Count > 0)
-                {
-                    var container = new MarkupElementIntermediateNode();
-                    foreach (var child in unresolvedAttrNode.Children)
-                    {
-                        container.Children.Add(child);
-                    }
+            // Capture the pre-lowered fallback form (the non-tag-helper HTML form) by
+            // temporarily resetting state and lowering into the unresolved node's children.
+            // We then extract those children as the fallback before adding the unresolved form.
+            _insideElementOrTagHelper = false;
+            LowerAttributeAsHtml(node, name, prefix);
+            _insideElementOrTagHelper = true;
 
-                    legacyFallback = container;
-                }
-
-                unresolvedAttrNode.AsTagHelperAttribute = legacyFallback;
-                unresolvedAttrNode.AsMarkupAttribute = legacyFallback;
-                unresolvedAttrNode.Children.Clear();
-
-                // Unresolved path: create HtmlAttribute with unresolved value children.
-                _builder.Push(new HtmlAttributeIntermediateNode()
-                {
-                    AttributeName = name,
-                    Prefix = prefix.GetContent(),
-                    Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
-                    Source = BuildSourceSpanFromNode(node),
-                });
-
-                _insideUnresolvedAttribute = isUnresolved;
-                if (isUnresolved && node.Value != null)
-                {
-                    // Check for @@ escape pattern in unresolved attribute values.
-                    var valueChildren = node.Value.ChildNodesAndTokens();
-                    if (valueChildren.Count >= 2 &&
-                        valueChildren[0].AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax atLiteral, MarkupEphemeralTextLiteralSyntax] })
-                    {
-                        // Check if all remaining children are literals (can merge everything).
-                        var allLiteral = true;
-                        for (var i = 1; i < valueChildren.Count; i++)
-                        {
-                            if (valueChildren[i].AsNode() is not MarkupLiteralAttributeValueSyntax)
-                            {
-                                allLiteral = false;
-                                break;
-                            }
-                        }
-
-                        if (allLiteral)
-                        {
-                            // All-literal: merge @ + all literal content into one unresolved node.
-                            using var mergedTokens = new PooledArrayBuilder<SyntaxToken>();
-                            mergedTokens.AddRange(atLiteral.LiteralTokens);
-                            for (var i = 1; i < valueChildren.Count; i++)
-                            {
-                                var literal = (MarkupLiteralAttributeValueSyntax)valueChildren[i].AsNode();
-                                var merged = MergeAttributeValue(literal);
-                                mergedTokens.AddRange(merged.LiteralTokens);
-                            }
-
-                            var atPosition = atLiteral.Position;
-                            var rewritten = SyntaxFactory.MarkupTextLiteral(mergedTokens.ToList()).Green.CreateRed(node.Value.Parent, atPosition);
-                            var rewrittenSource = BuildSourceSpanFromNode(rewritten);
-                            var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
-                            {
-                                Prefix = string.Empty,
-                                Source = rewrittenSource,
-                            };
-                            unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
-                                arg: (MarkupTextLiteralSyntax)rewritten,
-                                contentFactory: static node => node.GetContent() ?? string.Empty,
-                                source: rewrittenSource));
-                            _builder.Add(unresolvedNode);
-                        }
-                        else
-                        {
-                            // Mixed: produce @ as a unresolved literal, then visit remaining children normally.
-                            var atPosition = atLiteral.Position;
-                            var rewritten = SyntaxFactory.MarkupTextLiteral(atLiteral.LiteralTokens).Green.CreateRed(node.Value.Parent, atPosition);
-                            var rewrittenSource = BuildSourceSpanFromNode(rewritten);
-                            var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
-                            {
-                                Prefix = string.Empty,
-                                Source = rewrittenSource,
-                            };
-                            unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
-                                arg: (MarkupTextLiteralSyntax)rewritten,
-                                contentFactory: static node => node.GetContent() ?? string.Empty,
-                                source: rewrittenSource));
-                            _builder.Add(unresolvedNode);
-
-                            // Visit remaining children (expressions, etc.)
-                            for (var i = 1; i < valueChildren.Count; i++)
-                            {
-                                Visit(valueChildren[i].AsNode());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        VisitAttributeValue(node.Value);
-                    }
-                }
-                else
-                {
-                    VisitAttributeValue(node.Value);
-                }
-                _insideUnresolvedAttribute = false;
-
-                _builder.Pop();
-
-                // Store the HtmlAttribute child directly on the unresolved node for O(1) access.
-                if (_builder.Current is MarkupOrTagHelperAttributeIntermediateNode currentUnresolved)
-                {
-                    currentUnresolved.HtmlAttributeNode = (HtmlAttributeIntermediateNode)currentUnresolved.Children[currentUnresolved.Children.Count - 1];
-                }
-            }
-
-            if (isUnresolved)
+            var unresolvedAttrNode = (MarkupOrTagHelperAttributeIntermediateNode)_builder.Current;
+            IntermediateNode legacyFallback = null;
+            if (unresolvedAttrNode.Children.Count == 1)
             {
-                _builder.Pop();
+                legacyFallback = unresolvedAttrNode.Children[0];
             }
+            else if (unresolvedAttrNode.Children.Count > 0)
+            {
+                var container = new MarkupElementIntermediateNode();
+                container.Children.AddRange(unresolvedAttrNode.Children);
+
+                legacyFallback = container;
+            }
+
+            unresolvedAttrNode.AsTagHelperAttribute = legacyFallback;
+            unresolvedAttrNode.AsMarkupAttribute = legacyFallback;
+            unresolvedAttrNode.Children.Clear();
+
+            // Create HtmlAttribute with unresolved value children.
+            _builder.Push(new HtmlAttributeIntermediateNode()
+            {
+                AttributeName = name,
+                Prefix = prefix.GetContent(),
+                Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
+                Source = BuildSourceSpanFromNode(node),
+            });
+
+            _insideUnresolvedAttribute = true;
+            LowerUnresolvedAttributeValue(node.Value);
+            _insideUnresolvedAttribute = false;
+
+            _builder.Pop();
+
+            // Store the HtmlAttribute child directly on the unresolved node for O(1) access.
+            if (_builder.Current is MarkupOrTagHelperAttributeIntermediateNode currentUnresolved)
+            {
+                currentUnresolved.HtmlAttributeNode = (HtmlAttributeIntermediateNode)currentUnresolved.Children[^1];
+            }
+
+            _builder.Pop();
         }
 
         /// <summary>
@@ -1385,6 +1299,84 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
 
         /// <summary>
+        /// Lowers an attribute value inside an unresolved element. Handles the @@ escape pattern
+        /// (e.g. <c>Value="@@currentCount"</c>) by merging or splitting the @ literal and remaining
+        /// content. Falls through to <see cref="VisitAttributeValue"/> for non-escape cases.
+        /// </summary>
+        private void LowerUnresolvedAttributeValue(RazorSyntaxNode value)
+        {
+            if (value == null)
+            {
+                VisitAttributeValue(value);
+                return;
+            }
+
+            // Check for @@ escape pattern in unresolved attribute values.
+            var valueChildren = value.ChildNodesAndTokens();
+            if (valueChildren.Count >= 2 &&
+                valueChildren[0].AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax atLiteral, MarkupEphemeralTextLiteralSyntax] })
+            {
+                // Check if all remaining children are literals (can merge everything).
+                var allLiteral = true;
+                for (var i = 1; i < valueChildren.Count; i++)
+                {
+                    if (valueChildren[i].AsNode() is not MarkupLiteralAttributeValueSyntax)
+                    {
+                        allLiteral = false;
+                        break;
+                    }
+                }
+
+                SyntaxNode rewritten;
+
+                if (allLiteral)
+                {
+                    // All-literal: merge @ + all literal content into one token.
+                    using var mergedTokens = new PooledArrayBuilder<SyntaxToken>();
+                    mergedTokens.AddRange(atLiteral.LiteralTokens);
+                    for (var i = 1; i < valueChildren.Count; i++)
+                    {
+                        var literal = (MarkupLiteralAttributeValueSyntax)valueChildren[i].AsNode();
+                        var merged = MergeAttributeValue(literal);
+                        mergedTokens.AddRange(merged.LiteralTokens);
+                    }
+
+                    rewritten = SyntaxFactory.MarkupTextLiteral(mergedTokens.ToList()).Green.CreateRed(value.Parent, atLiteral.Position);
+                }
+                else
+                {
+                    // Mixed: just the @ literal; remaining children are visited below.
+                    rewritten = SyntaxFactory.MarkupTextLiteral(atLiteral.LiteralTokens).Green.CreateRed(value.Parent, atLiteral.Position);
+                }
+
+                var rewrittenSource = BuildSourceSpanFromNode(rewritten);
+                var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
+                {
+                    Prefix = string.Empty,
+                    Source = rewrittenSource,
+                };
+                unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
+                    arg: (MarkupTextLiteralSyntax)rewritten,
+                    contentFactory: static node => node.GetContent() ?? string.Empty,
+                    source: rewrittenSource));
+                _builder.Add(unresolvedNode);
+
+                if (!allLiteral)
+                {
+                    // Visit remaining children (expressions, etc.)
+                    for (var i = 1; i < valueChildren.Count; i++)
+                    {
+                        Visit(valueChildren[i].AsNode());
+                    }
+                }
+            }
+            else
+            {
+                VisitAttributeValue(value);
+            }
+        }
+
+        /// <summary>
         /// Lowers a minimized attribute (no value, e.g. <c>checked</c>, <c>disabled</c>). If inside a
         /// unresolved element, creates a <see cref="MarkupOrTagHelperAttributeIntermediateNode"/> with
         /// <c>IsMinimized = true</c> and a fallback <see cref="HtmlContentIntermediateNode"/> containing
@@ -1438,7 +1430,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var literal = SyntaxFactory.MarkupTextLiteral(literals).Green.CreateRed(node.Parent, node.Position);
 
             Visit(literal);
-
         }
 
         // Example
@@ -1575,8 +1566,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             // The pre-computed indices mark where each region begins, so when we're about to add
             // the first child of a new region, we must start a fresh HtmlContentIntermediateNode.
             var atBoundary = _builder.Current is ElementOrTagHelperIntermediateNode element
-                && ((element.StartTagEndIndex >= 0 && currentChildren.Count == element.StartTagEndIndex)
-                 || (element.BodyEndIndex >= 0 && currentChildren.Count == element.BodyEndIndex));
+                && (currentChildren.Count == element.StartTagEndIndex
+                 || currentChildren.Count == element.BodyEndIndex);
 
             if (!atBoundary && currentChildren.Count > 0 && currentChildren[currentChildren.Count - 1] is HtmlContentIntermediateNode)
             {
@@ -1734,12 +1725,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             if (isUnresolved)
             {
                 var valueSourceSpan = ComputeAttributeValueSourceSpan(node);
+                var source = BuildSourceSpanFromNode(node);
 
                 _builder.Push(new MarkupOrTagHelperAttributeIntermediateNode()
                 {
                     AttributeName = name,
                     IsMinimized = false,
-                    Source = BuildSourceSpanFromNode(node),
+                    Source = source,
                     ValueContent = node.Value?.GetContent(),
                     ValueSourceSpan = valueSourceSpan,
                     AttributeStructure = InferAttributeStructure(node),
@@ -1750,7 +1742,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 // lowering into the unresolved node's children with unresolved state reset.
                 var fallbackContainer = new HtmlAttributeIntermediateNode()
                 {
-                    AttributeName = node.Name.GetContent(),
+                    AttributeName = name,
                     Prefix = SyntaxFactory.MarkupTextLiteral(MergeTokenLists(
                         node.NamePrefix?.LiteralTokens,
                         node.Name.LiteralTokens,
@@ -1758,8 +1750,9 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                         new SyntaxTokenList(node.EqualsToken),
                         node.ValuePrefix?.LiteralTokens)).GetContent(),
                     Suffix = node.ValueSuffix?.GetContent() ?? string.Empty,
-                    Source = BuildSourceSpanFromNode(node),
+                    Source = source,
                 };
+
                 if (node.Value != null)
                 {
                     _builder.Push(fallbackContainer);
@@ -1804,49 +1797,41 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             });
 
             _insideUnresolvedAttribute = isUnresolved;
-            if (isUnresolved && node.Value != null)
+            if (isUnresolved &&
+                node.Value?.ChildNodesAndTokens() is { Count: >= 2 } valueChildren &&
+                valueChildren[0].AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax atLiteral, MarkupEphemeralTextLiteralSyntax] } &&
+                valueChildren[1].AsNode() is MarkupLiteralAttributeValueSyntax)
             {
-                // Check for @@ escape pattern: MarkupBlock(@, ephemeral@) followed by literal content.
-                var valueChildren = node.Value.ChildNodesAndTokens();
-                if (valueChildren.Count >= 2 &&
-                    valueChildren[0].AsNode() is MarkupBlockSyntax { Children: [MarkupTextLiteralSyntax atLiteral, MarkupEphemeralTextLiteralSyntax] } &&
-                    valueChildren[1].AsNode() is MarkupLiteralAttributeValueSyntax)
+                // @@ escape pattern: merge the escaped @ with all following literal children into one unresolved node.
+                using var mergedTokens = new PooledArrayBuilder<SyntaxToken>();
+                mergedTokens.AddRange(atLiteral.LiteralTokens);
+                for (var i = 1; i < valueChildren.Count; i++)
                 {
-                    // Merge the escaped @ with all following literal children into one unresolved node.
-                    using var mergedTokens = new PooledArrayBuilder<SyntaxToken>();
-                    mergedTokens.AddRange(atLiteral.LiteralTokens);
-                    for (var i = 1; i < valueChildren.Count; i++)
+                    if (valueChildren[i].AsNode() is MarkupLiteralAttributeValueSyntax literal)
                     {
-                        if (valueChildren[i].AsNode() is MarkupLiteralAttributeValueSyntax literal)
-                        {
-                            var merged = MergeAttributeValue(literal);
-                            mergedTokens.AddRange(merged.LiteralTokens);
-                        }
-                        else
-                        {
-                            // Mixed content after @@ -- fall through to normal Visit
-                            break;
-                        }
+                        var merged = MergeAttributeValue(literal);
+                        mergedTokens.AddRange(merged.LiteralTokens);
                     }
-
-                    var atPosition = atLiteral.Position;
-                    var rewritten = SyntaxFactory.MarkupTextLiteral(mergedTokens.ToList()).Green.CreateRed(node.Value.Parent, atPosition);
-                    var rewrittenSource = BuildSourceSpanFromNode(rewritten);
-                    var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
+                    else
                     {
-                        Prefix = string.Empty,
-                        Source = rewrittenSource,
-                    };
-                    unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
-                        arg: (MarkupTextLiteralSyntax)rewritten,
-                        contentFactory: static node => node.GetContent() ?? string.Empty,
-                        source: rewrittenSource));
-                    _builder.Add(unresolvedNode);
+                        // Mixed content after @@ -- fall through to normal Visit
+                        break;
+                    }
                 }
-                else
+
+                var atPosition = atLiteral.Position;
+                var rewritten = SyntaxFactory.MarkupTextLiteral(mergedTokens.ToList()).Green.CreateRed(node.Value.Parent, atPosition);
+                var rewrittenSource = BuildSourceSpanFromNode(rewritten);
+                var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
                 {
-                    Visit(node.Value);
-                }
+                    Prefix = string.Empty,
+                    Source = rewrittenSource,
+                };
+                unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
+                    arg: (MarkupTextLiteralSyntax)rewritten,
+                    contentFactory: static node => node.GetContent() ?? string.Empty,
+                    source: rewrittenSource));
+                _builder.Add(unresolvedNode);
             }
             else
             {
@@ -1866,50 +1851,42 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 _builder.Pop();
             }
-        }        public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
+        }
+
+        public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
         {
-            if (_builder.Current is ElementOrTagHelperIntermediateNode)
-            {
-                // Produce the fallback: what this minimized attribute looks like when NOT a tag helper.
-                var minPrefixTokens = MergeTokenLists(
-                    node.NamePrefix?.LiteralTokens,
-                    node.Name.LiteralTokens);
-                var minPosition = node.NamePrefix?.Position ?? node.Name.Position;
-                var minPrefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(minPrefixTokens).Green.CreateRed(node, minPosition);
-
-                _builder.Add(new MarkupOrTagHelperAttributeIntermediateNode()
-                {
-                    AttributeName = node.Name.GetContent(),
-                    IsMinimized = true,
-                    Source = BuildSourceSpanFromNode(node),
-                    AttributeStructure = AttributeStructure.Minimized,
-                    AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
-                    AsMarkupAttribute = new HtmlAttributeIntermediateNode()
-                    {
-                        AttributeName = node.Name.GetContent(),
-                        Prefix = minPrefix.GetContent(),
-                        Suffix = null,
-                        Source = BuildSourceSpanFromNode(node),
-                    },
-                });
-                return;
-            }
-
             var prefixTokens = MergeTokenLists(
                 node.NamePrefix?.LiteralTokens,
                 node.Name.LiteralTokens);
-
             var position = node.NamePrefix?.Position ?? node.Name.Position;
             var prefix = (MarkupTextLiteralSyntax)SyntaxFactory.MarkupTextLiteral(prefixTokens).Green.CreateRed(node, position);
 
             var name = node.Name.GetContent();
-            _builder.Add(new HtmlAttributeIntermediateNode()
+            var source = BuildSourceSpanFromNode(node);
+            var htmlAttr = new HtmlAttributeIntermediateNode()
             {
                 AttributeName = name,
                 Prefix = prefix.GetContent(),
                 Suffix = null,
-                Source = BuildSourceSpanFromNode(node),
-            });
+                Source = source,
+            };
+
+            if (_builder.Current is ElementOrTagHelperIntermediateNode)
+            {
+                _builder.Add(new MarkupOrTagHelperAttributeIntermediateNode()
+                {
+                    AttributeName = name,
+                    IsMinimized = true,
+                    Source = source,
+                    AttributeStructure = AttributeStructure.Minimized,
+                    AttributeNameSpan = BuildSourceSpanFromNode(node.Name),
+                    AsMarkupAttribute = htmlAttr,
+                });
+            }
+            else
+            {
+                _builder.Add(htmlAttr);
+            }
         }
 
         // Example
@@ -1920,38 +1897,26 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         {
             if (_builder.Current is HtmlAttributeIntermediateNode)
             {
-                if (_insideUnresolvedAttribute)
-                {
-                    // Produce unresolved node for @@ escape merged content.
-                    var unresolvedNode = new MarkupOrTagHelperAttributeValueIntermediateNode()
+                var attrValueSource = BuildSourceSpanFromNode(node);
+
+                IntermediateNode childNode = _insideUnresolvedAttribute
+                    ? new MarkupOrTagHelperAttributeValueIntermediateNode()
                     {
                         Prefix = string.Empty,
-                        Source = BuildSourceSpanFromNode(node),
+                        Source = attrValueSource,
+                    }
+                    : new HtmlAttributeValueIntermediateNode()
+                    {
+                        Prefix = string.Empty,
+                        Source = attrValueSource,
                     };
 
-                    unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
-                        arg: node,
-                        contentFactory: static node => node.GetContent() ?? string.Empty,
-                        source: BuildSourceSpanFromNode(node)));
-
-                    _builder.Add(unresolvedNode);
-                    return;
-                }
-
-                // This can happen inside a data- attribute
-                _builder.Push(new HtmlAttributeValueIntermediateNode()
-                {
-                    Prefix = string.Empty,
-                    Source = BuildSourceSpanFromNode(node),
-                });
-
-                _builder.Add(IntermediateNodeFactory.HtmlToken(
+                childNode.Children.Add(IntermediateNodeFactory.HtmlToken(
                     arg: node,
                     contentFactory: static node => node.GetContent() ?? string.Empty,
-                    source: BuildSourceSpanFromNode(node)));
+                    source: attrValueSource));
 
-                _builder.Pop();
-
+                _builder.Add(childNode);
                 return;
             }
 

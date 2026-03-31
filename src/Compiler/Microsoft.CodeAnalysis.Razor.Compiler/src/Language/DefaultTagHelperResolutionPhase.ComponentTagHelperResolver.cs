@@ -1,7 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -28,10 +28,7 @@ internal partial class DefaultTagHelperResolutionPhase
             // Add RZ10012 for elements that look like components but didn't match a Component
             // or ChildContent tag helper. Catch-all directive attribute helpers (@key, @ref,
             // @rendermode) match any element, not just components, so they don't count.
-            if (context.DocumentNode != null &&
-                !context.DocumentNode.Options.SuppressPrimaryMethodBody &&
-                !string.IsNullOrEmpty(tagName) &&
-                DefaultRazorIntermediateNodeLoweringPhase.LooksLikeAComponentName(context.DocumentNode, tagName) &&
+            if (LooksLikeUnexpectedComponent(context.DocumentNode, tagName) &&
                 !binding.TagHelpers.Any(static th => th.Kind.IsComponentOrChildContentKind))
             {
                 tagHelperNode.AddDiagnostic(
@@ -56,10 +53,7 @@ internal partial class DefaultTagHelperResolutionPhase
             ElementOrTagHelperIntermediateNode originalNode,
             DocumentIntermediateNode documentNode)
         {
-            if (documentNode != null &&
-                !documentNode.Options.SuppressPrimaryMethodBody &&
-                !string.IsNullOrEmpty(originalNode.TagName) &&
-                DefaultRazorIntermediateNodeLoweringPhase.LooksLikeAComponentName(documentNode, originalNode.TagName))
+            if (LooksLikeUnexpectedComponent(documentNode, originalNode.TagName))
             {
                 convertedNode.AddDiagnostic(
                     ComponentDiagnosticFactory.Create_UnexpectedMarkupElement(originalNode.TagName, originalNode.StartTagSpan ?? originalNode.Source));
@@ -1144,7 +1138,7 @@ internal partial class DefaultTagHelperResolutionPhase
             // The Source on HtmlAttributeIntermediateNode includes leading whitespace.
             // The Prefix is " name=\"" -- find where the actual attribute name starts.
             var prefix = htmlAttr.Prefix ?? string.Empty;
-            var nameIndex = prefix.IndexOf(htmlAttr.AttributeName, StringComparison.Ordinal);
+            var nameIndex = prefix.IndexOf(htmlAttr.AttributeName!, StringComparison.Ordinal);
             if (nameIndex < 0)
             {
                 nameIndex = 0;
@@ -1273,13 +1267,7 @@ internal partial class DefaultTagHelperResolutionPhase
             };
 
             // Move diagnostics.
-            if (elementNode.HasDiagnostics)
-            {
-                foreach (var diagnostic in elementNode.Diagnostics)
-                {
-                    markupElement.AddDiagnostic(diagnostic);
-                }
-            }
+            markupElement.AddDiagnosticsFromNode(elementNode);
 
             // Transfer all children, lowering unresolved attributes to their fallback form.
             foreach (var child in elementNode.Children)
@@ -1299,6 +1287,13 @@ internal partial class DefaultTagHelperResolutionPhase
             }
 
             parent.Children[index] = markupElement;
+        }
+        private static bool LooksLikeUnexpectedComponent(DocumentIntermediateNode? documentNode, string? tagName)
+        {
+            return documentNode != null &&
+                !documentNode.Options.SuppressPrimaryMethodBody &&
+                !string.IsNullOrEmpty(tagName) &&
+                DefaultRazorIntermediateNodeLoweringPhase.LooksLikeAComponentName(documentNode, tagName);
         }
     }
 }
