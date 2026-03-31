@@ -478,13 +478,9 @@ internal partial class DefaultTagHelperResolutionPhase
 
                     newChildren.Add(expr);
                 }
-                else if (child is HtmlContentIntermediateNode htmlContent)
+                else if (child is HtmlContentIntermediateNode or HtmlAttributeValueIntermediateNode)
                 {
-                    ConvertHtmlTokensToCSharp(htmlContent.Children, ref newChildren.AsRef(), htmlContent.Source, wrapLiteralsInCSharpExpression);
-                }
-                else if (child is HtmlAttributeValueIntermediateNode htmlAttrValue)
-                {
-                    ConvertHtmlTokensToCSharp(htmlAttrValue.Children, ref newChildren.AsRef(), htmlAttrValue.Source, wrapLiteralsInCSharpExpression);
+                    ConvertHtmlTokensToCSharp(child.Children, ref newChildren.AsRef(), child.Source, wrapLiteralsInCSharpExpression);
                 }
                 else
                 {
@@ -516,12 +512,8 @@ internal partial class DefaultTagHelperResolutionPhase
         /// </summary>
         private static void MergeAdjacentCSharpTokens(IntermediateNode node)
         {
-            if (node.Children.Count <= 1)
-            {
-                return;
-            }
-
             // Check that all children are flattenable to CSharp tokens.
+            var canMerge = node.Children.Count > 1;
             foreach (var child in node.Children)
             {
                 if (child is CSharpIntermediateToken)
@@ -529,26 +521,19 @@ internal partial class DefaultTagHelperResolutionPhase
                     continue;
                 }
 
-                if (child is CSharpExpressionIntermediateNode expr)
+                if (child is CSharpExpressionIntermediateNode expr
+                    && expr.Children.All(static inner => inner is CSharpIntermediateToken))
                 {
-                    // Only flatten expressions that contain just CSharp tokens
-                    var allTokens = true;
-                    foreach (var inner in expr.Children)
-                    {
-                        if (inner is not CSharpIntermediateToken)
-                        {
-                            allTokens = false;
-                            break;
-                        }
-                    }
-
-                    if (allTokens)
-                    {
-                        continue;
-                    }
+                    continue;
                 }
 
                 // Non-flattenable child -- can't merge
+                canMerge = false;
+                break;
+            }
+
+            if (!canMerge)
+            {
                 return;
             }
 
@@ -716,51 +701,9 @@ internal partial class DefaultTagHelperResolutionPhase
             using var newChildren = new PooledArrayBuilder<IntermediateNode>();
             foreach (var child in directiveNode.Children)
             {
-                if (child is HtmlContentIntermediateNode htmlContent)
+                if (child is HtmlContentIntermediateNode or MarkupOrTagHelperAttributeValueIntermediateNode)
                 {
-                    foreach (var token in htmlContent.Children)
-                    {
-                        if (token is HtmlIntermediateToken htmlToken)
-                        {
-                            newChildren.Add(ToCSharpToken(htmlToken));
-                        }
-                        else if (token is CSharpIntermediateToken cst)
-                        {
-                            newChildren.Add(cst);
-                        }
-                        else
-                        {
-                            newChildren.Add(token);
-                        }
-                    }
-                }
-                else if (child is CSharpExpressionIntermediateNode csharpExpr)
-                {
-                    foreach (var token in csharpExpr.Children)
-                    {
-                        newChildren.Add(token);
-                    }
-                }
-                else if (child is CSharpExpressionAttributeValueIntermediateNode csharpExprAttrValue)
-                {
-                    // Flatten expression attribute value to direct tokens.
-                    foreach (var token in csharpExprAttrValue.Children)
-                    {
-                        newChildren.Add(token);
-                    }
-                }
-                else if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExprAttrValue)
-                {
-                    // Flatten unresolved expression attribute value to direct tokens.
-                    foreach (var token in unresolvedExprAttrValue.Children)
-                    {
-                        newChildren.Add(token);
-                    }
-                }
-                else if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteralValue)
-                {
-                    // Flatten unresolved literal value to direct CSharp tokens.
-                    foreach (var token in unresolvedLiteralValue.Children)
+                    foreach (var token in child.Children)
                     {
                         if (token is HtmlIntermediateToken htmlToken)
                         {
@@ -770,6 +713,16 @@ internal partial class DefaultTagHelperResolutionPhase
                         {
                             newChildren.Add(token);
                         }
+                    }
+                }
+                else if (child is CSharpExpressionIntermediateNode or
+                         CSharpExpressionAttributeValueIntermediateNode or
+                         CSharpOrTagHelperExpressionAttributeValueIntermediateNode)
+                {
+                    // Flatten expression children to direct tokens.
+                    foreach (var token in child.Children)
+                    {
+                        newChildren.Add(token);
                     }
                 }
                 else

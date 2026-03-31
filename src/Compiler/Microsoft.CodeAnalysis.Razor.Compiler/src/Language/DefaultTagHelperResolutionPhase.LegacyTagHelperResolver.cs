@@ -1430,8 +1430,9 @@ internal partial class DefaultTagHelperResolutionPhase
         {
             // @@ escape case: the @@ literal becomes a flat @ token, and expression children
             // become CSharpExpression with source-extracted content.
-            foreach (var child in htmlAttr.Children)
+            for (var i = 0; i < htmlAttr.Children.Count; i++)
             {
+                var child = htmlAttr.Children[i];
                 if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteral)
                 {
                     // Literal children (including the @ from @@): produce flat CSharp token.
@@ -1446,14 +1447,11 @@ internal partial class DefaultTagHelperResolutionPhase
                     // Add empty token after @@ literal. The @@ escape produces a single
                     // @ content token, and requires a trailing empty token to represent
                     // the ephemeral second @ that was consumed by the escape.
-                    if (unresolvedLiteral.Children.Count == 1 &&
-                        unresolvedLiteral.Children[0] is HtmlIntermediateToken singleToken &&
-                        singleToken.Content == "@")
+                    if (unresolvedLiteral.Children is [HtmlIntermediateToken { Content: "@" }])
                     {
                         // Find the next child's position for the empty token span.
                         SourceSpan? emptySpan = null;
-                        var litIdx = htmlAttr.Children.IndexOf(child);
-                        if (litIdx + 1 < htmlAttr.Children.Count && htmlAttr.Children[litIdx + 1].Source is { } nextSrc)
+                        if (i + 1 < htmlAttr.Children.Count && htmlAttr.Children[i + 1].Source is { } nextSrc)
                         {
                             var loc = sourceDocument.Text.Lines.GetLinePosition(nextSrc.AbsoluteIndex);
                             emptySpan = new SourceSpan(nextSrc.FilePath, nextSrc.AbsoluteIndex, loc.Line, loc.Character, 0, 0, loc.Character);
