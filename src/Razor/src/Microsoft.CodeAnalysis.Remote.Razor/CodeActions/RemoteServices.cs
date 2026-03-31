@@ -122,10 +122,9 @@ internal sealed class OOPAddUsingsCodeActionResolver : AddUsingsCodeActionResolv
 [method: ImportingConstructor]
 internal sealed class OOPGenerateEventHandlerCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
-    IDocumentMappingService documentMappingService,
     IRazorFormattingService razorFormattingService,
     IFileSystem fileSystem)
-    : GenerateEventHandlerCodeActionResolver(roslynCodeActionHelpers, documentMappingService, razorFormattingService, fileSystem);
+    : GenerateEventHandlerCodeActionResolver(roslynCodeActionHelpers, razorFormattingService, fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]

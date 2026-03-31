@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -27,12 +26,10 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
 internal class GenerateEventHandlerCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
-    IDocumentMappingService documentMappingService,
     IRazorFormattingService razorFormattingService,
     IFileSystem fileSystem) : IRazorCodeActionResolver
 {
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IFileSystem _fileSystem = fileSystem;
 
@@ -53,16 +50,13 @@ internal class GenerateEventHandlerCodeActionResolver(
         var razorClassName = Path.GetFileNameWithoutExtension(uriPath);
         var codeBehindPath = $"{uriPath}.cs";
 
-        if (!_fileSystem.FileExists(codeBehindPath) ||
-            razorClassName is null ||
-            !code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace))
+        // If there is no code behind file with a name we expect, then generate a code block
+        if (!_fileSystem.FileExists(codeBehindPath))
         {
             return await GenerateEventHandlerInCodeBlockAsync(
                 code,
                 actionParams,
                 documentContext,
-                razorNamespace: null,
-                razorClassName,
                 options,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -70,15 +64,15 @@ internal class GenerateEventHandlerCodeActionResolver(
         // TODO: Update IFileSystem.ReadFile(...) to return a SourceText without reading a huge string.
         var content = _fileSystem.ReadFile(codeBehindPath);
         var text = SourceText.From(content, Encoding.UTF8);
-        if (GetCSharpClassDeclarationSyntax(text, razorNamespace, razorClassName) is not { } @class)
+        if (razorClassName is null ||
+            !code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace) ||
+            GetCSharpClassDeclarationSyntax(text, razorNamespace, razorClassName) is not { } @class)
         {
             // The code behind file is malformed, generate the code in the razor file instead.
             return await GenerateEventHandlerInCodeBlockAsync(
                 code,
                 actionParams,
                 documentContext,
-                razorNamespace,
-                razorClassName,
                 options,
                 cancellationToken).ConfigureAwait(false);
         }
@@ -87,7 +81,7 @@ internal class GenerateEventHandlerCodeActionResolver(
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(codeBehindUri) };
 
-        var templateWithMethodSignature = PopulateEventHandlerSignature(actionParams);
+        var templateWithMethodSignature = PopulateEventHandlerSignature(actionParams, useIndentPlaceholders: true);
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodSignature,
@@ -113,85 +107,59 @@ internal class GenerateEventHandlerCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { codeBehindTextDocEdit } };
     }
 
-    private async Task<WorkspaceEdit> GenerateEventHandlerInCodeBlockAsync(
+    private async Task<WorkspaceEdit?> GenerateEventHandlerInCodeBlockAsync(
         RazorCodeDocument code,
         GenerateEventHandlerCodeActionParams actionParams,
         DocumentContext documentContext,
-        string? razorNamespace,
-        string? razorClassName,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var templateWithMethodSignature = PopulateEventHandlerSignature(actionParams);
-        var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, options);
-
-        // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
-        // Otherwise, a singular edit means that an @code block does exist and the only edit is adding the method stub.
-        var editToSendToRoslyn = edits.Length == 3 ? edits[1] : edits[0];
-        if (edits.Length == 3
-            && razorClassName is not null
-            && (razorNamespace is not null || code.TryGetNamespace(fallbackToRootNamespace: true, out razorNamespace))
-            && await documentContext.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) is { } csharpSyntaxTree
-            && GetCSharpClassDeclarationSyntax(csharpSyntaxTree, razorNamespace, razorClassName) is { } @class)
+        var csharpSyntaxTree = await documentContext.Snapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        if (!csharpSyntaxRoot.TryGetClassDeclaration(out var classDecl))
         {
-            // There is no existing @code block. This means that there is no code block source mapping in the generated C# document
-            // to place the code, so we cannot utilize the document mapping service and the formatting service.
-            // We are going to arbitrarily place the method at the end of the class in the generated C# file to
-            // just get the simplified text that comes back from Roslyn.
-
-            var classLocationLineSpan = @class.GetLocation().GetLineSpan();
-            var tempTextEdit = LspFactory.CreateTextEdit(
-                line: classLocationLineSpan.EndLinePosition.Line,
-                character: 0,
-                editToSendToRoslyn.NewText);
-
-            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, tempTextEdit, cancellationToken).ConfigureAwait(false);
-
-            // Roslyn should have passed back 2 edits. One that contains the simplified method stub and the other that contains the new
-            // location for the class end brace since we had asked to insert the method stub at the original class end brace location.
-            // We will only use the edit that contains the method stub.
-            Debug.Assert(result is null || result.Length == 2, $"Unexpected response to {nameof(roslynCodeActionHelpers.GetSimplifiedTextEditsAsync)} from Roslyn");
-            var simplificationEdit = result?.FirstOrDefault(edit => edit.NewText.Contains("private"));
-            if (simplificationEdit is not null)
-            {
-                // Roslyn will have removed the beginning formatting, put it back.
-                var formatting = editToSendToRoslyn.NewText[0..editToSendToRoslyn.NewText.IndexOf("private")];
-                editToSendToRoslyn.NewText = $"{formatting}{simplificationEdit.NewText.TrimEnd()}";
-            }
-        }
-        else if (_documentMappingService.TryMapToCSharpDocumentRange(code.GetRequiredCSharpDocument(), editToSendToRoslyn.Range, out var remappedRange))
-        {
-            // If the call to Roslyn is successful, the razor formatting service will format incorrectly if our manual formatting is present,
-            // strip our manual formatting from the method so we just have a valid method signature.
-            var unformattedMethodSignature = templateWithMethodSignature
-                .Replace(FormattingUtilities.InitialIndent, string.Empty)
-                .Replace(FormattingUtilities.Indent, string.Empty);
-
-            var remappedEdit = LspFactory.CreateTextEdit(remappedRange, unformattedMethodSignature);
-            var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, remappedEdit, cancellationToken).ConfigureAwait(false);
-
-            if (result is not null)
-            {
-                var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(
-                    documentContext,
-                    result.SelectAsArray(code.GetCSharpSourceText().GetTextChange),
-                    options,
-                    cancellationToken).ConfigureAwait(false);
-
-                edits = formattedChange is { } change ? [code.Source.Text.GetTextEdit(change)] : [];
-            }
+            return null;
         }
 
-        var razorTextDocEdit = new TextDocumentEdit()
+        // We are going to arbitrarily place the method at the end of the class in the generated C# file. The formatting service will fix indentation, and put it in an appropriate
+        // place in the Razor file
+        var templateWithMethodSignature = PopulateEventHandlerSignature(actionParams, useIndentPlaceholders: false);
+        var classLocationLineSpan = classDecl.CloseBraceToken.GetLocation().GetLineSpan();
+        var tempTextEdit = LspFactory.CreateTextEdit(
+            line: classLocationLineSpan.StartLinePosition.Line,
+            character: 0,
+            templateWithMethodSignature + Environment.NewLine);
+
+        // Call the simplifier to reduce things like `global::System.Threading.Task` down to just `Task`, if possible.
+        var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, tempTextEdit, cancellationToken).ConfigureAwait(false);
+        if (result is not { } edits)
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
-            Edits = [.. edits],
+            return null;
+        }
+
+        // Run the changes through the formatter to handle the rest. This is the same as what the CSharpCodeActionResolver does, so out generated method ends up going through the
+        // same pipeline as the Roslyn Generate Method code action.
+        var csharpSourceText = code.GetCSharpSourceText();
+        var csharpTextChanges = edits.SelectAsArray(csharpSourceText.GetTextChange);
+        var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentContext, csharpTextChanges, options, cancellationToken).ConfigureAwait(false);
+        if (formattedChange is not { } razorChange)
+        {
+            return null;
+        }
+
+        return new WorkspaceEdit()
+        {
+            DocumentChanges = new[] {
+                new TextDocumentEdit()
+                {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
+                    Edits = [code.Source.Text.GetTextEdit(razorChange)],
+                }
+            }
         };
-
-        return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static string PopulateEventHandlerSignature(GenerateEventHandlerCodeActionParams actionParams)
+    private static string PopulateEventHandlerSignature(GenerateEventHandlerCodeActionParams actionParams, bool useIndentPlaceholders)
     {
         var returnType = actionParams.IsAsync
             ? "global::System.Threading.Tasks.Task"
@@ -201,11 +169,14 @@ internal class GenerateEventHandlerCodeActionResolver(
             ? string.Empty // Couldn't find the params, generate no params instead.
             : $"global::{actionParams.EventParameterType} args";
 
+        var beginningIndent = useIndentPlaceholders ? BeginningIndents : "";
+        var indent = useIndentPlaceholders ? FormattingUtilities.Indent : "    ";
+
         return $$"""
-            {{BeginningIndents}}private {{returnType}} {{actionParams.MethodName}}({{parameters}})
-            {{BeginningIndents}}{
-            {{BeginningIndents}}{{FormattingUtilities.Indent}}throw new global::System.NotImplementedException();
-            {{BeginningIndents}}}
+            {{beginningIndent}}private {{returnType}} {{actionParams.MethodName}}({{parameters}})
+            {{beginningIndent}}{
+            {{beginningIndent}}{{indent}}throw new global::System.NotImplementedException();
+            {{beginningIndent}}}
             """;
     }
 
