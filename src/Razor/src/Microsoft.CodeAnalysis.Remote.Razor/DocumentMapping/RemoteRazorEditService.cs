@@ -31,7 +31,7 @@ internal sealed class RemoteRazorEditService(
     {
         if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
         {
-            throw new InvalidOperationException("RemoteEditMappingService can only be used with RemoteDocumentSnapshot instances.");
+            throw new InvalidOperationException("RemoteRazorEditService can only be used with RemoteDocumentSnapshot instances.");
         }
 
         var solution = originSnapshot.TextDocument.Project.Solution;
@@ -51,7 +51,7 @@ internal sealed class RemoteRazorEditService(
     {
         if (contextDocumentSnapshot is not RemoteDocumentSnapshot originSnapshot)
         {
-            throw new InvalidOperationException("RemoteEditMappingService can only be used with RemoteDocumentSnapshot instances.");
+            throw new InvalidOperationException("RemoteRazorEditService can only be used with RemoteDocumentSnapshot instances.");
         }
 
         var solution = originSnapshot.TextDocument.Project.Solution;
