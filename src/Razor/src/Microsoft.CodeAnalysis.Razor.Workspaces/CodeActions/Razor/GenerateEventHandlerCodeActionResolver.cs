@@ -25,7 +25,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
-internal class GenerateMethodCodeActionResolver(
+internal class GenerateEventHandlerCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
     IDocumentMappingService documentMappingService,
     IRazorFormattingService razorFormattingService,
@@ -42,7 +42,7 @@ internal class GenerateMethodCodeActionResolver(
 
     public async Task<WorkspaceEdit?> ResolveAsync(DocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
-        var actionParams = data.Deserialize<GenerateMethodCodeActionParams>();
+        var actionParams = data.Deserialize<GenerateEventHandlerCodeActionParams>();
         if (actionParams is null)
         {
             return null;
@@ -57,7 +57,7 @@ internal class GenerateMethodCodeActionResolver(
             razorClassName is null ||
             !code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace))
         {
-            return await GenerateMethodInCodeBlockAsync(
+            return await GenerateEventHandlerInCodeBlockAsync(
                 code,
                 actionParams,
                 documentContext,
@@ -73,7 +73,7 @@ internal class GenerateMethodCodeActionResolver(
         if (GetCSharpClassDeclarationSyntax(text, razorNamespace, razorClassName) is not { } @class)
         {
             // The code behind file is malformed, generate the code in the razor file instead.
-            return await GenerateMethodInCodeBlockAsync(
+            return await GenerateEventHandlerInCodeBlockAsync(
                 code,
                 actionParams,
                 documentContext,
@@ -87,7 +87,7 @@ internal class GenerateMethodCodeActionResolver(
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(codeBehindUri) };
 
-        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
+        var templateWithMethodSignature = PopulateEventHandlerSignature(actionParams);
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodSignature,
@@ -113,16 +113,16 @@ internal class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { codeBehindTextDocEdit } };
     }
 
-    private async Task<WorkspaceEdit> GenerateMethodInCodeBlockAsync(
+    private async Task<WorkspaceEdit> GenerateEventHandlerInCodeBlockAsync(
         RazorCodeDocument code,
-        GenerateMethodCodeActionParams actionParams,
+        GenerateEventHandlerCodeActionParams actionParams,
         DocumentContext documentContext,
         string? razorNamespace,
         string? razorClassName,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var templateWithMethodSignature = PopulateMethodSignature(actionParams);
+        var templateWithMethodSignature = PopulateEventHandlerSignature(actionParams);
         var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, options);
 
         // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
@@ -191,7 +191,7 @@ internal class GenerateMethodCodeActionResolver(
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
     }
 
-    private static string PopulateMethodSignature(GenerateMethodCodeActionParams actionParams)
+    private static string PopulateEventHandlerSignature(GenerateEventHandlerCodeActionParams actionParams)
     {
         var returnType = actionParams.IsAsync
             ? "global::System.Threading.Tasks.Task"
