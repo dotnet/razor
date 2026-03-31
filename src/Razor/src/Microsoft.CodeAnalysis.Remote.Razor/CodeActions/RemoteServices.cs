@@ -120,14 +120,6 @@ internal sealed class OOPAddUsingsCodeActionResolver : AddUsingsCodeActionResolv
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPGenerateEventHandlerCodeActionResolver(
-    IRoslynCodeActionHelpers roslynCodeActionHelpers,
-    IRazorFormattingService razorFormattingService,
-    IFileSystem fileSystem)
-    : GenerateEventHandlerCodeActionResolver(roslynCodeActionHelpers, razorFormattingService, fileSystem);
-
-[Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
 internal sealed class OOPPromoteUsingDirectiveCodeActionResolver(IFileSystem fileSystem) : PromoteUsingCodeActionResolver(fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]

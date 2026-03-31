@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,20 +15,17 @@ using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Razor;
 
-internal class GenerateEventHandlerCodeActionResolver(
+internal abstract class GenerateEventHandlerCodeActionResolver(
     IRoslynCodeActionHelpers roslynCodeActionHelpers,
-    IRazorFormattingService razorFormattingService,
-    IFileSystem fileSystem) : IRazorCodeActionResolver
+    IRazorFormattingService razorFormattingService) : IRazorCodeActionResolver
 {
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
-    private readonly IFileSystem _fileSystem = fileSystem;
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
@@ -42,29 +38,16 @@ internal class GenerateEventHandlerCodeActionResolver(
         }
 
         var code = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var uriPath = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
-        var razorClassName = Path.GetFileNameWithoutExtension(uriPath);
-        var codeBehindPath = $"{uriPath}.cs";
+        var razorFilePath = documentContext.Uri.GetDocumentFilePath();
+        var razorClassName = Path.GetFileNameWithoutExtension(razorFilePath);
+        var codeBehindPath = $"{razorFilePath}.cs";
 
-        // If there is no code behind file with a name we expect, then generate a code block
-        if (!_fileSystem.FileExists(codeBehindPath))
+        // If we can't get the namespace, or the syntax tree (possibly because the file doesn't exist), or if the file does exist
+        // but doesn't have the class declaration we'd expect, then we don't risk it and just generate a code block.
+        if (!code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace) ||
+            await GetCodeBehindSyntaxTreeAsync(documentContext, codeBehindPath, cancellationToken).ConfigureAwait(false) is not { } syntaxTree ||
+            GetCSharpClassDeclarationSyntax(syntaxTree, razorNamespace, razorClassName) is not { } classDecl)
         {
-            return await GenerateEventHandlerInCodeBlockAsync(
-                code,
-                actionParams,
-                documentContext,
-                options,
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        // TODO: Update IFileSystem.ReadFile(...) to return a SourceText without reading a huge string.
-        var content = _fileSystem.ReadFile(codeBehindPath);
-        var text = SourceText.From(content, Encoding.UTF8);
-        if (razorClassName is null ||
-            !code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace) ||
-            GetCSharpClassDeclarationSyntax(text, razorNamespace, razorClassName) is not { } classDecl)
-        {
-            // The code behind file is malformed, generate the code in the razor file instead.
             return await GenerateEventHandlerInCodeBlockAsync(
                 code,
                 actionParams,
@@ -78,6 +61,7 @@ internal class GenerateEventHandlerCodeActionResolver(
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(codeBehindUri) };
 
         var classLocationLineSpan = classDecl.GetLocation().GetLineSpan();
+        var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
         // We use the class declarations indentation, plus one level, as the base indent for the new method
         var baseIndentation = text.Lines[classLocationLineSpan.StartLinePosition.Line].GetIndentationSize(options.TabSize) + options.TabSize;
         var eventHandler = GetEventHandler(actionParams, options, baseIndentation);
@@ -175,9 +159,10 @@ internal class GenerateEventHandlerCodeActionResolver(
             """;
     }
 
-    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SourceText csharpContent, string razorNamespace, string razorClassName)
+    protected abstract Task<SyntaxTree?> GetCodeBehindSyntaxTreeAsync(DocumentContext documentContext, string codeBehindPath, CancellationToken cancellationToken);
+
+    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SyntaxTree syntaxTree, string razorNamespace, string razorClassName)
     {
-        var syntaxTree = CSharpSyntaxTree.ParseText(csharpContent);
         var compilationUnit = syntaxTree.GetCompilationUnitRoot();
         var @namespace = compilationUnit.Members
             .FirstOrDefault(m => m is BaseNamespaceDeclarationSyntax { } @namespace && @namespace.Name.ToString() == razorNamespace);
