@@ -1131,6 +1131,8 @@ internal partial class DefaultTagHelperResolutionPhase
                         childSource.LineIndex,
                         childSource.CharacterIndex,
                         length,
+                        // Note: does not incorporate lastSource.LineCount; attribute values
+                        // spanning multiple lines are uncommon and the old pipeline had the same limitation.
                         lastSource.LineIndex - childSource.LineIndex,
                         endCharIndex);
                 }

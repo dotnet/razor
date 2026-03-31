@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -71,7 +72,8 @@ internal partial class DefaultTagHelperResolutionPhase
             // Process attributes before StartTagEnd.
             for (var i = 0; i < attrEnd; i++)
             {
-                if (elementNode.Children[i] is MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr)
+                var child = elementNode.Children[i];
+                if (child is MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr)
                 {
                     if (hasDynamicExpressionChild)
                     {
@@ -85,7 +87,7 @@ internal partial class DefaultTagHelperResolutionPhase
 
                     ConvertUnresolvedLegacyAttribute(tagHelperNode, unresolvedAttr, binding, renderedBoundAttributeNames, sourceDocument, in context);
                 }
-                else if (elementNode.Children[i] is HtmlAttributeIntermediateNode htmlAttr)
+                else if (child is HtmlAttributeIntermediateNode htmlAttr)
                 {
                     if (hasDynamicExpressionChild)
                     {
@@ -799,65 +801,56 @@ internal partial class DefaultTagHelperResolutionPhase
                 }
                 else if (child is CSharpExpressionAttributeValueIntermediateNode csharpAttrValue)
                 {
-                    if (!string.IsNullOrEmpty(csharpAttrValue.Prefix))
-                    {
-                        var prefixContent = new HtmlContentIntermediateNode();
-                        prefixContent.Children.Add(new HtmlIntermediateToken(csharpAttrValue.Prefix, source: null));
-                        targetNode.Children.Add(prefixContent);
-                    }
-                    foreach (var innerChild in csharpAttrValue.Children)
-                    {
-                        if (innerChild is CSharpIntermediateToken csharpToken)
-                        {
-                            var expr = new CSharpExpressionIntermediateNode() { Source = csharpToken.Source };
-                            expr.Children.Add(csharpToken);
-                            targetNode.Children.Add(expr);
-                        }
-                        else if (innerChild is HtmlIntermediateToken htmlToken)
-                        {
-                            var htmlContent = new HtmlContentIntermediateNode() { Source = htmlToken.Source };
-                            htmlContent.Children.Add(htmlToken);
-                            targetNode.Children.Add(htmlContent);
-                        }
-                        else
-                        {
-                            targetNode.Children.Add(innerChild);
-                        }
-                    }
+                    UnwrapCSharpAttributeValue(targetNode, csharpAttrValue.Prefix, csharpAttrValue.Children,
+                        static (token) => new CSharpExpressionIntermediateNode() { Source = token.Source });
                 }
                 else if (child is CSharpCodeAttributeValueIntermediateNode csharpCodeAttrValue)
                 {
-                    if (!string.IsNullOrEmpty(csharpCodeAttrValue.Prefix))
-                    {
-                        var prefixContent = new HtmlContentIntermediateNode();
-                        prefixContent.Children.Add(new HtmlIntermediateToken(csharpCodeAttrValue.Prefix, source: null));
-                        targetNode.Children.Add(prefixContent);
-                    }
-                    foreach (var innerChild in csharpCodeAttrValue.Children)
-                    {
-                        if (innerChild is CSharpIntermediateToken csharpToken)
-                        {
-                            // Use CSharpCodeIntermediateNode for code blocks (not CSharpExpressionIntermediateNode)
-                            // so the C# lowering produces raw code instead of WriteLiteral wrapping.
-                            var code = new CSharpCodeIntermediateNode() { Source = csharpToken.Source };
-                            code.Children.Add(csharpToken);
-                            targetNode.Children.Add(code);
-                        }
-                        else if (innerChild is HtmlIntermediateToken htmlToken)
-                        {
-                            var htmlContent = new HtmlContentIntermediateNode() { Source = htmlToken.Source };
-                            htmlContent.Children.Add(htmlToken);
-                            targetNode.Children.Add(htmlContent);
-                        }
-                        else
-                        {
-                            targetNode.Children.Add(innerChild);
-                        }
-                    }
+                    UnwrapCSharpAttributeValue(targetNode, csharpCodeAttrValue.Prefix, csharpCodeAttrValue.Children,
+                        static (token) => new CSharpCodeIntermediateNode() { Source = token.Source });
                 }
                 else
                 {
                     targetNode.Children.Add(child);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unwraps a C# attribute value node (expression or code) into the target, emitting a prefix
+        /// HtmlContent if present, then wrapping each CSharp token in a node created by
+        /// <paramref name="createCSharpWrapper"/> and each HTML token in an HtmlContent.
+        /// </summary>
+        private static void UnwrapCSharpAttributeValue(
+            IntermediateNode targetNode,
+            string prefix,
+            IntermediateNodeCollection children,
+            Func<CSharpIntermediateToken, IntermediateNode> createCSharpWrapper)
+        {
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                var prefixContent = new HtmlContentIntermediateNode();
+                prefixContent.Children.Add(new HtmlIntermediateToken(prefix, source: null));
+                targetNode.Children.Add(prefixContent);
+            }
+
+            foreach (var innerChild in children)
+            {
+                if (innerChild is CSharpIntermediateToken csharpToken)
+                {
+                    var wrapper = createCSharpWrapper(csharpToken);
+                    wrapper.Children.Add(csharpToken);
+                    targetNode.Children.Add(wrapper);
+                }
+                else if (innerChild is HtmlIntermediateToken htmlToken)
+                {
+                    var htmlContent = new HtmlContentIntermediateNode() { Source = htmlToken.Source };
+                    htmlContent.Children.Add(htmlToken);
+                    targetNode.Children.Add(htmlContent);
+                }
+                else
+                {
+                    targetNode.Children.Add(innerChild);
                 }
             }
         }
@@ -905,23 +898,11 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     // @@ escape: collect the literal content (e.g., "@" from @@).
                     sb.Append(csharpSeg.Prefix ?? string.Empty);
-                    foreach (var token in csharpSeg.Children)
-                    {
-                        if (token is IntermediateToken intermediateToken)
-                        {
-                            sb.Append(intermediateToken.Content);
-                        }
-                    }
+                    AppendTokenContent(sb, csharpSeg.Children);
                 }
                 else if (child is HtmlContentIntermediateNode htmlContent)
                 {
-                    foreach (var token in htmlContent.Children)
-                    {
-                        if (token is IntermediateToken intermediateToken)
-                        {
-                            sb.Append(intermediateToken.Content);
-                        }
-                    }
+                    AppendTokenContent(sb, htmlContent.Children);
                 }
             }
 
@@ -938,6 +919,17 @@ internal partial class DefaultTagHelperResolutionPhase
             // - Empty or whitespace prefix
             // - A single CSharpIntermediateToken or HtmlIntermediateToken with "@" content
             return segment.Children is [IntermediateToken { Content: "@" }];
+        }
+
+        private static void AppendTokenContent(StringBuilder sb, IntermediateNodeCollection children)
+        {
+            foreach (var token in children)
+            {
+                if (token is IntermediateToken intermediateToken)
+                {
+                    sb.Append(intermediateToken.Content);
+                }
+            }
         }
 
         /// <summary>
