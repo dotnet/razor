@@ -85,7 +85,7 @@ internal sealed class OOPDefaultCSharpCodeActionProvider(LanguageServerFeatureOp
 
 [Export(typeof(IHtmlCodeActionProvider)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPDefaultHtmlCodeActionProvider(IEditMappingService editMappingService) : HtmlCodeActionProvider(editMappingService);
+internal sealed class OOPDefaultHtmlCodeActionProvider(IRazorEditService razorEditService) : HtmlCodeActionProvider(razorEditService);
 
 // Code Action Resolvers
 
@@ -150,4 +150,4 @@ internal sealed class OOPUnformattedRemappingCSharpCodeActionResolver(IDocumentM
 
 [Export(typeof(IHtmlCodeActionResolver)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPHtmlCodeActionResolver(IEditMappingService editMappingService) : HtmlCodeActionResolver(editMappingService);
+internal sealed class OOPHtmlCodeActionResolver(IRazorEditService razorEditService) : HtmlCodeActionResolver(razorEditService);

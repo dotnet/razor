@@ -15,19 +15,22 @@ using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Text;
 using RoslynSyntaxNode = Microsoft.CodeAnalysis.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.DocumentMapping;
 
-internal partial class RazorEditService(
+internal abstract partial class RazorEditService(
     IDocumentMappingService documentMappingService,
     IClientSettingsManager clientSettingsManager,
+    IFilePathService filePathService,
     ITelemetryReporter telemetryReporter) : IRazorEditService
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
+    private readonly IFilePathService _filePathService = filePathService;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
