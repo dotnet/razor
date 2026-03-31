@@ -1,9 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -32,8 +30,6 @@ internal class GenerateEventHandlerCodeActionResolver(
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers = roslynCodeActionHelpers;
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IFileSystem _fileSystem = fileSystem;
-
-    private const string BeginningIndents = $"{FormattingUtilities.InitialIndent}{FormattingUtilities.Indent}";
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
@@ -66,7 +62,7 @@ internal class GenerateEventHandlerCodeActionResolver(
         var text = SourceText.From(content, Encoding.UTF8);
         if (razorClassName is null ||
             !code.TryGetNamespace(fallbackToRootNamespace: true, out var razorNamespace) ||
-            GetCSharpClassDeclarationSyntax(text, razorNamespace, razorClassName) is not { } @class)
+            GetCSharpClassDeclarationSyntax(text, razorNamespace, razorClassName) is not { } classDecl)
         {
             // The code behind file is malformed, generate the code in the razor file instead.
             return await GenerateEventHandlerInCodeBlockAsync(
@@ -81,20 +77,15 @@ internal class GenerateEventHandlerCodeActionResolver(
 
         var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(codeBehindUri) };
 
-        var templateWithMethodSignature = PopulateEventHandlerSignature(actionParams, useIndentPlaceholders: true);
-        var classLocationLineSpan = @class.GetLocation().GetLineSpan();
-        var formattedMethod = FormattingUtilities.AddIndentationToMethod(
-            templateWithMethodSignature,
-            options.TabSize,
-            options.InsertSpaces,
-            @class.SpanStart,
-            classLocationLineSpan.StartLinePosition.Character,
-            text);
+        var classLocationLineSpan = classDecl.GetLocation().GetLineSpan();
+        // We use the class declarations indentation, plus one level, as the base indent for the new method
+        var baseIndentation = text.Lines[classLocationLineSpan.StartLinePosition.Line].GetIndentationSize(options.TabSize) + options.TabSize;
+        var eventHandler = GetEventHandler(actionParams, options, baseIndentation);
 
         var edit = LspFactory.CreateTextEdit(
             line: classLocationLineSpan.EndLinePosition.Line,
             character: 0,
-            $"{formattedMethod}{Environment.NewLine}");
+            eventHandler);
 
         var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri, edit, cancellationToken).ConfigureAwait(false);
 
@@ -122,13 +113,13 @@ internal class GenerateEventHandlerCodeActionResolver(
         }
 
         // We are going to arbitrarily place the method at the end of the class in the generated C# file. The formatting service will fix indentation, and put it in an appropriate
-        // place in the Razor file
-        var templateWithMethodSignature = PopulateEventHandlerSignature(actionParams, useIndentPlaceholders: false);
+        // place in the Razor file, so we can just use 0 as the base.
+        var eventHandler = GetEventHandler(actionParams, options, baseIndentation: 0);
         var classLocationLineSpan = classDecl.CloseBraceToken.GetLocation().GetLineSpan();
         var tempTextEdit = LspFactory.CreateTextEdit(
             line: classLocationLineSpan.StartLinePosition.Line,
             character: 0,
-            templateWithMethodSignature + Environment.NewLine);
+            eventHandler);
 
         // Call the simplifier to reduce things like `global::System.Threading.Task` down to just `Task`, if possible.
         var result = await _roslynCodeActionHelpers.GetSimplifiedTextEditsAsync(documentContext, codeBehindUri: null, tempTextEdit, cancellationToken).ConfigureAwait(false);
@@ -159,7 +150,10 @@ internal class GenerateEventHandlerCodeActionResolver(
         };
     }
 
-    private static string PopulateEventHandlerSignature(GenerateEventHandlerCodeActionParams actionParams, bool useIndentPlaceholders)
+    private static string GetEventHandler(
+        GenerateEventHandlerCodeActionParams actionParams,
+        RazorFormattingOptions options,
+        int baseIndentation)
     {
         var returnType = actionParams.IsAsync
             ? "global::System.Threading.Tasks.Task"
@@ -169,26 +163,22 @@ internal class GenerateEventHandlerCodeActionResolver(
             ? string.Empty // Couldn't find the params, generate no params instead.
             : $"global::{actionParams.EventParameterType} args";
 
-        var beginningIndent = useIndentPlaceholders ? BeginningIndents : "";
-        var indent = useIndentPlaceholders ? FormattingUtilities.Indent : "    ";
+        var eventHandlerIndentation = FormattingUtilities.GetIndentationString(baseIndentation, options.InsertSpaces, options.TabSize);
+        var eventHandlerBodyIndentation = FormattingUtilities.GetIndentationString(baseIndentation + options.TabSize, options.InsertSpaces, options.TabSize);
 
         return $$"""
-            {{beginningIndent}}private {{returnType}} {{actionParams.MethodName}}({{parameters}})
-            {{beginningIndent}}{
-            {{beginningIndent}}{{indent}}throw new global::System.NotImplementedException();
-            {{beginningIndent}}}
+            {{eventHandlerIndentation}}private {{returnType}} {{actionParams.MethodName}}({{parameters}})
+            {{eventHandlerIndentation}}{
+            {{eventHandlerBodyIndentation}}throw new global::System.NotImplementedException();
+            {{eventHandlerIndentation}}}
+
             """;
     }
 
     private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SourceText csharpContent, string razorNamespace, string razorClassName)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(csharpContent);
-        return GetCSharpClassDeclarationSyntax(syntaxTree, razorNamespace, razorClassName);
-    }
-
-    private static ClassDeclarationSyntax? GetCSharpClassDeclarationSyntax(SyntaxTree csharpSyntaxTree, string razorNamespace, string razorClassName)
-    {
-        var compilationUnit = csharpSyntaxTree.GetCompilationUnitRoot();
+        var compilationUnit = syntaxTree.GetCompilationUnitRoot();
         var @namespace = compilationUnit.Members
             .FirstOrDefault(m => m is BaseNamespaceDeclarationSyntax { } @namespace && @namespace.Name.ToString() == razorNamespace);
         if (@namespace is null)
