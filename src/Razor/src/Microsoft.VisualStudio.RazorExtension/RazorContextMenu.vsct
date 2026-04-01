@@ -23,12 +23,12 @@
       <IDSymbol name="cmdidShowFormattingDocument" value="0x0116" />
     </GuidSymbol>
 
-    <!-- Command set GUID for Razor isolation file commands -->
-    <GuidSymbol name="guidRazorIsolationFilesCmdSet" value="{8B2B3C5D-6E4A-4F9B-9C8D-1A2B3C4D5E6F}">
-      <IDSymbol name="grpidRazorIsolationFiles" value="0x1001" />
-      <IDSymbol name="cmdidAddOrViewCssIsolationFile" value="0x0100" />
-      <IDSymbol name="cmdidAddOrViewCsIsolationFile" value="0x0101" />
-      <IDSymbol name="cmdidAddOrViewJsIsolationFile" value="0x0102" />
+    <!-- Command set GUID for Razor nested file commands -->
+    <GuidSymbol name="guidRazorNestedFilesCmdSet" value="{8B2B3C5D-6E4A-4F9B-9C8D-1A2B3C4D5E6F}">
+      <IDSymbol name="grpidRazorNestedFiles" value="0x1001" />
+      <IDSymbol name="cmdidAddOrViewCssNestedFile" value="0x0100" />
+      <IDSymbol name="cmdidAddOrViewCsNestedFile" value="0x0101" />
+      <IDSymbol name="cmdidAddOrViewJsNestedFile" value="0x0102" />
     </GuidSymbol>
 
     <!-- UI Context GUID for Razor file selection -->
@@ -42,8 +42,8 @@
         <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar"/>
       </Group>
 
-      <!-- Isolation file group parented to Solution Explorer item context menu -->
-      <Group guid="guidRazorIsolationFilesCmdSet" id="grpidRazorIsolationFiles" priority="0x0310">
+      <!-- Nested file group parented to Solution Explorer item context menu -->
+      <Group guid="guidRazorNestedFilesCmdSet" id="grpidRazorNestedFiles" priority="0x0310">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE"/>
       </Group>
     </Groups>
@@ -111,53 +111,53 @@
         </Strings>
       </Button>
 
-      <!-- Razor isolation file commands -->
-      <Button guid="guidRazorIsolationFilesCmdSet" id="cmdidAddOrViewCssIsolationFile" priority="0x0100" type="Button">
-        <Parent guid="guidRazorIsolationFilesCmdSet" id="grpidRazorIsolationFiles"/>
+      <!-- Razor nested file commands -->
+      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewCssNestedFile" priority="0x0100" type="Button">
+        <Parent guid="guidRazorNestedFilesCmdSet" id="grpidRazorNestedFiles"/>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>Add or View CSS Isolation File</ButtonText>
-          <CanonicalName>AddOrViewCssIsolationFile</CanonicalName>
-          <LocCanonicalName>AddOrViewCssIsolationFile</LocCanonicalName>
-          <CommandName>AddOrViewCssIsolationFile</CommandName>
+          <ButtonText>Add or View CSS Nested File</ButtonText>
+          <CanonicalName>AddOrViewCssNestedFile</CanonicalName>
+          <LocCanonicalName>AddOrViewCssNestedFile</LocCanonicalName>
+          <CommandName>AddOrViewCssNestedFile</CommandName>
         </Strings>
       </Button>
 
-      <Button guid="guidRazorIsolationFilesCmdSet" id="cmdidAddOrViewCsIsolationFile" priority="0x0101" type="Button">
-        <Parent guid="guidRazorIsolationFilesCmdSet" id="grpidRazorIsolationFiles"/>
+      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewCsNestedFile" priority="0x0101" type="Button">
+        <Parent guid="guidRazorNestedFilesCmdSet" id="grpidRazorNestedFiles"/>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
           <ButtonText>Add or View C# Code-Behind File</ButtonText>
-          <CanonicalName>AddOrViewCsIsolationFile</CanonicalName>
-          <LocCanonicalName>AddOrViewCsIsolationFile</LocCanonicalName>
-          <CommandName>AddOrViewCsIsolationFile</CommandName>
+          <CanonicalName>AddOrViewCsNestedFile</CanonicalName>
+          <LocCanonicalName>AddOrViewCsNestedFile</LocCanonicalName>
+          <CommandName>AddOrViewCsNestedFile</CommandName>
         </Strings>
       </Button>
 
-      <Button guid="guidRazorIsolationFilesCmdSet" id="cmdidAddOrViewJsIsolationFile" priority="0x0102" type="Button">
-        <Parent guid="guidRazorIsolationFilesCmdSet" id="grpidRazorIsolationFiles"/>
+      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewJsNestedFile" priority="0x0102" type="Button">
+        <Parent guid="guidRazorNestedFilesCmdSet" id="grpidRazorNestedFiles"/>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>Add or View JavaScript Isolation File</ButtonText>
-          <CanonicalName>AddOrViewJsIsolationFile</CanonicalName>
-          <LocCanonicalName>AddOrViewJsIsolationFile</LocCanonicalName>
-          <CommandName>AddOrViewJsIsolationFile</CommandName>
+          <ButtonText>Add or View JavaScript Nested File</ButtonText>
+          <CanonicalName>AddOrViewJsNestedFile</CanonicalName>
+          <LocCanonicalName>AddOrViewJsNestedFile</LocCanonicalName>
+          <CommandName>AddOrViewJsNestedFile</CommandName>
         </Strings>
       </Button>
     </Buttons>
   </Commands>
 
-  <!-- Visibility constraints - isolation file commands only appear when UI context is active -->
+  <!-- Visibility constraints - nested file commands only appear when UI context is active -->
   <VisibilityConstraints>
-    <VisibilityItem guid="guidRazorIsolationFilesCmdSet" id="cmdidAddOrViewCssIsolationFile" context="guidRazorFileContext" />
-    <VisibilityItem guid="guidRazorIsolationFilesCmdSet" id="cmdidAddOrViewCsIsolationFile" context="guidRazorFileContext" />
-    <VisibilityItem guid="guidRazorIsolationFilesCmdSet" id="cmdidAddOrViewJsIsolationFile" context="guidRazorFileContext" />
+    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewCssNestedFile" context="guidRazorFileContext" />
+    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewCsNestedFile" context="guidRazorFileContext" />
+    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewJsNestedFile" context="guidRazorFileContext" />
   </VisibilityConstraints>
 
 </CommandTable>

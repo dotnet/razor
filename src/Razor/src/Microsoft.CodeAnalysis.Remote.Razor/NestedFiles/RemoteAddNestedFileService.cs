@@ -11,8 +11,8 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
-using Microsoft.CodeAnalysis.Razor.IsolationFiles;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.NestedFiles;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -20,13 +20,13 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal sealed class RemoteAddIsolationFileService(in ServiceArgs args)
-    : RazorDocumentServiceBase(in args), IRemoteAddIsolationFileService
+internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
+    : RazorDocumentServiceBase(in args), IRemoteAddNestedFileService
 {
-    internal sealed class Factory : FactoryBase<IRemoteAddIsolationFileService>
+    internal sealed class Factory : FactoryBase<IRemoteAddNestedFileService>
     {
-        protected override IRemoteAddIsolationFileService CreateService(in ServiceArgs args)
-            => new RemoteAddIsolationFileService(in args);
+        protected override IRemoteAddNestedFileService CreateService(in ServiceArgs args)
+            => new RemoteAddNestedFileService(in args);
     }
 
     private readonly IRoslynCodeActionHelpers _roslynCodeActionHelpers =
@@ -35,17 +35,17 @@ internal sealed class RemoteAddIsolationFileService(in ServiceArgs args)
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions =
         args.ExportProvider.GetExportedValue<LanguageServerFeatureOptions>();
 
-    public ValueTask<WorkspaceEdit?> AddIsolationFileAsync(
+    public ValueTask<WorkspaceEdit?> AddNestedFileAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         Uri razorFileUri,
         string fileKind,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
-            solution => AddIsolationFileAsync(solution, razorFileUri, fileKind, cancellationToken),
+            solution => AddNestedFileAsync(solution, razorFileUri, fileKind, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<WorkspaceEdit?> AddIsolationFileAsync(
+    private async ValueTask<WorkspaceEdit?> AddNestedFileAsync(
         Solution solution,
         Uri razorFileUri,
         string fileKind,
@@ -65,28 +65,28 @@ internal sealed class RemoteAddIsolationFileService(in ServiceArgs args)
         }
 
         var razorFilePath = FilePathNormalizer.Normalize(razorFileUri.GetAbsoluteOrUNCPath());
-        var isolationFilePath = GetIsolationFilePath(razorFilePath, fileKind);
-        if (isolationFilePath is null)
+        var nestedFilePath = GetNestedFilePath(razorFilePath, fileKind);
+        if (nestedFilePath is null)
         {
             return null;
         }
 
-        var isolationFileUri = LspFactory.CreateFilePathUri(isolationFilePath, _languageServerFeatureOptions);
+        var nestedFileUri = LspFactory.CreateFilePathUri(nestedFilePath, _languageServerFeatureOptions);
 
         var content = await GenerateContentAsync(
-            fileKind, documentContext, razorFilePath, isolationFileUri, cancellationToken).ConfigureAwait(false);
+            fileKind, documentContext, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false);
 
-        var isolationFileDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier
+        var nestedFileDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier
         {
-            DocumentUri = new DocumentUri(isolationFileUri)
+            DocumentUri = new DocumentUri(nestedFileUri)
         };
 
         var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
         {
-            new CreateFile { DocumentUri = isolationFileDocumentIdentifier.DocumentUri },
+            new CreateFile { DocumentUri = nestedFileDocumentIdentifier.DocumentUri },
             new TextDocumentEdit
             {
-                TextDocument = isolationFileDocumentIdentifier,
+                TextDocument = nestedFileDocumentIdentifier,
                 Edits = [LspFactory.CreateTextEdit(position: (0, 0), content)]
             }
         };
@@ -97,13 +97,13 @@ internal sealed class RemoteAddIsolationFileService(in ServiceArgs args)
         };
     }
 
-    private static string? GetIsolationFilePath(string razorFilePath, string fileKind)
+    private static string? GetNestedFilePath(string razorFilePath, string fileKind)
     {
         return fileKind switch
         {
-            IsolationFileKind.Css => razorFilePath + ".css",
-            IsolationFileKind.CSharp => razorFilePath + ".cs",
-            IsolationFileKind.JavaScript => razorFilePath + ".js",
+            NestedFileKind.Css => razorFilePath + ".css",
+            NestedFileKind.CSharp => razorFilePath + ".cs",
+            NestedFileKind.JavaScript => razorFilePath + ".js",
             _ => null
         };
     }
@@ -112,15 +112,15 @@ internal sealed class RemoteAddIsolationFileService(in ServiceArgs args)
         string fileKind,
         RemoteDocumentContext documentContext,
         string razorFilePath,
-        Uri isolationFileUri,
+        Uri nestedFileUri,
         CancellationToken cancellationToken)
     {
         return fileKind switch
         {
-            IsolationFileKind.CSharp => await GenerateCSharpContentAsync(
-                documentContext, razorFilePath, isolationFileUri, cancellationToken).ConfigureAwait(false),
-            IsolationFileKind.Css => GenerateCssContent(razorFilePath),
-            IsolationFileKind.JavaScript => GenerateJavaScriptContent(razorFilePath),
+            NestedFileKind.CSharp => await GenerateCSharpContentAsync(
+                documentContext, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false),
+            NestedFileKind.Css => GenerateCssContent(razorFilePath),
+            NestedFileKind.JavaScript => GenerateJavaScriptContent(razorFilePath),
             _ => string.Empty
         };
     }
@@ -129,19 +129,20 @@ internal sealed class RemoteAddIsolationFileService(in ServiceArgs args)
     {
         var componentName = Path.GetFileNameWithoutExtension(razorFilePath);
         var fileType = FileKinds.GetFileKindFromPath(razorFilePath).IsComponent() ? "component" : "view";
-        return $"/* Scoped CSS styles for {componentName} {fileType} */\r\n";
+        return $"/* CSS for {componentName} {fileType} */\r\n";
     }
 
     private static string GenerateJavaScriptContent(string razorFilePath)
     {
         var componentName = Path.GetFileNameWithoutExtension(razorFilePath);
-        return $"// JavaScript isolation for {componentName} component\r\n";
+        var fileType = FileKinds.GetFileKindFromPath(razorFilePath).IsComponent() ? "component" : "view";
+        return $"// JavaScript for {componentName} {fileType}\r\n";
     }
 
     private async Task<string> GenerateCSharpContentAsync(
         RemoteDocumentContext documentContext,
         string razorFilePath,
-        Uri isolationFileUri,
+        Uri nestedFileUri,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -160,7 +161,7 @@ internal sealed class RemoteAddIsolationFileService(in ServiceArgs args)
         // Format via Roslyn (handles file-scoped namespaces, indentation, etc.)
         content = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(
             documentContext.Snapshot.Project,
-            isolationFileUri,
+            nestedFileUri,
             content,
             cancellationToken).ConfigureAwait(false);
 

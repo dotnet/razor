@@ -8,14 +8,14 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
-internal interface IRemoteAddIsolationFileService : IRemoteJsonService
+internal interface IRemoteAddNestedFileService : IRemoteJsonService
 {
     /// <summary>
-    /// Creates an isolation file (CSS, C# code-behind, or JavaScript) for a Razor file.
+    /// Creates a nested file (CSS, C# code-behind, or JavaScript) for a Razor file.
     /// Returns a <see cref="WorkspaceEdit"/> containing CreateFile + TextDocumentEdit operations,
     /// or null if the operation could not be completed.
     /// </summary>
-    ValueTask<WorkspaceEdit?> AddIsolationFileAsync(
+    ValueTask<WorkspaceEdit?> AddNestedFileAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         Uri razorFileUri,
         string fileKind,

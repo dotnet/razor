@@ -1,26 +1,26 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Razor.IsolationFiles;
+using Microsoft.CodeAnalysis.Razor.NestedFiles;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.IsolationFiles;
+namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.NestedFiles;
 
-public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
+public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
-    public async Task CssIsolationFile_CreatesEmptyFile()
+    public async Task CssNestedFile_CreatesEmptyFile()
     {
         var document = CreateProjectAndRazorDocument("<div></div>");
         var razorFileUri = new Uri(document.FilePath!);
 
-        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddIsolationFileService, WorkspaceEdit?>(
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             document.Project.Solution,
-            (service, solutionInfo, ct) => service.AddIsolationFileAsync(solutionInfo, razorFileUri, IsolationFileKind.Css, ct),
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, NestedFileKind.Css, ct),
             DisposalToken);
 
         Assert.NotNull(result);
@@ -38,14 +38,14 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
-    public async Task JavaScriptIsolationFile_CreatesFileWithTemplate()
+    public async Task JavaScriptNestedFile_CreatesFileWithTemplate()
     {
         var document = CreateProjectAndRazorDocument("<div></div>");
         var razorFileUri = new Uri(document.FilePath!);
 
-        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddIsolationFileService, WorkspaceEdit?>(
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             document.Project.Solution,
-            (service, solutionInfo, ct) => service.AddIsolationFileAsync(solutionInfo, razorFileUri, IsolationFileKind.JavaScript, ct),
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, NestedFileKind.JavaScript, ct),
             DisposalToken);
 
         Assert.NotNull(result);
@@ -60,18 +60,18 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
         Assert.True(changes[1].TryGetFirst(out var textEdit));
         Assert.Single(textEdit!.Edits);
         var content = ((TextEdit)textEdit.Edits[0]).NewText;
-        Assert.Contains("JavaScript isolation for File1 component", content);
+        Assert.Contains("JavaScript nested file for File1 component", content);
     }
 
     [Fact]
-    public async Task CSharpIsolationFile_GeneratesCodeBehind()
+    public async Task CSharpNestedFile_GeneratesCodeBehind()
     {
         var document = CreateProjectAndRazorDocument("<div></div>");
         var razorFileUri = new Uri(document.FilePath!);
 
-        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddIsolationFileService, WorkspaceEdit?>(
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             document.Project.Solution,
-            (service, solutionInfo, ct) => service.AddIsolationFileAsync(solutionInfo, razorFileUri, IsolationFileKind.CSharp, ct),
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, NestedFileKind.CSharp, ct),
             DisposalToken);
 
         Assert.NotNull(result);
@@ -94,7 +94,7 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
-    public async Task CSharpIsolationFile_WithNamespaceDirective()
+    public async Task CSharpNestedFile_WithNamespaceDirective()
     {
         var document = CreateProjectAndRazorDocument("""
             @namespace My.Custom.Namespace
@@ -103,9 +103,9 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
             """);
         var razorFileUri = new Uri(document.FilePath!);
 
-        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddIsolationFileService, WorkspaceEdit?>(
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             document.Project.Solution,
-            (service, solutionInfo, ct) => service.AddIsolationFileAsync(solutionInfo, razorFileUri, IsolationFileKind.CSharp, ct),
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, NestedFileKind.CSharp, ct),
             DisposalToken);
 
         Assert.NotNull(result);
@@ -119,7 +119,7 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
-    public async Task CSharpIsolationFile_IncludesUsingDirectives()
+    public async Task CSharpNestedFile_IncludesUsingDirectives()
     {
         var document = CreateProjectAndRazorDocument(
             """
@@ -129,9 +129,9 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
             """);
         var razorFileUri = new Uri(document.FilePath!);
 
-        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddIsolationFileService, WorkspaceEdit?>(
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             document.Project.Solution,
-            (service, solutionInfo, ct) => service.AddIsolationFileAsync(solutionInfo, razorFileUri, IsolationFileKind.CSharp, ct),
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, NestedFileKind.CSharp, ct),
             DisposalToken);
 
         Assert.NotNull(result);
@@ -146,7 +146,7 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
-    public async Task CshtmlFile_CssIsolation()
+    public async Task CshtmlFile_CssNestedFile()
     {
         var document = CreateProjectAndRazorDocument(
             "<div></div>",
@@ -154,9 +154,9 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
             documentFilePath: FilePath("Page1.cshtml"));
         var razorFileUri = new Uri(document.FilePath!);
 
-        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddIsolationFileService, WorkspaceEdit?>(
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             document.Project.Solution,
-            (service, solutionInfo, ct) => service.AddIsolationFileAsync(solutionInfo, razorFileUri, IsolationFileKind.Css, ct),
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, NestedFileKind.Css, ct),
             DisposalToken);
 
         Assert.NotNull(result);
@@ -175,9 +175,9 @@ public class RemoteAddIsolationFileServiceTest(ITestOutputHelper testOutputHelpe
         var document = CreateProjectAndRazorDocument("<div></div>");
         var razorFileUri = new Uri(document.FilePath!);
 
-        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddIsolationFileService, WorkspaceEdit?>(
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             document.Project.Solution,
-            (service, solutionInfo, ct) => service.AddIsolationFileAsync(solutionInfo, razorFileUri, "invalid", ct),
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, "invalid", ct),
             DisposalToken);
 
         Assert.Null(result);

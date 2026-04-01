@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Razor.LanguageClient.Options;
 using Microsoft.VisualStudio.Razor.Logging;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Snippets;
-using Microsoft.VisualStudio.RazorExtension.IsolationFiles;
+using Microsoft.VisualStudio.RazorExtension.NestedFiles;
 using Microsoft.VisualStudio.RazorExtension.Snippets;
 using Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 using Microsoft.VisualStudio.Shell;
@@ -59,12 +59,12 @@ internal sealed class RazorPackage : AsyncPackage
     internal static readonly Guid GuidSyntaxVisualizerMenuCmdSet = new Guid(GuidSyntaxVisualizerMenuCmdSetString);
     internal const uint CmdIDRazorSyntaxVisualizer = 0x101;
 
-    // Razor isolation files command set
-    internal const string GuidRazorIsolationFilesCmdSetString = "8B2B3C5D-6E4A-4F9B-9C8D-1A2B3C4D5E6F";
-    internal static readonly Guid GuidRazorIsolationFilesCmdSet = new Guid(GuidRazorIsolationFilesCmdSetString);
-    internal const uint CmdIdAddOrViewCssIsolationFile = 0x0100;
-    internal const uint CmdIdAddOrViewCsIsolationFile = 0x0101;
-    internal const uint CmdIdAddOrViewJsIsolationFile = 0x0102;
+    // Razor nested files command set
+    internal const string GuidRazorNestedFilesCmdSetString = "8B2B3C5D-6E4A-4F9B-9C8D-1A2B3C4D5E6F";
+    internal static readonly Guid GuidRazorNestedFilesCmdSet = new Guid(GuidRazorNestedFilesCmdSetString);
+    internal const uint CmdIdAddOrViewCssNestedFile = 0x0100;
+    internal const uint CmdIdAddOrViewCsNestedFile = 0x0101;
+    internal const uint CmdIdAddOrViewJsNestedFile = 0x0102;
 
     // UI Context for when a .razor or .cshtml file is selected
     internal const string GuidRazorFileContextString = "7C3F2F9E-8D4A-4B6C-9E1F-5A8D7C6B3E2D";
@@ -100,8 +100,8 @@ internal sealed class RazorPackage : AsyncPackage
             var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
             mcs.AddCommand(menuToolWin);
 
-            // Register isolation file commands
-            RegisterIsolationFileCommands(mcs);
+            // Register nested file commands
+            RegisterNestedFileCommands(mcs);
         }
 
         var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
@@ -161,9 +161,9 @@ internal sealed class RazorPackage : AsyncPackage
     }
 
     /// <summary>
-    /// Registers the isolation file commands (CSS, C#, Javascript) in the menu command service.
+    /// Registers the nested file commands (CSS, C#, Javascript) in the menu command service.
     /// </summary>
-    private void RegisterIsolationFileCommands(OleMenuCommandService mcs)
+    private void RegisterNestedFileCommands(OleMenuCommandService mcs)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -171,24 +171,24 @@ internal sealed class RazorPackage : AsyncPackage
         var requestInvoker = new Lazy<LSPRequestInvokerWrapper>(() => componentModel.GetService<LSPRequestInvokerWrapper>());
 
         // Create command handlers
-        var cssHandler = new CssIsolationFileCommandHandler(this, requestInvoker);
-        var csharpHandler = new CSharpIsolationFileCommandHandler(this, requestInvoker);
-        var javascriptHandler = new JavascriptIsolationFileCommandHandler(this, requestInvoker);
+        var cssHandler = new CssNestedFileCommandHandler(this, requestInvoker);
+        var csharpHandler = new CSharpNestedFileCommandHandler(this, requestInvoker);
+        var javascriptHandler = new JavascriptNestedFileCommandHandler(this, requestInvoker);
 
-        // CSS Isolation File Command
-        var cssCommandId = new CommandID(GuidRazorIsolationFilesCmdSet, (int)CmdIdAddOrViewCssIsolationFile);
+        // CSS Nested File Command
+        var cssCommandId = new CommandID(GuidRazorNestedFilesCmdSet, (int)CmdIdAddOrViewCssNestedFile);
         var cssCommand = new OleMenuCommand(cssHandler.Execute, cssCommandId);
         cssCommand.BeforeQueryStatus += cssHandler.OnBeforeQueryStatus;
         mcs.AddCommand(cssCommand);
 
-        // C# Code-Behind Isolation File Command
-        var csharpCommandId = new CommandID(GuidRazorIsolationFilesCmdSet, (int)CmdIdAddOrViewCsIsolationFile);
+        // C# Code-Behind Nested File Command
+        var csharpCommandId = new CommandID(GuidRazorNestedFilesCmdSet, (int)CmdIdAddOrViewCsNestedFile);
         var csharpCommand = new OleMenuCommand(csharpHandler.Execute, csharpCommandId);
         csharpCommand.BeforeQueryStatus += csharpHandler.OnBeforeQueryStatus;
         mcs.AddCommand(csharpCommand);
 
-        // JS Isolation File Command
-        var javascriptCommandId = new CommandID(GuidRazorIsolationFilesCmdSet, (int)CmdIdAddOrViewJsIsolationFile);
+        // JS Nested File Command
+        var javascriptCommandId = new CommandID(GuidRazorNestedFilesCmdSet, (int)CmdIdAddOrViewJsNestedFile);
         var javascriptCommand = new OleMenuCommand(javascriptHandler.Execute, javascriptCommandId);
         javascriptCommand.BeforeQueryStatus += javascriptHandler.OnBeforeQueryStatus;
         mcs.AddCommand(javascriptCommand);

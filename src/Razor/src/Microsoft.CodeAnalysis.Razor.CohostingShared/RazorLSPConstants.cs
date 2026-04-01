@@ -35,5 +35,5 @@ internal static class RazorLSPConstants
 
     public const string ApplyRenameEditName = "razor/applyRenameEdit";
 
-    public const string AddIsolationFileName = "razor/addIsolationFile";
+    public const string AddNestedFileName = "razor/addNestedFile";
 }

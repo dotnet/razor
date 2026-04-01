@@ -13,14 +13,14 @@ using Microsoft.VisualStudio.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.RazorExtension.IsolationFiles;
+namespace Microsoft.VisualStudio.RazorExtension.NestedFiles;
 
 /// <summary>
-/// Base class for handling Add/View isolation file commands for Razor documents.
+/// Base class for handling Add/View nested file commands for Razor documents.
 /// When the file doesn't exist, sends an LSP request to the Razor language server
 /// to create it via workspace/applyEdit. When the file exists, just opens it.
 /// </summary>
-internal abstract class IsolationFileCommandHandler(
+internal abstract class NestedFileCommandHandler(
     IServiceProvider serviceProvider,
     string fileExtension,
     string fileKind,
@@ -32,12 +32,12 @@ internal abstract class IsolationFileCommandHandler(
     private readonly Lazy<LSPRequestInvokerWrapper> _requestInvoker = requestInvoker;
 
     /// <summary>
-    /// Gets the display text when the file doesn't exist (e.g., "Add CSS Isolation File").
+    /// Gets the display text when the file doesn't exist (e.g., "Add Home.razor.css").
     /// </summary>
     protected abstract string AddText { get; }
 
     /// <summary>
-    /// Gets the display text when the file exists (e.g., "View CSS Isolation File").
+    /// Gets the display text when the file exists (e.g., "View Home.razor.css").
     /// </summary>
     protected abstract string ViewText { get; }
 
@@ -48,7 +48,7 @@ internal abstract class IsolationFileCommandHandler(
     protected virtual bool IsApplicable(string razorFilePath) => true;
 
     /// <summary>
-    /// Configures the command status and text based on whether the isolation file exists.
+    /// Configures the command status and text based on whether the nested file exists.
     /// </summary>
     public void OnBeforeQueryStatus(object sender, EventArgs e)
     {
@@ -66,12 +66,12 @@ internal abstract class IsolationFileCommandHandler(
             return;
         }
 
-        var isolationFilePath = GetIsolationFilePath(razorFilePath);
-        var isolationFileExists = File.Exists(isolationFilePath);
+        var nestedFilePath = GetNestedFilePath(razorFilePath);
+        var nestedFileExists = File.Exists(nestedFilePath);
 
         command.Visible = true;
         command.Enabled = true;
-        command.Text = isolationFileExists ? ViewText : AddText;
+        command.Text = nestedFileExists ? ViewText : AddText;
     }
 
     private bool IsRazorFileUIContextActive()
@@ -87,7 +87,7 @@ internal abstract class IsolationFileCommandHandler(
     }
 
     /// <summary>
-    /// Executes the command - either opens an existing isolation file or creates a new one
+    /// Executes the command - either opens an existing nested file or creates a new one
     /// via the LSP server and then opens it.
     /// </summary>
     public void Execute(object sender, EventArgs e)
@@ -99,12 +99,12 @@ internal abstract class IsolationFileCommandHandler(
             return;
         }
 
-        var isolationFilePath = GetIsolationFilePath(razorFilePath);
+        var nestedFilePath = GetNestedFilePath(razorFilePath);
 
-        if (File.Exists(isolationFilePath))
+        if (File.Exists(nestedFilePath))
         {
             // View: just open the existing file
-            VsShellUtilities.OpenDocument(_serviceProvider, isolationFilePath);
+            VsShellUtilities.OpenDocument(_serviceProvider, nestedFilePath);
         }
         else
         {
@@ -112,43 +112,43 @@ internal abstract class IsolationFileCommandHandler(
             // FileAndForget ensures exceptions are reported to telemetry rather than silently swallowed.
 #pragma warning disable VSSDK007 // Fire-and-forget from synchronous EventHandler is intentional
             ThreadHelper.JoinableTaskFactory.RunAsync(
-                () => CreateAndOpenIsolationFileAsync(razorFilePath, isolationFilePath, CancellationToken.None)).FileAndForget("IsolationFileCommandHandler.Execute");
+                () => CreateAndOpenNestedFileAsync(razorFilePath, nestedFilePath, CancellationToken.None)).FileAndForget("NestedFileCommandHandler.Execute");
 #pragma warning restore VSSDK007
         }
     }
 
-    private async Task CreateAndOpenIsolationFileAsync(
+    private async Task CreateAndOpenNestedFileAsync(
         string razorFilePath,
-        string isolationFilePath,
+        string nestedFilePath,
         CancellationToken cancellationToken)
     {
         // The cohost endpoint will create the file via workspace/applyEdit.
         // By the time this returns, the file should exist on disk.
-        await _requestInvoker.Value.ReinvokeRequestOnServerAsync<AddIsolationFileRequest, object?>(
-            RazorLSPConstants.AddIsolationFileName,
+        await _requestInvoker.Value.ReinvokeRequestOnServerAsync<AddNestedFileRequest, object?>(
+            RazorLSPConstants.AddNestedFileName,
             RazorLSPConstants.RoslynLanguageServerName,
-            new AddIsolationFileRequest
+            new AddNestedFileRequest
             {
                 RazorFileUri = new Uri(razorFilePath),
                 FileKind = _fileKind,
             },
             cancellationToken);
 
-        if (File.Exists(isolationFilePath))
+        if (File.Exists(nestedFilePath))
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // The workspace/applyEdit creates the file and inserts content via TextDocumentEdit,
             // which leaves the buffer dirty. Save it so the user sees a clean document.
-            VsShellUtilities.SaveFileIfDirty(_serviceProvider, isolationFilePath);
-            VsShellUtilities.OpenDocument(_serviceProvider, isolationFilePath);
+            VsShellUtilities.SaveFileIfDirty(_serviceProvider, nestedFilePath);
+            VsShellUtilities.OpenDocument(_serviceProvider, nestedFilePath);
         }
     }
 
     /// <summary>
-    /// Gets the path to the isolation file based on the Razor file path.
+    /// Gets the path to the nested file based on the Razor file path.
     /// </summary>
-    protected virtual string GetIsolationFilePath(string razorFilePath)
+    protected virtual string GetNestedFilePath(string razorFilePath)
     {
         return razorFilePath + _fileExtension;
     }
@@ -205,10 +205,10 @@ internal abstract class IsolationFileCommandHandler(
     }
 
     /// <summary>
-    /// Local request type matching <c>AddIsolationFileParams</c> on the server side.
+    /// Local request type matching <c>AddNestedFileParams</c> on the server side.
     /// JSON property names must match the server's expected format.
     /// </summary>
-    private sealed class AddIsolationFileRequest
+    private sealed class AddNestedFileRequest
     {
         [JsonPropertyName("razorFileUri")]
         public required Uri RazorFileUri { get; set; }

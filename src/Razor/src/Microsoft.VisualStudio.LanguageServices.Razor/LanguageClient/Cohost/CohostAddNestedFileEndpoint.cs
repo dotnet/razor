@@ -15,37 +15,37 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
-[RazorMethod(RazorLSPConstants.AddIsolationFileName)]
-[ExportRazorStatelessLspService(typeof(CohostAddIsolationFileEndpoint))]
+[RazorMethod(RazorLSPConstants.AddNestedFileName)]
+[ExportRazorStatelessLspService(typeof(CohostAddNestedFileEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal sealed class CohostAddIsolationFileEndpoint(
+internal sealed class CohostAddNestedFileEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostRequestHandler<AddIsolationFileParams, VoidResult>
+    : AbstractRazorCohostRequestHandler<AddNestedFileParams, VoidResult>
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostAddIsolationFileEndpoint>();
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostAddNestedFileEndpoint>();
 
     protected override bool MutatesSolutionState => true;
 
     protected override bool RequiresLSPSolution => true;
 
     protected override async Task<VoidResult> HandleRequestAsync(
-        AddIsolationFileParams request,
+        AddNestedFileParams request,
         RazorCohostRequestContext context,
         CancellationToken cancellationToken)
     {
         var solution = context.Solution;
         if (solution is null)
         {
-            _logger.LogWarning($"No solution available for addIsolationFile request.");
+            _logger.LogWarning($"No solution available for addNestedFile request.");
             return new();
         }
 
-        var workspaceEdit = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAddIsolationFileService, WorkspaceEdit?>(
+        var workspaceEdit = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             solution,
-            (service, solutionInfo, ct) => service.AddIsolationFileAsync(
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(
                 solutionInfo,
                 request.RazorFileUri,
                 request.FileKind,
@@ -54,7 +54,7 @@ internal sealed class CohostAddIsolationFileEndpoint(
 
         if (workspaceEdit is null)
         {
-            _logger.LogWarning($"Remote service returned no edit for addIsolationFile.");
+            _logger.LogWarning($"Remote service returned no edit for addNestedFile.");
             return new();
         }
 
@@ -66,7 +66,7 @@ internal sealed class CohostAddIsolationFileEndpoint(
 
         if (!response.Applied)
         {
-            _logger.LogWarning($"Failed to apply workspace edit for addIsolationFile: {response.FailureReason}");
+            _logger.LogWarning($"Failed to apply workspace edit for addNestedFile: {response.FailureReason}");
         }
 
         return new();

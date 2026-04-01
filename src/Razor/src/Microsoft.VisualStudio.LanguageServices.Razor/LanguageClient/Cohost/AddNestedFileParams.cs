@@ -3,23 +3,23 @@
 
 using System;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.Razor.IsolationFiles;
+using Microsoft.CodeAnalysis.Razor.NestedFiles;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 /// <summary>
-/// Parameters for the razor/addIsolationFile endpoint.
+/// Parameters for the razor/addNestedFile endpoint.
 /// </summary>
-internal sealed class AddIsolationFileParams
+internal sealed class AddNestedFileParams
 {
     /// <summary>
-    /// The URI of the Razor file (.razor or .cshtml) to create an isolation file for.
+    /// The URI of the Razor file (.razor or .cshtml) to create a nested file for.
     /// </summary>
     [JsonPropertyName("razorFileUri")]
     public required Uri RazorFileUri { get; set; }
 
     /// <summary>
-    /// The kind of isolation file to create (one of <see cref="IsolationFileKind"/> constants).
+    /// The kind of nested file to create (one of <see cref="NestedFileKind"/> constants).
     /// </summary>
     [JsonPropertyName("fileKind")]
     public required string FileKind { get; set; }
