@@ -120,22 +120,10 @@
   <data name="IDS_EDITORNAME" xml:space="preserve">
     <value>LSP Razor Editor</value>
   </data>
-  <data name="Add_CSS_Nested_File" xml:space="preserve">
-    <value>Add CSS Nested File</value>
+  <data name="Add_Nested_File" xml:space="preserve">
+    <value>Add {0}</value>
   </data>
-  <data name="View_CSS_Nested_File" xml:space="preserve">
-    <value>View CSS Nested File</value>
-  </data>
-  <data name="Add_CS_Nested_File" xml:space="preserve">
-    <value>Add C# Nested File</value>
-  </data>
-  <data name="View_CS_Nested_File" xml:space="preserve">
-    <value>View C# Nested File</value>
-  </data>
-  <data name="Add_JavaScript_Nested_File" xml:space="preserve">
-    <value>Add Javascript Nested File</value>
-  </data>
-  <data name="View_JavaScript_Nested_File" xml:space="preserve">
-    <value>View Javascript Nested File</value>
+  <data name="View_Nested_File" xml:space="preserve">
+    <value>View {0}</value>
   </data>
 </root>

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.NestedFiles;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
 
@@ -16,11 +15,4 @@ internal sealed class JavascriptNestedFileCommandHandler(
     Lazy<LSPRequestInvokerWrapper> requestInvoker)
     : NestedFileCommandHandler(serviceProvider, ".js", NestedFileKind.JavaScript, requestInvoker)
 {
-    protected override string AddText => Resources.Add_JavaScript_Nested_File;
-
-    protected override string ViewText => Resources.View_JavaScript_Nested_File;
-
-    // JS nested files are only applicable to Razor components (.razor), not MVC views (.cshtml).
-    protected override bool IsApplicable(string razorFilePath)
-        => FileKinds.TryGetFileKindFromPath(razorFilePath, out _);
 }

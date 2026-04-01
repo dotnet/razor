@@ -2,19 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../Resources.resx">
     <body>
-      <trans-unit id="Add_CSS_Nested_File">
-        <source>Add CSS Nested File</source>
-        <target state="new">Add CSS Nested File</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_CS_Nested_File">
-        <source>Add C# Nested File</source>
-        <target state="new">Add C# Nested File</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_JavaScript_Nested_File">
-        <source>Add Javascript Nested File</source>
-        <target state="new">Add Javascript Nested File</target>
+      <trans-unit id="Add_Nested_File">
+        <source>Add {0}</source>
+        <target state="new">Add {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_EDITORNAME">
@@ -22,19 +12,9 @@
         <target state="translated">LSP Razor 編輯器</target>
         <note />
       </trans-unit>
-      <trans-unit id="View_CSS_Nested_File">
-        <source>View CSS Nested File</source>
-        <target state="new">View CSS Nested File</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="View_CS_Nested_File">
-        <source>View C# Nested File</source>
-        <target state="new">View C# Nested File</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="View_JavaScript_Nested_File">
-        <source>View Javascript Nested File</source>
-        <target state="new">View Javascript Nested File</target>
+      <trans-unit id="View_Nested_File">
+        <source>View {0}</source>
+        <target state="new">View {0}</target>
         <note />
       </trans-unit>
     </body>

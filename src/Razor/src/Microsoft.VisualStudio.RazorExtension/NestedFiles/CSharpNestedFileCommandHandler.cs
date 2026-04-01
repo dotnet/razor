@@ -15,7 +15,4 @@ internal sealed class CSharpNestedFileCommandHandler(
     Lazy<LSPRequestInvokerWrapper> requestInvoker)
     : NestedFileCommandHandler(serviceProvider, ".cs", NestedFileKind.CSharp, requestInvoker)
 {
-    protected override string AddText => Resources.Add_CS_Nested_File;
-
-    protected override string ViewText => Resources.View_CS_Nested_File;
 }

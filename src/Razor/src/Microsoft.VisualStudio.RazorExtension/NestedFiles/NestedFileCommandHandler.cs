@@ -32,22 +32,6 @@ internal abstract class NestedFileCommandHandler(
     private readonly Lazy<LSPRequestInvokerWrapper> _requestInvoker = requestInvoker;
 
     /// <summary>
-    /// Gets the display text when the file doesn't exist (e.g., "Add Home.razor.css").
-    /// </summary>
-    protected abstract string AddText { get; }
-
-    /// <summary>
-    /// Gets the display text when the file exists (e.g., "View Home.razor.css").
-    /// </summary>
-    protected abstract string ViewText { get; }
-
-    /// <summary>
-    /// Returns whether this command is applicable for the given Razor file.
-    /// Override to hide the command for certain file types.
-    /// </summary>
-    protected virtual bool IsApplicable(string razorFilePath) => true;
-
-    /// <summary>
     /// Configures the command status and text based on whether the nested file exists.
     /// </summary>
     public void OnBeforeQueryStatus(object sender, EventArgs e)
@@ -59,8 +43,7 @@ internal abstract class NestedFileCommandHandler(
 
         // Check if the Razor file context is active before doing expensive hierarchy queries
         if (!IsRazorFileUIContextActive()
-            || GetSelectedRazorFilePath() is not string razorFilePath
-            || !IsApplicable(razorFilePath))
+            || GetSelectedRazorFilePath() is not string razorFilePath)
         {
             command.Visible = false;
             return;
@@ -68,10 +51,11 @@ internal abstract class NestedFileCommandHandler(
 
         var nestedFilePath = GetNestedFilePath(razorFilePath);
         var nestedFileExists = File.Exists(nestedFilePath);
+        var nestedFileName = Path.GetFileName(nestedFilePath);
 
         command.Visible = true;
         command.Enabled = true;
-        command.Text = nestedFileExists ? ViewText : AddText;
+        command.Text = string.Format(nestedFileExists ? Resources.View_Nested_File : Resources.Add_Nested_File, nestedFileName);
     }
 
     private bool IsRazorFileUIContextActive()

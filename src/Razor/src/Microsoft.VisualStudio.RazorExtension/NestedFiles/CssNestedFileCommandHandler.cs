@@ -15,7 +15,4 @@ internal sealed class CssNestedFileCommandHandler(
     Lazy<LSPRequestInvokerWrapper> requestInvoker)
     : NestedFileCommandHandler(serviceProvider, ".css", NestedFileKind.Css, requestInvoker)
 {
-    protected override string AddText => Resources.Add_CSS_Nested_File;
-
-    protected override string ViewText => Resources.View_CSS_Nested_File;
 }
