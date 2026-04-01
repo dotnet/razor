@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -489,10 +490,7 @@ internal partial class DefaultTagHelperResolutionPhase
             }
 
             prop.Children.Clear();
-            foreach (var c in newChildren)
-            {
-                prop.Children.Add(c);
-            }
+            prop.Children.AddRange(in newChildren);
 
             // After normalization, merge CSharp tokens into a single token for non-directive
             // bound properties. For directives (wrapLiteralsInCSharpExpression=true), CSharpExpression
@@ -537,7 +535,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 return;
             }
 
-            using var contentParts = new PooledArrayBuilder<string>();
+            using var _sb = StringBuilderPool.GetPooledObject(out var sb);
             SourceSpan? firstSpan = null;
             SourceSpan? lastSpan = null;
 
@@ -545,7 +543,7 @@ internal partial class DefaultTagHelperResolutionPhase
             {
                 if (child is CSharpIntermediateToken csharpToken)
                 {
-                    contentParts.Add(csharpToken.Content);
+                    sb.Append(csharpToken.Content);
                     if (csharpToken.Source is { } s)
                     {
                         firstSpan ??= s;
@@ -558,7 +556,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     {
                         if (inner is CSharpIntermediateToken innerToken)
                         {
-                            contentParts.Add(innerToken.Content);
+                            sb.Append(innerToken.Content);
                             if (innerToken.Source is { } s)
                             {
                                 firstSpan ??= s;
@@ -583,7 +581,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     last.EndCharacterIndex);
             }
 
-            var content = string.Concat(contentParts.ToArray());
+            var content = sb.ToString();
             node.Children.Clear();
             node.Children.Add(new CSharpIntermediateToken(content, mergedSpan));
         }
@@ -731,10 +729,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 }
             }
             directiveNode.Children.Clear();
-            foreach (var c in newChildren)
-            {
-                directiveNode.Children.Add(c);
-            }
+            directiveNode.Children.AddRange(in newChildren);
         }
 
         /// <summary>
@@ -970,14 +965,14 @@ internal partial class DefaultTagHelperResolutionPhase
                     Source = source.Source,
                 };
 
-                using var contentParts = new PooledArrayBuilder<string>();
+                using var _sb = StringBuilderPool.GetPooledObject(out var sb);
                 foreach (var child in source.Children)
                 {
                     var htmlValue = (HtmlAttributeValueIntermediateNode)child;
-                    contentParts.Add(CollectAttributeValueContent(htmlValue).Content);
+                    sb.Append(CollectAttributeValueContent(htmlValue).Content);
                 }
 
-                var mergedText = string.Concat(contentParts.ToArray());
+                var mergedText = sb.ToString();
 
                 // Use the source span from the parent HtmlAttribute value portion if available,
                 // otherwise compute from the first child.

@@ -974,7 +974,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         HtmlAttributeIntermediateNode htmlAttr,
         SourceSpan? valueSourceSpan)
     {
-        using var contentParts = new PooledArrayBuilder<string>();
+        using var _sb = StringBuilderPool.GetPooledObject(out var sb);
         SourceSpan? firstSpan = null;
         SourceSpan? lastSpan = null;
 
@@ -984,14 +984,14 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
             if (!string.IsNullOrEmpty(unresolvedValue.Prefix))
             {
-                contentParts.Add(unresolvedValue.Prefix);
+                sb.Append(unresolvedValue.Prefix);
             }
 
             foreach (var valueChild in unresolvedValue.Children)
             {
                 if (valueChild is HtmlIntermediateToken htmlToken)
                 {
-                    contentParts.Add(htmlToken.Content);
+                    sb.Append(htmlToken.Content);
                     if (htmlToken.Source is { } s)
                     {
                         firstSpan ??= s;
@@ -1007,7 +1007,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             mergedSpan = MergeSpans(first, last);
         }
 
-        return (string.Concat(contentParts.ToArray()), mergedSpan);
+        return (sb.ToString(), mergedSpan);
     }
 
     /// <summary>

@@ -77,9 +77,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     if (hasDynamicExpressionChild)
                     {
-                        using var boundMatches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-                        TagHelperMatchingConventions.GetAttributeMatches(binding.TagHelpers, unresolvedAttr.AttributeName, ref boundMatches.AsRef());
-                        if (!boundMatches.Any())
+                        if (!TagHelperMatchingConventions.HasAttributeMatches(binding.TagHelpers, unresolvedAttr.AttributeName))
                         {
                             continue;
                         }
@@ -1358,7 +1356,7 @@ internal partial class DefaultTagHelperResolutionPhase
             else
             {
                 // Fallback: collect from children.
-                using var contentParts = new PooledArrayBuilder<string>();
+                using var _sb = StringBuilderPool.GetPooledObject(out var sb);
                 SourceSpan? firstSpan = null;
                 SourceSpan? lastSpan = null;
                 foreach (var child in htmlAttr.Children)
@@ -1366,18 +1364,18 @@ internal partial class DefaultTagHelperResolutionPhase
                     if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr
                         && !string.IsNullOrEmpty(unresolvedExpr.Prefix))
                     {
-                        contentParts.Add(unresolvedExpr.Prefix);
+                        sb.Append(unresolvedExpr.Prefix);
                     }
                     else if (child is MarkupOrTagHelperAttributeValueIntermediateNode unresolvedLiteral
                         && !string.IsNullOrEmpty(unresolvedLiteral.Prefix))
                     {
-                        contentParts.Add(unresolvedLiteral.Prefix);
+                        sb.Append(unresolvedLiteral.Prefix);
                     }
 
-                    CollectAllTokenContent(child, ref contentParts.AsRef(), ref firstSpan, ref lastSpan);
+                    CollectAllTokenContent(child, sb, ref firstSpan, ref lastSpan);
                 }
 
-                var mergedContent = string.Concat(contentParts.ToArray());
+                var mergedContent = sb.ToString();
                 var tokenSpan = firstSpan is { } f && lastSpan is { } l
                     ? new SourceSpan(f.FilePath, f.AbsoluteIndex, f.LineIndex, f.CharacterIndex,
                         (l.AbsoluteIndex + l.Length) - f.AbsoluteIndex, l.LineIndex - f.LineIndex, l.EndCharacterIndex)
@@ -1658,13 +1656,13 @@ internal partial class DefaultTagHelperResolutionPhase
         /// </summary>
         private static void CollectAllTokenContent(
             IntermediateNode node,
-            ref PooledArrayBuilder<string> contentParts,
+            StringBuilder sb,
             ref SourceSpan? firstSpan,
             ref SourceSpan? lastSpan)
         {
             if (node is IntermediateToken token)
             {
-                contentParts.Add(token.Content);
+                sb.Append(token.Content);
                 if (token.Source is { } s)
                 {
                     firstSpan ??= s;
@@ -1675,7 +1673,7 @@ internal partial class DefaultTagHelperResolutionPhase
             {
                 foreach (var child in node.Children)
                 {
-                    CollectAllTokenContent(child, ref contentParts, ref firstSpan, ref lastSpan);
+                    CollectAllTokenContent(child, sb, ref firstSpan, ref lastSpan);
                 }
             }
         }
