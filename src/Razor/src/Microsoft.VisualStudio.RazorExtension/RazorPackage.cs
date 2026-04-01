@@ -47,9 +47,9 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [ProvideUIContextRule(
         contextGuid: GuidRazorFileContextString,
         name: "Razor File Selected",
-        expression: "RazorFile | CshtmlFile",
-        termNames: ["RazorFile", "CshtmlFile"],
-        termValues: ["HierSingleSelectionName:.razor$", "HierSingleSelectionName:.cshtml$"])]
+        expression: "DotNetCoreRazorProject & (RazorFile | CshtmlFile)",
+        termNames: ["DotNetCoreRazorProject", "RazorFile", "CshtmlFile"],
+        termValues: ["ActiveProjectCapability:DotNetCoreRazor", "HierSingleSelectionName:.razor$", "HierSingleSelectionName:.cshtml$"])]
 internal sealed class RazorPackage : AsyncPackage
 {
     public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";

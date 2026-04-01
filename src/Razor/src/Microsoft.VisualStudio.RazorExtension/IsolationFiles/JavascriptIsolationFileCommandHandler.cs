@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.VisualStudio.RazorExtension.IsolationFiles;
 
@@ -17,7 +18,7 @@ internal sealed class JavascriptIsolationFileCommandHandler(IServiceProvider ser
 
     // JS isolation files are only applicable to Razor components (.razor), not MVC views (.cshtml).
     protected override bool IsApplicable(string razorFilePath)
-        => IsRazorComponentFile(razorFilePath);
+        => FileKinds.TryGetFileKindFromPath(razorFilePath, out _);
 
     protected override string GenerateFileContent(string razorFilePath, string componentOrViewName)
     {

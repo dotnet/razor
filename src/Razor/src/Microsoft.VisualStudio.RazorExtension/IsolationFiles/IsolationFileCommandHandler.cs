@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -43,20 +44,13 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
     /// </summary>
     public void OnBeforeQueryStatus(object sender, EventArgs e)
     {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
         if (sender is not OleMenuCommand command)
         {
             return;
         }
 
-        var contextGuid = RazorPackage.GuidRazorFileContext;
-
         // Check if the Razor file context is active before doing expensive hierarchy queries
-        if (_serviceProvider.GetService(typeof(SVsShellMonitorSelection)) is not IVsMonitorSelection monitorSelection
-            || monitorSelection.GetCmdUIContextCookie(ref contextGuid, out var cookie) != VSConstants.S_OK
-            || monitorSelection.IsCmdUIContextActive(cookie, out var isActive) != VSConstants.S_OK
-            || isActive == 0
+        if (!IsRazorFileUIContextActive()
             || GetSelectedRazorFilePath() is not string razorFilePath
             || !IsApplicable(razorFilePath))
         {
@@ -70,6 +64,18 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
         command.Visible = true;
         command.Enabled = true;
         command.Text = isolationFileExists ? ViewText : AddText;
+    }
+
+    private bool IsRazorFileUIContextActive()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var contextGuid = RazorPackage.GuidRazorFileContext;
+
+        return _serviceProvider.GetService(typeof(SVsShellMonitorSelection)) is IVsMonitorSelection monitorSelection
+            && monitorSelection.GetCmdUIContextCookie(ref contextGuid, out var cookie) == VSConstants.S_OK
+            && monitorSelection.IsCmdUIContextActive(cookie, out var isActive) == VSConstants.S_OK
+            && isActive != 0;
     }
 
     /// <summary>
@@ -178,7 +184,7 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
                 {
                     project.GetMkDocument(itemId, out var filePath);
 
-                    if (!string.IsNullOrEmpty(filePath) && IsRazorFile(filePath))
+                    if (!string.IsNullOrEmpty(filePath) && FileKinds.TryGetFileKindFromPath(filePath, out _))
                     {
                         return filePath;
                     }
@@ -199,24 +205,5 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
                 Marshal.Release(selectionContainerPtr);
             }
         }
-    }
-
-    /// <summary>
-    /// Checks if a file is a Razor file (.razor or .cshtml).
-    /// </summary>
-    private static bool IsRazorFile(string filePath)
-    {
-        var extension = Path.GetExtension(filePath);
-        return string.Equals(extension, ".razor", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(extension, ".cshtml", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Checks if a file is a Razor file (.razor or .cshtml).
-    /// </summary>
-    protected static bool IsRazorComponentFile(string filePath)
-    {
-        var extension = Path.GetExtension(filePath);
-        return string.Equals(extension, ".razor", StringComparison.OrdinalIgnoreCase);
     }
 }

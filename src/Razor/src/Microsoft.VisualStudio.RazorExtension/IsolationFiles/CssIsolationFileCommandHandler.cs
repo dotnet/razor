@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.VisualStudio.RazorExtension.IsolationFiles;
 
@@ -17,7 +18,7 @@ internal sealed class CssIsolationFileCommandHandler(IServiceProvider servicePro
 
     protected override string GenerateFileContent(string razorFilePath, string componentOrViewName)
     {
-        var fileType = IsRazorComponentFile(razorFilePath) ? "component" : "view";
+        var fileType = FileKinds.GetFileKindFromPath(razorFilePath).IsComponent() ? "component" : "view";
 
         // For CSS isolation files, we create an empty CSS file with a comment
         return $$"""
