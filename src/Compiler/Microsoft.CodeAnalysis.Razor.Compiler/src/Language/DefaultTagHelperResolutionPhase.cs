@@ -299,7 +299,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             }
         }
 
-        if (elementNode.HasMissingEndCloseAngle && elementNode.EndTagSpan is SourceSpan endDs)
+        if (elementNode is { HasMissingEndCloseAngle: true, EndTagSpan: SourceSpan endDs })
         {
             tagHelperNode.AddDiagnostic(
                 RazorDiagnosticFactory.CreateParsing_TagHelperMissingCloseAngle(endDs, elementNode.EndTagName ?? tagName));

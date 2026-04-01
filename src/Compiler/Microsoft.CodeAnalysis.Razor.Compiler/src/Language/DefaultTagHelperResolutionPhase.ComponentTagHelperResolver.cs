@@ -101,11 +101,11 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     ConvertUnresolvedAttributeToTagHelper(tagHelperNode, bodyNode, unresolvedAttr, binding, renderedBoundAttributeNames, sourceDocument, in context);
                 }
-                else if (child is HtmlAttributeIntermediateNode ||
-                    child is ComponentAttributeIntermediateNode ||
-                    child is SplatIntermediateNode ||
-                    child is SetKeyIntermediateNode ||
-                    child is ReferenceCaptureIntermediateNode)
+                else if (child is HtmlAttributeIntermediateNode or
+                    ComponentAttributeIntermediateNode or
+                    SplatIntermediateNode or
+                    SetKeyIntermediateNode or
+                    ReferenceCaptureIntermediateNode)
                 {
                     ConvertComponentAttributeToTagHelper(tagHelperNode, child, binding);
                 }

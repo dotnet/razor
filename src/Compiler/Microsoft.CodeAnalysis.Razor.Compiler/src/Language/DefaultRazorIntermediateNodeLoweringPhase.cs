@@ -1432,10 +1432,6 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             Visit(literal);
         }
 
-        // Example
-        // <input checked="hello-world `@false`"/>
-        //  Prefix= (space)
-        //  Children will contain a token for @false.
         // CSharp expressions are broken up into blocks and spans because Razor allows Razor comments
         // inside an expression.
         // Ex:
