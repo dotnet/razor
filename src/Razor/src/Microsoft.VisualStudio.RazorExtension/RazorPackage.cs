@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Razor;
 using Microsoft.VisualStudio.Razor.Debugging;
 using Microsoft.VisualStudio.Razor.LanguageClient.Options;
 using Microsoft.VisualStudio.Razor.Logging;
+using Microsoft.VisualStudio.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Microsoft.VisualStudio.RazorExtension.IsolationFiles;
 using Microsoft.VisualStudio.RazorExtension.Snippets;
@@ -166,10 +167,13 @@ internal sealed class RazorPackage : AsyncPackage
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
+        var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
+        var requestInvoker = new Lazy<LSPRequestInvokerWrapper>(() => componentModel.GetService<LSPRequestInvokerWrapper>());
+
         // Create command handlers
-        var cssHandler = new CssIsolationFileCommandHandler(this);
-        var csharpHandler = new CSharpIsolationFileCommandHandler(this);
-        var javascriptHandler = new JavascriptIsolationFileCommandHandler(this);
+        var cssHandler = new CssIsolationFileCommandHandler(this, requestInvoker);
+        var csharpHandler = new CSharpIsolationFileCommandHandler(this, requestInvoker);
+        var javascriptHandler = new JavascriptIsolationFileCommandHandler(this, requestInvoker);
 
         // CSS Isolation File Command
         var cssCommandId = new CommandID(GuidRazorIsolationFilesCmdSet, (int)CmdIdAddOrViewCssIsolationFile);

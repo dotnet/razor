@@ -3,14 +3,18 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.IsolationFiles;
+using Microsoft.VisualStudio.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.RazorExtension.IsolationFiles;
 
 /// <summary>
 /// Command handler for JavaScript isolation files (.razor.js).
 /// </summary>
-internal sealed class JavascriptIsolationFileCommandHandler(IServiceProvider serviceProvider)
-    : IsolationFileCommandHandler(serviceProvider, ".js")
+internal sealed class JavascriptIsolationFileCommandHandler(
+    IServiceProvider serviceProvider,
+    Lazy<LSPRequestInvokerWrapper> requestInvoker)
+    : IsolationFileCommandHandler(serviceProvider, ".js", IsolationFileKind.JavaScript, requestInvoker)
 {
     protected override string AddText => Resources.Add_JavaScript_Isolation_File;
 
@@ -19,12 +23,4 @@ internal sealed class JavascriptIsolationFileCommandHandler(IServiceProvider ser
     // JS isolation files are only applicable to Razor components (.razor), not MVC views (.cshtml).
     protected override bool IsApplicable(string razorFilePath)
         => FileKinds.TryGetFileKindFromPath(razorFilePath, out _);
-
-    protected override string GenerateFileContent(string razorFilePath, string componentOrViewName)
-    {
-        // For JavaScript isolation files, we create an empty js file with a comment
-        return $$"""
-            // JavaScript isolation for {{componentOrViewName}} component
-            """;
-    }
 }

@@ -4,7 +4,12 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.VisualStudio.Razor.LanguageClient;
+using Microsoft.VisualStudio.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -12,11 +17,19 @@ namespace Microsoft.VisualStudio.RazorExtension.IsolationFiles;
 
 /// <summary>
 /// Base class for handling Add/View isolation file commands for Razor documents.
+/// When the file doesn't exist, sends an LSP request to the Razor language server
+/// to create it via workspace/applyEdit. When the file exists, just opens it.
 /// </summary>
-internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProvider, string fileExtension)
+internal abstract class IsolationFileCommandHandler(
+    IServiceProvider serviceProvider,
+    string fileExtension,
+    string fileKind,
+    Lazy<LSPRequestInvokerWrapper> requestInvoker)
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly string _fileExtension = fileExtension;
+    private readonly string _fileKind = fileKind;
+    private readonly Lazy<LSPRequestInvokerWrapper> _requestInvoker = requestInvoker;
 
     /// <summary>
     /// Gets the display text when the file doesn't exist (e.g., "Add CSS Isolation File").
@@ -27,11 +40,6 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
     /// Gets the display text when the file exists (e.g., "View CSS Isolation File").
     /// </summary>
     protected abstract string ViewText { get; }
-
-    /// <summary>
-    /// Generates the default content for a new isolation file.
-    /// </summary>
-    protected abstract string GenerateFileContent(string razorFilePath, string componentOrViewName);
 
     /// <summary>
     /// Returns whether this command is applicable for the given Razor file.
@@ -79,7 +87,8 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
     }
 
     /// <summary>
-    /// Executes the command - either creates a new file or opens an existing one.
+    /// Executes the command - either opens an existing isolation file or creates a new one
+    /// via the LSP server and then opens it.
     /// </summary>
     public void Execute(object sender, EventArgs e)
     {
@@ -92,14 +101,48 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
 
         var isolationFilePath = GetIsolationFilePath(razorFilePath);
 
-        if (!File.Exists(isolationFilePath))
+        if (File.Exists(isolationFilePath))
         {
-            // Create the file
-            CreateIsolationFile(razorFilePath, isolationFilePath);
+            // View: just open the existing file
+            VsShellUtilities.OpenDocument(_serviceProvider, isolationFilePath);
         }
+        else
+        {
+            // Add: send LSP request to create the file, then open it.
+            // FileAndForget ensures exceptions are reported to telemetry rather than silently swallowed.
+#pragma warning disable VSSDK007 // Fire-and-forget from synchronous EventHandler is intentional
+            ThreadHelper.JoinableTaskFactory.RunAsync(
+                () => CreateAndOpenIsolationFileAsync(razorFilePath, isolationFilePath, CancellationToken.None)).FileAndForget("IsolationFileCommandHandler.Execute");
+#pragma warning restore VSSDK007
+        }
+    }
 
-        // Open the file
-        VsShellUtilities.OpenDocument(_serviceProvider, isolationFilePath);
+    private async Task CreateAndOpenIsolationFileAsync(
+        string razorFilePath,
+        string isolationFilePath,
+        CancellationToken cancellationToken)
+    {
+        // The cohost endpoint will create the file via workspace/applyEdit.
+        // By the time this returns, the file should exist on disk.
+        await _requestInvoker.Value.ReinvokeRequestOnServerAsync<AddIsolationFileRequest, object?>(
+            RazorLSPConstants.AddIsolationFileName,
+            RazorLSPConstants.RoslynLanguageServerName,
+            new AddIsolationFileRequest
+            {
+                RazorFileUri = new Uri(razorFilePath),
+                FileKind = _fileKind,
+            },
+            cancellationToken);
+
+        if (File.Exists(isolationFilePath))
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            // The workspace/applyEdit creates the file and inserts content via TextDocumentEdit,
+            // which leaves the buffer dirty. Save it so the user sees a clean document.
+            VsShellUtilities.SaveFileIfDirty(_serviceProvider, isolationFilePath);
+            VsShellUtilities.OpenDocument(_serviceProvider, isolationFilePath);
+        }
     }
 
     /// <summary>
@@ -108,52 +151,6 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
     protected virtual string GetIsolationFilePath(string razorFilePath)
     {
         return razorFilePath + _fileExtension;
-    }
-
-    /// <summary>
-    /// Creates the isolation file with appropriate content.
-    /// </summary>
-    private void CreateIsolationFile(string razorFilePath, string isolationFilePath)
-    {
-        var componentName = Path.GetFileNameWithoutExtension(razorFilePath);
-        var content = GenerateFileContent(razorFilePath, componentName);
-
-        // Write the file
-        File.WriteAllText(isolationFilePath, content);
-
-        // Add to project
-        AddFileToProject(isolationFilePath, razorFilePath);
-    }
-
-    /// <summary>
-    /// Adds the newly created file to the project.
-    /// </summary>
-    private void AddFileToProject(string isolationFilePath, string razorFilePath)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        try
-        {
-            if (FindProjectItem(razorFilePath) is EnvDTE.ProjectItem razorProjectItem)
-            {
-                // Add the isolation file as a nested item under the Razor file
-                razorProjectItem.ProjectItems.AddFromFile(isolationFilePath);
-            }
-        }
-        catch
-        {
-            // If adding to project fails, the file still exists on disk
-            // which is better than nothing
-        }
-    }
-
-    protected EnvDTE.ProjectItem? FindProjectItem(string filePath)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        var dte = (EnvDTE.DTE?)_serviceProvider.GetService(typeof(EnvDTE.DTE));
-
-        return dte?.Solution.FindProjectItem(filePath);
     }
 
     /// <summary>
@@ -205,5 +202,18 @@ internal abstract class IsolationFileCommandHandler(IServiceProvider serviceProv
                 Marshal.Release(selectionContainerPtr);
             }
         }
+    }
+
+    /// <summary>
+    /// Local request type matching <c>AddIsolationFileParams</c> on the server side.
+    /// JSON property names must match the server's expected format.
+    /// </summary>
+    private sealed class AddIsolationFileRequest
+    {
+        [JsonPropertyName("razorFileUri")]
+        public required Uri RazorFileUri { get; set; }
+
+        [JsonPropertyName("fileKind")]
+        public required string FileKind { get; set; }
     }
 }
