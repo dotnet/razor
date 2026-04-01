@@ -34,7 +34,7 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
         // Second change: TextDocumentEdit with CSS comment content
         Assert.True(changes[1].TryGetFirst(out var textEdit));
         Assert.Single(textEdit!.Edits);
-        Assert.Contains("Scoped CSS styles for File1 component", ((TextEdit)textEdit.Edits[0]).NewText);
+        Assert.Contains("CSS for File1 component", ((TextEdit)textEdit.Edits[0]).NewText);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
         Assert.True(changes[1].TryGetFirst(out var textEdit));
         Assert.Single(textEdit!.Edits);
         var content = ((TextEdit)textEdit.Edits[0]).NewText;
-        Assert.Contains("JavaScript nested file for File1 component", content);
+        Assert.Contains("JavaScript for File1 component", content);
     }
 
     [Fact]
@@ -167,6 +167,62 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
         // .cshtml files should say "view" not "component"
         Assert.True(changes[1].TryGetFirst(out var textEdit));
         Assert.Contains("Page1 view", ((TextEdit)textEdit!.Edits[0]).NewText);
+    }
+
+    [Fact]
+    public async Task CSharpNestedFile_DefaultsToBlockScopedNamespace()
+    {
+        // No editorconfig present — should use block-scoped namespace (with braces)
+        var document = CreateProjectAndRazorDocument("<div></div>");
+        var razorFileUri = new Uri(document.FilePath!);
+
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
+            document.Project.Solution,
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, NestedFileKind.CSharp, ct),
+            DisposalToken);
+
+        Assert.NotNull(result);
+        var changes = GetDocumentChanges(result);
+        Assert.True(changes[1].TryGetFirst(out var textEdit));
+        var content = ((TextEdit)textEdit!.Edits[0]).NewText;
+
+        Assert.Contains("partial class File1", content);
+        // Without editorconfig, namespace should be block-scoped (not file-scoped)
+        Assert.DoesNotContain("namespace SomeProject;", content);
+        Assert.Contains("namespace SomeProject", content);
+    }
+
+    [Fact]
+    public async Task CSharpNestedFile_WithFileScopedNamespaceEditorConfig()
+    {
+        var editorConfigPath = FilePath(".editorconfig");
+        var editorConfigContent = """
+            root = true
+
+            [*.cs]
+            csharp_style_namespace_declarations = file_scoped
+            """;
+
+        var document = CreateProjectAndRazorDocument(
+            "<div></div>",
+            projectConfigure: builder => builder.AddAnalyzerConfigDocument(
+                editorConfigPath,
+                Microsoft.CodeAnalysis.Text.SourceText.From(editorConfigContent)));
+        var razorFileUri = new Uri(document.FilePath!);
+
+        var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
+            document.Project.Solution,
+            (service, solutionInfo, ct) => service.AddNestedFileAsync(solutionInfo, razorFileUri, NestedFileKind.CSharp, ct),
+            DisposalToken);
+
+        Assert.NotNull(result);
+        var changes = GetDocumentChanges(result);
+        Assert.True(changes[1].TryGetFirst(out var textEdit));
+        var content = ((TextEdit)textEdit!.Edits[0]).NewText;
+
+        // With file-scoped namespace editorconfig, Roslyn formatting should produce "namespace X;"
+        Assert.Contains("namespace SomeProject;", content);
+        Assert.Contains("partial class File1", content);
     }
 
     [Fact]
