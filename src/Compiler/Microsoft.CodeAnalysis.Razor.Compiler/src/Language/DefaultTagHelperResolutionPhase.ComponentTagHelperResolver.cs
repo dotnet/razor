@@ -102,13 +102,17 @@ internal partial class DefaultTagHelperResolutionPhase
                     {
                         ConvertUnresolvedAttributeToTagHelper(tagHelperNode, bodyNode, unresolvedAttr, binding, ref renderedBoundAttributeNames, sourceDocument, in context);
                     }
-                    else if (child is HtmlAttributeIntermediateNode or
-                        ComponentAttributeIntermediateNode or
+                    else if (child is HtmlAttributeIntermediateNode htmlAttr)
+                    {
+                        ConvertComponentAttributeToTagHelper(tagHelperNode, htmlAttr, binding);
+                    }
+                    else if (child is ComponentAttributeIntermediateNode or
                         SplatIntermediateNode or
                         SetKeyIntermediateNode or
                         ReferenceCaptureIntermediateNode)
                     {
-                        ConvertComponentAttributeToTagHelper(tagHelperNode, child, binding);
+                        // Already-resolved attribute types don't need conversion.
+                        tagHelperNode.Children.Add(child);
                     }
                     else if (tagHelperNode.TagMode != TagMode.StartTagOnly)
                     {
@@ -847,109 +851,106 @@ internal partial class DefaultTagHelperResolutionPhase
 
         private static void ConvertComponentAttributeToTagHelper(
             TagHelperIntermediateNode tagHelperNode,
-            IntermediateNode attributeNode,
+            HtmlAttributeIntermediateNode htmlAttr,
             TagHelperBinding binding)
         {
-            if (attributeNode is HtmlAttributeIntermediateNode htmlAttr)
+            var attributeName = htmlAttr.AttributeName;
+            using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
+            TagHelperMatchingConventions.GetAttributeMatches(binding.TagHelpers, attributeName, ref matches.AsRef());
+
+            // Compute the attribute name source span from the HtmlAttributeIntermediateNode.
+            // The Source covers the whole attribute; the name span is at the start of Prefix.
+            var attributeNameSpan = ComputeAttributeNameSpan(htmlAttr);
+            var attributeValueSpan = ComputeAttributeValueSpan(htmlAttr);
+
+            if (matches.Any())
             {
-                var attributeName = htmlAttr.AttributeName;
-                using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
-                TagHelperMatchingConventions.GetAttributeMatches(binding.TagHelpers, attributeName, ref matches.AsRef());
-
-                // Compute the attribute name source span from the HtmlAttributeIntermediateNode.
-                // The Source covers the whole attribute; the name span is at the start of Prefix.
-                var attributeNameSpan = ComputeAttributeNameSpan(htmlAttr);
-                var attributeValueSpan = ComputeAttributeValueSpan(htmlAttr);
-
-                if (matches.Any())
+                foreach (var match in matches)
                 {
-                    foreach (var match in matches)
+                    if (match.Attribute.IsDirectiveAttribute)
                     {
-                        if (match.Attribute.IsDirectiveAttribute)
+                        var directiveAttributeName = new DirectiveAttributeName(attributeName);
+
+                        // For directive attributes, the OriginalAttributeSpan should cover
+                        // the attribute name WITHOUT the leading '@' (e.g., "bind-Value" not "@bind-Value").
+                        // Downstream passes like ComponentBindLoweringPass offset from this span.
+                        var directiveNameSpan = attributeNameSpan;
+                        if (directiveNameSpan is SourceSpan nameSpan && attributeName.StartsWith('@'))
                         {
-                            var directiveAttributeName = new DirectiveAttributeName(attributeName);
-
-                            // For directive attributes, the OriginalAttributeSpan should cover
-                            // the attribute name WITHOUT the leading '@' (e.g., "bind-Value" not "@bind-Value").
-                            // Downstream passes like ComponentBindLoweringPass offset from this span.
-                            var directiveNameSpan = attributeNameSpan;
-                            if (directiveNameSpan is SourceSpan nameSpan && attributeName.StartsWith('@'))
-                            {
-                                directiveNameSpan = new SourceSpan(
-                                    nameSpan.FilePath,
-                                    nameSpan.AbsoluteIndex + 1,
-                                    nameSpan.LineIndex,
-                                    nameSpan.CharacterIndex + 1,
-                                    nameSpan.Length - 1,
-                                    nameSpan.LineCount,
-                                    nameSpan.EndCharacterIndex);
-                            }
-
-                            IntermediateNode directiveNode = match.IsParameterMatch && directiveAttributeName.HasParameter
-                                ? new TagHelperDirectiveAttributeParameterIntermediateNode(match)
-                                {
-                                    AttributeName = directiveAttributeName.Text,
-                                    AttributeNameWithoutParameter = directiveAttributeName.TextWithoutParameter,
-                                    OriginalAttributeName = attributeName,
-                                    AttributeStructure = InferAttributeStructure(htmlAttr),
-                                    Source = attributeValueSpan,
-                                    OriginalAttributeSpan = directiveNameSpan,
-                                }
-                                : new TagHelperDirectiveAttributeIntermediateNode(match)
-                                {
-                                    AttributeName = directiveAttributeName.Text,
-                                    OriginalAttributeName = attributeName,
-                                    AttributeStructure = InferAttributeStructure(htmlAttr),
-                                    Source = attributeValueSpan,
-                                    OriginalAttributeSpan = directiveNameSpan,
-                                };
-
-                            CopyAsTagHelperAttributeValues(htmlAttr, directiveNode);
-
-                            if (!match.ExpectsStringValue)
-                            {
-                                NormalizeBoundPropertyChildren(directiveNode, wrapLiteralsInCSharpExpression: true);
-                            }
-
-                            tagHelperNode.Children.Add(directiveNode);
+                            directiveNameSpan = new SourceSpan(
+                                nameSpan.FilePath,
+                                nameSpan.AbsoluteIndex + 1,
+                                nameSpan.LineIndex,
+                                nameSpan.CharacterIndex + 1,
+                                nameSpan.Length - 1,
+                                nameSpan.LineCount,
+                                nameSpan.EndCharacterIndex);
                         }
-                        else
-                        {
-                            var prop = new TagHelperPropertyIntermediateNode(match)
+
+                        IntermediateNode directiveNode = match.IsParameterMatch && directiveAttributeName.HasParameter
+                            ? new TagHelperDirectiveAttributeParameterIntermediateNode(match)
                             {
-                                AttributeName = attributeName,
+                                AttributeName = directiveAttributeName.Text,
+                                AttributeNameWithoutParameter = directiveAttributeName.TextWithoutParameter,
+                                OriginalAttributeName = attributeName,
                                 AttributeStructure = InferAttributeStructure(htmlAttr),
                                 Source = attributeValueSpan,
-                                OriginalAttributeSpan = attributeNameSpan,
+                                OriginalAttributeSpan = directiveNameSpan,
+                            }
+                            : new TagHelperDirectiveAttributeIntermediateNode(match)
+                            {
+                                AttributeName = directiveAttributeName.Text,
+                                OriginalAttributeName = attributeName,
+                                AttributeStructure = InferAttributeStructure(htmlAttr),
+                                Source = attributeValueSpan,
+                                OriginalAttributeSpan = directiveNameSpan,
                             };
 
-                            CopyAsTagHelperAttributeValues(htmlAttr, prop);
+                        CopyAsTagHelperAttributeValues(htmlAttr, directiveNode);
 
-                            if (!match.ExpectsStringValue)
-                            {
-                                NormalizeBoundPropertyChildren(prop, wrapLiteralsInCSharpExpression: false);
-                            }
-
-                            tagHelperNode.Children.Add(prop);
+                        if (!match.ExpectsStringValue)
+                        {
+                            NormalizeBoundPropertyChildren(directiveNode, wrapLiteralsInCSharpExpression: true);
                         }
+
+                        tagHelperNode.Children.Add(directiveNode);
+                    }
+                    else
+                    {
+                        var prop = new TagHelperPropertyIntermediateNode(match)
+                        {
+                            AttributeName = attributeName,
+                            AttributeStructure = InferAttributeStructure(htmlAttr),
+                            Source = attributeValueSpan,
+                            OriginalAttributeSpan = attributeNameSpan,
+                        };
+
+                        CopyAsTagHelperAttributeValues(htmlAttr, prop);
+
+                        if (!match.ExpectsStringValue)
+                        {
+                            NormalizeBoundPropertyChildren(prop, wrapLiteralsInCSharpExpression: false);
+                        }
+
+                        tagHelperNode.Children.Add(prop);
                     }
                 }
-                else
+            }
+            else
+            {
+                var thHtml = new TagHelperHtmlAttributeIntermediateNode()
                 {
-                    var thHtml = new TagHelperHtmlAttributeIntermediateNode()
-                    {
-                        AttributeName = attributeName,
-                        AttributeStructure = InferAttributeStructure(htmlAttr),
-                    };
+                    AttributeName = attributeName,
+                    AttributeStructure = InferAttributeStructure(htmlAttr),
+                };
 
-                    thHtml.Children.AddRange(htmlAttr.Children);
+                thHtml.Children.AddRange(htmlAttr.Children);
 
-                    // Convert CSharpExpressionAttributeValue to CSharpExpression for unbound
-                    // attributes that have expression values (e.g. duplicate @formname="@y").
-                    ConvertExpressionAttributeValuesToCSharpExpression(thHtml);
+                // Convert CSharpExpressionAttributeValue to CSharpExpression for unbound
+                // attributes that have expression values (e.g. duplicate @formname="@y").
+                ConvertExpressionAttributeValuesToCSharpExpression(thHtml);
 
-                    tagHelperNode.Children.Add(thHtml);
-                }
+                tagHelperNode.Children.Add(thHtml);
             }
         }
 
