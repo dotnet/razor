@@ -112,8 +112,9 @@ internal abstract class GenerateEventHandlerCodeActionResolver(
             return null;
         }
 
-        // Run the changes through the formatter to handle the rest. This is the same as what the CSharpCodeActionResolver does, so out generated method ends up going through the
-        // same pipeline as the Roslyn Generate Method code action.
+        // Now we run the changes through the formatter, via the TryGetCSharpCodeActionEditAsync. This is the same as what the CSharpCodeActionResolver does, and we're essentially
+        // pretending to be a C# code action, so our new method ends up going through the same pipeline as the Roslyn Generate Method code action. That's the magic that knows how
+        // to create a code block if one doesn't exist, or put the method in an existing one, and it will also ensure the method gets properly formatted.
         var csharpSourceText = code.GetCSharpSourceText();
         var csharpTextChanges = edits.SelectAsArray(csharpSourceText.GetTextChange);
         var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentContext, csharpTextChanges, options, cancellationToken).ConfigureAwait(false);
