@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,9 +24,6 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot)
         {
             DocumentUri = new(Uri),
         };
-
-    public TextDocumentIdentifierAndVersion GetTextDocumentIdentifierAndVersion()
-       => new(GetTextDocumentIdentifier(), Snapshot.Version);
 
     private bool TryGetCodeDocument([NotNullWhen(true)] out RazorCodeDocument? codeDocument)
     {

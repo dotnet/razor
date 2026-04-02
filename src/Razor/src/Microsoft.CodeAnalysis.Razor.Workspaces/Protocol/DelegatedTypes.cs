@@ -69,7 +69,6 @@ internal record DelegatedMapCodeParams(
     [property: JsonPropertyName("focusLocations")] LspLocation[][] FocusLocations) : IDelegatedParams;
 
 internal record DelegatedCompletionResolutionContext(
-    [property: JsonPropertyName("identifier")] TextDocumentIdentifierAndVersion Identifier,
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind,
     [property: JsonPropertyName("originalCompletionListData")] object? OriginalCompletionListData,
     [property: JsonPropertyName("provisionalTextEdit")] TextEdit? ProvisionalTextEdit) : ICompletionResolveContext;
