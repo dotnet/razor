@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.NestedFiles;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Xunit;
@@ -21,17 +22,10 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.NotNull(result);
-        var changes = GetDocumentChanges(result);
-        Assert.Equal(2, changes.Length);
-
-        // First change: CreateFile
-        Assert.True(changes[0].TryGetSecond(out var createFile));
-        Assert.Contains(".razor.css", createFile!.DocumentUri.ToString());
-
-        // Second change: TextDocumentEdit with CSS comment content
-        Assert.True(changes[1].TryGetFirst(out var textEdit));
-        Assert.Single(textEdit!.Edits);
-        Assert.Contains("CSS for File1 component", ((TextEdit)textEdit.Edits[0]).NewText);
+        await result.AssertWorkspaceEditAsync(
+            document.Project.Solution,
+            [(FileUri("File1.razor.css"), "/* CSS for File1 component */\r\n")],
+            DisposalToken);
     }
 
     [Fact]
@@ -44,18 +38,10 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.NotNull(result);
-        var changes = GetDocumentChanges(result);
-        Assert.Equal(2, changes.Length);
-
-        // First change: CreateFile
-        Assert.True(changes[0].TryGetSecond(out var createFile));
-        Assert.Contains(".razor.js", createFile!.DocumentUri.ToString());
-
-        // Second change: TextDocumentEdit with JS comment content
-        Assert.True(changes[1].TryGetFirst(out var textEdit));
-        Assert.Single(textEdit!.Edits);
-        var content = ((TextEdit)textEdit.Edits[0]).NewText;
-        Assert.Contains("JavaScript for File1 component", content);
+        await result.AssertWorkspaceEditAsync(
+            document.Project.Solution,
+            [(FileUri("File1.razor.js"), "// JavaScript for File1 component\r\n")],
+            DisposalToken);
     }
 
     [Fact]
@@ -68,22 +54,18 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.NotNull(result);
-        var changes = GetDocumentChanges(result);
-        Assert.Equal(2, changes.Length);
+        await result.AssertWorkspaceEditAsync(
+            document.Project.Solution,
+            [(FileUri("File1.razor.cs"), """
+                namespace SomeProject
+                {
+                    public partial class File1
+                    {
+                    }
+                }
 
-        // First change: CreateFile with .razor.cs extension
-        Assert.True(changes[0].TryGetSecond(out var createFile));
-        Assert.Contains(".razor.cs", createFile!.DocumentUri.ToString());
-
-        // Second change: TextDocumentEdit with C# content
-        Assert.True(changes[1].TryGetFirst(out var textEdit));
-        Assert.Single(textEdit!.Edits);
-        var content = ((TextEdit)textEdit.Edits[0]).NewText;
-
-        // Should contain namespace from test project (SomeProject)
-        Assert.Contains("namespace SomeProject", content);
-        // Should contain partial class matching the file name
-        Assert.Contains("partial class File1", content);
+                """)],
+            DisposalToken);
     }
 
     [Fact]
@@ -100,18 +82,25 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.NotNull(result);
-        var changes = GetDocumentChanges(result);
-        Assert.True(changes[1].TryGetFirst(out var textEdit));
-        var content = ((TextEdit)textEdit!.Edits[0]).NewText;
+        await result.AssertWorkspaceEditAsync(
+            document.Project.Solution,
+            [(FileUri("File1.razor.cs"), """
+                namespace My.Custom.Namespace
+                {
+                    public partial class File1
+                    {
+                    }
+                }
 
-        // Should use the @namespace directive value
-        Assert.Contains("namespace My.Custom.Namespace", content);
-        Assert.Contains("partial class File1", content);
+                """)],
+            DisposalToken);
     }
 
     [Fact]
     public async Task CSharpNestedFile_IncludesUsingDirectives()
     {
+        // Note: The @using directive is removed by Roslyn formatting since the code-behind
+        // class body is empty and has no references to types in the imported namespace.
         var document = CreateProjectAndRazorDocument(
             """
             @using System.Diagnostics
@@ -124,14 +113,18 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.NotNull(result);
-        var changes = GetDocumentChanges(result);
-        Assert.True(changes[1].TryGetFirst(out var textEdit));
-        var content = ((TextEdit)textEdit!.Edits[0]).NewText;
+        await result.AssertWorkspaceEditAsync(
+            document.Project.Solution,
+            [(FileUri("File1.razor.cs"), """
+                namespace SomeProject
+                {
+                    public partial class File1
+                    {
+                    }
+                }
 
-        // The @using directive from the Razor file should appear in the generated code-behind.
-        // The test infrastructure may include default imports from _Imports.razor.
-        Assert.Contains("partial class File1", content);
-        Assert.Contains("namespace SomeProject", content);
+                """)],
+            DisposalToken);
     }
 
     [Fact]
@@ -147,13 +140,10 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.NotNull(result);
-        var changes = GetDocumentChanges(result);
-        Assert.True(changes[0].TryGetSecond(out var createFile));
-        Assert.Contains(".cshtml.css", createFile!.DocumentUri.ToString());
-
-        // .cshtml files should say "view" not "component"
-        Assert.True(changes[1].TryGetFirst(out var textEdit));
-        Assert.Contains("Page1 view", ((TextEdit)textEdit!.Edits[0]).NewText);
+        await result.AssertWorkspaceEditAsync(
+            document.Project.Solution,
+            [(FileUri("Page1.cshtml.css"), "/* CSS for Page1 view */\r\n")],
+            DisposalToken);
     }
 
     [Fact]
@@ -167,14 +157,18 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.NotNull(result);
-        var changes = GetDocumentChanges(result);
-        Assert.True(changes[1].TryGetFirst(out var textEdit));
-        var content = ((TextEdit)textEdit!.Edits[0]).NewText;
+        await result.AssertWorkspaceEditAsync(
+            document.Project.Solution,
+            [(FileUri("File1.razor.cs"), """
+                namespace SomeProject
+                {
+                    public partial class File1
+                    {
+                    }
+                }
 
-        Assert.Contains("partial class File1", content);
-        // Without editorconfig, namespace should be block-scoped (not file-scoped)
-        Assert.DoesNotContain("namespace SomeProject;", content);
-        Assert.Contains("namespace SomeProject", content);
+                """)],
+            DisposalToken);
     }
 
     [Fact]
@@ -199,13 +193,17 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.NotNull(result);
-        var changes = GetDocumentChanges(result);
-        Assert.True(changes[1].TryGetFirst(out var textEdit));
-        var content = ((TextEdit)textEdit!.Edits[0]).NewText;
+        await result.AssertWorkspaceEditAsync(
+            document.Project.Solution,
+            [(FileUri("File1.razor.cs"), """
+                namespace SomeProject;
 
-        // With file-scoped namespace editorconfig, Roslyn formatting should produce "namespace X;"
-        Assert.Contains("namespace SomeProject;", content);
-        Assert.Contains("partial class File1", content);
+                public partial class File1
+                {
+                }
+
+                """)],
+            DisposalToken);
     }
 
     [Fact]
@@ -218,13 +216,5 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
             DisposalToken);
 
         Assert.Null(result);
-    }
-
-    private static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] GetDocumentChanges(WorkspaceEdit edit)
-    {
-        Assert.NotNull(edit.DocumentChanges);
-        Assert.True(edit.DocumentChanges.Value.TryGetSecond(out var changes),
-            "Expected DocumentChanges to contain SumType[] (not TextDocumentEdit[])");
-        return changes;
     }
 }
