@@ -212,7 +212,7 @@ public class RemoteAddNestedFileServiceTest(ITestOutputHelper testOutputHelper) 
         var document = CreateProjectAndRazorDocument("<div></div>");
         var result = await RemoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             document.Project.Solution,
-            (service, solutionInfo, ct) => service.GetNewNestedFileWorkspaceEditAsync(solutionInfo, document.Id, "invalid", ct),
+            (service, solutionInfo, ct) => service.GetNewNestedFileWorkspaceEditAsync(solutionInfo, document.Id, (NestedFileKind)999, ct),
             DisposalToken);
 
         Assert.Null(result);

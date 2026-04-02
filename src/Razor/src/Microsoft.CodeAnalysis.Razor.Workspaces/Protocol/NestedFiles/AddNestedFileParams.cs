@@ -19,12 +19,12 @@ internal sealed class AddNestedFileParams : ITextDocumentParams
     public required TextDocumentIdentifier TextDocument { get; set; }
 
     /// <summary>
-    /// The kind of nested file to create (one of <see cref="NestedFileKind"/> constants).
+    /// The kind of nested file to create.
     /// </summary>
     [JsonPropertyName("fileKind")]
-    public required string FileKind { get; set; }
+    public required NestedFileKind FileKind { get; set; }
 
-    public static AddNestedFileParams Create(Uri razorFileUri, string fileKind)
+    public static AddNestedFileParams Create(Uri razorFileUri, NestedFileKind fileKind)
     {
         return new AddNestedFileParams
         {

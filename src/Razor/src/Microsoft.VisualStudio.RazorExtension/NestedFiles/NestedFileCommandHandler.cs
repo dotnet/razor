@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.CodeAnalysis.Razor.NestedFiles;
 using Microsoft.CodeAnalysis.Razor.Protocol.NestedFiles;
 using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
@@ -23,15 +24,15 @@ namespace Microsoft.VisualStudio.RazorExtension.NestedFiles;
 /// When the file doesn't exist, sends an LSP request to the Razor language server
 /// to create it via workspace/applyEdit. When the file exists, just opens it.
 /// </summary>
-internal abstract class NestedFileCommandHandler(
+internal sealed class NestedFileCommandHandler(
     IServiceProvider serviceProvider,
     string fileExtension,
-    string fileKind,
+    NestedFileKind fileKind,
     Lazy<LSPRequestInvokerWrapper> requestInvoker)
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly string _fileExtension = fileExtension;
-    private readonly string _fileKind = fileKind;
+    private readonly NestedFileKind _fileKind = fileKind;
     private readonly Lazy<LSPRequestInvokerWrapper> _requestInvoker = requestInvoker;
 
     /// <summary>
@@ -131,7 +132,7 @@ internal abstract class NestedFileCommandHandler(
     /// <summary>
     /// Gets the path to the nested file based on the Razor file path.
     /// </summary>
-    protected virtual string GetNestedFilePath(string razorFilePath)
+    private string GetNestedFilePath(string razorFilePath)
     {
         Debug.Assert(_fileExtension.StartsWith('.'));
         return razorFilePath + _fileExtension;

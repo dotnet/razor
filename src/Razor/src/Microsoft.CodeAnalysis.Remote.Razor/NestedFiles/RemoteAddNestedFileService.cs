@@ -35,7 +35,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
     public ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        string fileKind,
+        NestedFileKind fileKind,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
@@ -45,7 +45,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
 
     private async ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
         RemoteDocumentContext context,
-        string fileKind,
+        NestedFileKind fileKind,
         CancellationToken cancellationToken)
     {
         var razorFilePath = context.FilePath;
@@ -80,7 +80,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
         };
     }
 
-    private static string? GetNestedFilePath(string razorFilePath, string fileKind)
+    private static string? GetNestedFilePath(string razorFilePath, NestedFileKind fileKind)
     {
         return fileKind switch
         {
@@ -92,7 +92,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
     }
 
     private async Task<string> GenerateContentAsync(
-        string fileKind,
+        NestedFileKind fileKind,
         RemoteDocumentContext documentContext,
         string razorFilePath,
         Uri nestedFileUri,

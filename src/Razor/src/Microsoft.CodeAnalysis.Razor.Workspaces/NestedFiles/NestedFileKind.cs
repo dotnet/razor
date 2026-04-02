@@ -6,9 +6,9 @@ namespace Microsoft.CodeAnalysis.Razor.NestedFiles;
 /// <summary>
 /// Specifies which type of nested file to create for a Razor component.
 /// </summary>
-internal static class NestedFileKind
+internal enum NestedFileKind
 {
-    public const string Css = "css";
-    public const string CSharp = "csharp";
-    public const string JavaScript = "javascript";
+    CSharp,
+    Css,
+    JavaScript,
 }

@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis.Razor.NestedFiles;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
@@ -171,9 +172,9 @@ internal sealed class RazorPackage : AsyncPackage
         var requestInvoker = new Lazy<LSPRequestInvokerWrapper>(() => componentModel.GetService<LSPRequestInvokerWrapper>());
 
         // Create command handlers
-        var csharpHandler = new CSharpNestedFileCommandHandler(this, requestInvoker);
-        var cssHandler = new CssNestedFileCommandHandler(this, requestInvoker);
-        var javascriptHandler = new JavascriptNestedFileCommandHandler(this, requestInvoker);
+        var csharpHandler = new NestedFileCommandHandler(this, ".cs", NestedFileKind.CSharp, requestInvoker);
+        var cssHandler = new NestedFileCommandHandler(this, ".css", NestedFileKind.Css, requestInvoker);
+        var javascriptHandler = new NestedFileCommandHandler(this, ".js", NestedFileKind.JavaScript, requestInvoker);
 
         // .cs Nested File Command
         var csharpCommandId = new CommandID(GuidRazorNestedFilesCmdSet, (int)CmdIdAddOrViewNestedCsFile);
