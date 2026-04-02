@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.CodeAnalysis.Razor.Protocol.NestedFiles;
 using Microsoft.VisualStudio.Razor.LanguageClient;
-using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -114,11 +114,7 @@ internal abstract class NestedFileCommandHandler(
         await _requestInvoker.Value.ReinvokeRequestOnServerAsync<AddNestedFileParams, object?>(
             RazorLSPConstants.AddNestedFileName,
             RazorLSPConstants.RoslynLanguageServerName,
-            new AddNestedFileParams
-            {
-                RazorFileUri = new Uri(razorFilePath),
-                FileKind = _fileKind,
-            },
+            AddNestedFileParams.Create(new Uri(razorFilePath), _fileKind),
             cancellationToken);
 
         if (File.Exists(nestedFilePath))

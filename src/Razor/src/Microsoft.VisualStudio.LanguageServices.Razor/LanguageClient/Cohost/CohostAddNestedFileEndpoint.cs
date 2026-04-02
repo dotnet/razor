@@ -9,21 +9,24 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
+using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol.NestedFiles;
 using Microsoft.CodeAnalysis.Razor.Remote;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
-[RazorMethod(RazorLSPConstants.AddNestedFileName)]
-[ExportRazorStatelessLspService(typeof(CohostAddNestedFileEndpoint))]
+[CohostEndpoint(RazorLSPConstants.AddNestedFileName)]
+[ExportCohostStatelessLspService(typeof(CohostAddNestedFileEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostAddNestedFileEndpoint(
     IRemoteServiceInvoker remoteServiceInvoker,
+    IIncompatibleProjectService incompatibleProjectService,
     ILoggerFactory loggerFactory)
-    : AbstractRazorCohostRequestHandler<AddNestedFileParams, VoidResult>
+    : AbstractCohostDocumentEndpoint<AddNestedFileParams, VoidResult>(incompatibleProjectService)
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostAddNestedFileEndpoint>();
@@ -32,26 +35,23 @@ internal sealed class CohostAddNestedFileEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
+    protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(AddNestedFileParams request)
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
+
+    protected override Task<VoidResult> HandleRequestAsync(
+        AddNestedFileParams request,
+        TextDocument razorDocument,
+        CancellationToken cancellationToken)
+        => Assumed.Unreachable<Task<VoidResult>>();
+
     protected override async Task<VoidResult> HandleRequestAsync(
         AddNestedFileParams request,
         RazorCohostRequestContext context,
+        TextDocument razorDocument,
         CancellationToken cancellationToken)
     {
-        var solution = context.Solution;
-        if (solution is null)
-        {
-            _logger.LogWarning($"No solution available for addNestedFile request.");
-            return new();
-        }
-
-        if (!solution.TryGetRazorDocument(request.RazorFileUri, out var razorDocument))
-        {
-            _logger.LogWarning($"Could not find Razor document for URI: {request.RazorFileUri}");
-            return new();
-        }
-
         var workspaceEdit = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
-            solution,
+            razorDocument.Project.Solution,
             (service, solutionInfo, ct) => service.GetNewNestedFileWorkspaceEditAsync(
                 solutionInfo,
                 razorDocument.Id,
