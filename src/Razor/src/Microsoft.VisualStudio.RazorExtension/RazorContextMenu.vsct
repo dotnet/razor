@@ -26,9 +26,9 @@
     <!-- Command set GUID for Razor nested file commands -->
     <GuidSymbol name="guidRazorNestedFilesCmdSet" value="{8B2B3C5D-6E4A-4F9B-9C8D-1A2B3C4D5E6F}">
       <IDSymbol name="grpidRazorNestedFiles" value="0x1001" />
-      <IDSymbol name="cmdidAddOrViewCssNestedFile" value="0x0100" />
-      <IDSymbol name="cmdidAddOrViewCsNestedFile" value="0x0101" />
-      <IDSymbol name="cmdidAddOrViewJsNestedFile" value="0x0102" />
+      <IDSymbol name="cmdidAddOrViewNestedCsFile" value="0x0100" />
+      <IDSymbol name="cmdidAddOrViewNestedCssFile" value="0x0101" />
+      <IDSymbol name="cmdidAddOrViewNestedJsFile" value="0x0102" />
     </GuidSymbol>
 
     <!-- UI Context GUID for Razor file selection -->
@@ -112,42 +112,42 @@
       </Button>
 
       <!-- Razor nested file commands -->
-      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewCssNestedFile" priority="0x0100" type="Button">
+      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewNestedCsFile" priority="0x0100" type="Button">
         <Parent guid="guidRazorNestedFilesCmdSet" id="grpidRazorNestedFiles"/>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>Add or View CSS Nested File</ButtonText>
-          <CanonicalName>AddOrViewCssNestedFile</CanonicalName>
-          <LocCanonicalName>AddOrViewCssNestedFile</LocCanonicalName>
-          <CommandName>AddOrViewCssNestedFile</CommandName>
+          <ButtonText>Add or View Nested .cs File</ButtonText>
+          <CanonicalName>AddOrViewNestedCsFile</CanonicalName>
+          <LocCanonicalName>AddOrViewNestedCsFile</LocCanonicalName>
+          <CommandName>AddOrViewNestedCsFile</CommandName>
         </Strings>
       </Button>
 
-      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewCsNestedFile" priority="0x0101" type="Button">
+      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewNestedCssFile" priority="0x0101" type="Button">
         <Parent guid="guidRazorNestedFilesCmdSet" id="grpidRazorNestedFiles"/>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>Add or View C# Code-Behind File</ButtonText>
-          <CanonicalName>AddOrViewCsNestedFile</CanonicalName>
-          <LocCanonicalName>AddOrViewCsNestedFile</LocCanonicalName>
-          <CommandName>AddOrViewCsNestedFile</CommandName>
+          <ButtonText>Add or View Nested .css File</ButtonText>
+          <CanonicalName>AddOrViewNestedCssFile</CanonicalName>
+          <LocCanonicalName>AddOrViewNestedCssFile</LocCanonicalName>
+          <CommandName>AddOrViewNestedCssFile</CommandName>
         </Strings>
       </Button>
 
-      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewJsNestedFile" priority="0x0102" type="Button">
+      <Button guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewNestedJsFile" priority="0x0102" type="Button">
         <Parent guid="guidRazorNestedFilesCmdSet" id="grpidRazorNestedFiles"/>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>TextChanges</CommandFlag>
         <Strings>
-          <ButtonText>Add or View JavaScript Nested File</ButtonText>
-          <CanonicalName>AddOrViewJsNestedFile</CanonicalName>
-          <LocCanonicalName>AddOrViewJsNestedFile</LocCanonicalName>
-          <CommandName>AddOrViewJsNestedFile</CommandName>
+          <ButtonText>Add or View Nested .js File</ButtonText>
+          <CanonicalName>AddOrViewNestedJsFile</CanonicalName>
+          <LocCanonicalName>AddOrViewNestedJsFile</LocCanonicalName>
+          <CommandName>AddOrViewNestedJsFile</CommandName>
         </Strings>
       </Button>
     </Buttons>
@@ -155,9 +155,9 @@
 
   <!-- Visibility constraints - nested file commands only appear when UI context is active -->
   <VisibilityConstraints>
-    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewCssNestedFile" context="guidRazorFileContext" />
-    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewCsNestedFile" context="guidRazorFileContext" />
-    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewJsNestedFile" context="guidRazorFileContext" />
+    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewNestedCsFile" context="guidRazorFileContext" />
+    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewNestedCssFile" context="guidRazorFileContext" />
+    <VisibilityItem guid="guidRazorNestedFilesCmdSet" id="cmdidAddOrViewNestedJsFile" context="guidRazorFileContext" />
   </VisibilityConstraints>
 
 </CommandTable>

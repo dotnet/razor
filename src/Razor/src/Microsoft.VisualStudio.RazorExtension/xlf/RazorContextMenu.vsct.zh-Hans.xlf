@@ -17,49 +17,49 @@
         <target state="new">Show Referenced Tag Helpers</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewCsNestedFile|ButtonText">
-        <source>Add or View C# Code-Behind File</source>
-        <target state="new">Add or View C# Code-Behind File</target>
+      <trans-unit id="cmdidAddOrViewNestedCsFile|ButtonText">
+        <source>Add or View Nested .cs File</source>
+        <target state="new">Add or View Nested .cs File</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewCsNestedFile|CommandName">
-        <source>AddOrViewCsNestedFile</source>
-        <target state="new">AddOrViewCsNestedFile</target>
+      <trans-unit id="cmdidAddOrViewNestedCsFile|CommandName">
+        <source>AddOrViewNestedCsFile</source>
+        <target state="new">AddOrViewNestedCsFile</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewCsNestedFile|LocCanonicalName">
-        <source>AddOrViewCsNestedFile</source>
-        <target state="new">AddOrViewCsNestedFile</target>
+      <trans-unit id="cmdidAddOrViewNestedCsFile|LocCanonicalName">
+        <source>AddOrViewNestedCsFile</source>
+        <target state="new">AddOrViewNestedCsFile</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewCssNestedFile|ButtonText">
-        <source>Add or View CSS Nested File</source>
-        <target state="new">Add or View CSS Nested File</target>
+      <trans-unit id="cmdidAddOrViewNestedCssFile|ButtonText">
+        <source>Add or View Nested .css File</source>
+        <target state="new">Add or View Nested .css File</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewCssNestedFile|CommandName">
-        <source>AddOrViewCssNestedFile</source>
-        <target state="new">AddOrViewCssNestedFile</target>
+      <trans-unit id="cmdidAddOrViewNestedCssFile|CommandName">
+        <source>AddOrViewNestedCssFile</source>
+        <target state="new">AddOrViewNestedCssFile</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewCssNestedFile|LocCanonicalName">
-        <source>AddOrViewCssNestedFile</source>
-        <target state="new">AddOrViewCssNestedFile</target>
+      <trans-unit id="cmdidAddOrViewNestedCssFile|LocCanonicalName">
+        <source>AddOrViewNestedCssFile</source>
+        <target state="new">AddOrViewNestedCssFile</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewJsNestedFile|ButtonText">
-        <source>Add or View JavaScript Nested File</source>
-        <target state="new">Add or View JavaScript Nested File</target>
+      <trans-unit id="cmdidAddOrViewNestedJsFile|ButtonText">
+        <source>Add or View Nested .js File</source>
+        <target state="new">Add or View Nested .js File</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewJsNestedFile|CommandName">
-        <source>AddOrViewJsNestedFile</source>
-        <target state="new">AddOrViewJsNestedFile</target>
+      <trans-unit id="cmdidAddOrViewNestedJsFile|CommandName">
+        <source>AddOrViewNestedJsFile</source>
+        <target state="new">AddOrViewNestedJsFile</target>
         <note />
       </trans-unit>
-      <trans-unit id="cmdidAddOrViewJsNestedFile|LocCanonicalName">
-        <source>AddOrViewJsNestedFile</source>
-        <target state="new">AddOrViewJsNestedFile</target>
+      <trans-unit id="cmdidAddOrViewNestedJsFile|LocCanonicalName">
+        <source>AddOrViewNestedJsFile</source>
+        <target state="new">AddOrViewNestedJsFile</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRazorSyntaxVisualizer|ButtonText">

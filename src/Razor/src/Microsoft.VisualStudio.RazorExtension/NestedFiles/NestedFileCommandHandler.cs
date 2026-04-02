@@ -2,13 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.VisualStudio.Razor.LanguageClient;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudio.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -55,7 +58,7 @@ internal abstract class NestedFileCommandHandler(
 
         command.Visible = true;
         command.Enabled = true;
-        command.Text = string.Format(nestedFileExists ? Resources.View_Nested_File : Resources.Add_Nested_File, nestedFileName);
+        command.Text = nestedFileExists ? Resources.FormatView_Nested_File(nestedFileName) : Resources.FormatAdd_Nested_File(nestedFileName);
     }
 
     private bool IsRazorFileUIContextActive()
@@ -108,10 +111,10 @@ internal abstract class NestedFileCommandHandler(
     {
         // The cohost endpoint will create the file via workspace/applyEdit.
         // By the time this returns, the file should exist on disk.
-        await _requestInvoker.Value.ReinvokeRequestOnServerAsync<AddNestedFileRequest, object?>(
+        await _requestInvoker.Value.ReinvokeRequestOnServerAsync<AddNestedFileParams, object?>(
             RazorLSPConstants.AddNestedFileName,
             RazorLSPConstants.RoslynLanguageServerName,
-            new AddNestedFileRequest
+            new AddNestedFileParams
             {
                 RazorFileUri = new Uri(razorFilePath),
                 FileKind = _fileKind,
@@ -134,6 +137,7 @@ internal abstract class NestedFileCommandHandler(
     /// </summary>
     protected virtual string GetNestedFilePath(string razorFilePath)
     {
+        Debug.Assert(_fileExtension.StartsWith('.'));
         return razorFilePath + _fileExtension;
     }
 
@@ -165,9 +169,26 @@ internal abstract class NestedFileCommandHandler(
                 {
                     project.GetMkDocument(itemId, out var filePath);
 
-                    if (!string.IsNullOrEmpty(filePath) && FileKinds.TryGetFileKindFromPath(filePath, out _))
+                    if (filePath is not null)
                     {
-                        return filePath;
+                        if (filePath.EndsWith(FileKinds.ComponentFileExtension, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // return all paths with extension .razor except for the special imports file
+                            var fileName = Path.GetFileNameWithoutExtension(filePath);
+                            if (!string.Equals(fileName, ComponentHelpers.ImportsFileName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return filePath;
+                            }
+                        }
+                        else if (filePath.EndsWith(FileKinds.LegacyFileExtension, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // return all paths with extension .cshtml except for the special imports file
+                            var fileName = Path.GetFileNameWithoutExtension(filePath);
+                            if (!string.Equals(fileName, MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return filePath;
+                            }
+                        }
                     }
                 }
             }
@@ -186,18 +207,5 @@ internal abstract class NestedFileCommandHandler(
                 Marshal.Release(selectionContainerPtr);
             }
         }
-    }
-
-    /// <summary>
-    /// Local request type matching <c>AddNestedFileParams</c> on the server side.
-    /// JSON property names must match the server's expected format.
-    /// </summary>
-    private sealed class AddNestedFileRequest
-    {
-        [JsonPropertyName("razorFileUri")]
-        public required Uri RazorFileUri { get; set; }
-
-        [JsonPropertyName("fileKind")]
-        public required string FileKind { get; set; }
     }
 }

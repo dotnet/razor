@@ -6,15 +6,12 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.NestedFiles;
 using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
@@ -35,38 +32,26 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions =
         args.ExportProvider.GetExportedValue<LanguageServerFeatureOptions>();
 
-    public ValueTask<WorkspaceEdit?> AddNestedFileAsync(
+    public ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
-        Uri razorFileUri,
+        JsonSerializableDocumentId documentId,
         string fileKind,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
-            solution => AddNestedFileAsync(solution, razorFileUri, fileKind, cancellationToken),
+            documentId,
+            context => GetNewNestedFileWorkspaceEditAsync(context, fileKind, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<WorkspaceEdit?> AddNestedFileAsync(
-        Solution solution,
-        Uri razorFileUri,
+    private async ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
+        RemoteDocumentContext context,
         string fileKind,
         CancellationToken cancellationToken)
     {
-        if (!solution.TryGetRazorDocument(razorFileUri, out var razorDocument))
-        {
-            Logger.LogWarning($"Could not find Razor document for URI: {razorFileUri}");
-            return null;
-        }
+        System.Diagnostics.Debugger.Launch();
 
-        var documentContext = CreateRazorDocumentContext(solution, razorDocument.Id);
-        if (documentContext is null)
-        {
-            Logger.LogWarning($"Could not create document context for: {razorFileUri}");
-            return null;
-        }
-
-        var razorFilePath = FilePathNormalizer.Normalize(razorFileUri.GetAbsoluteOrUNCPath());
-        var nestedFilePath = GetNestedFilePath(razorFilePath, fileKind);
-        if (nestedFilePath is null)
+        var razorFilePath = context.FilePath;
+        if (GetNestedFilePath(razorFilePath, fileKind) is not string nestedFilePath)
         {
             return null;
         }
@@ -74,7 +59,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
         var nestedFileUri = LspFactory.CreateFilePathUri(nestedFilePath, _languageServerFeatureOptions);
 
         var content = await GenerateContentAsync(
-            fileKind, documentContext, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false);
+            fileKind, context, razorFilePath, nestedFileUri, cancellationToken).ConfigureAwait(false);
 
         var nestedFileDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier
         {
@@ -128,14 +113,14 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
     private static string GenerateCssContent(string razorFilePath)
     {
         var componentName = Path.GetFileNameWithoutExtension(razorFilePath);
-        var fileType = FileKinds.GetFileKindFromPath(razorFilePath).IsComponent() ? "component" : "view";
+        var fileType = FileKinds.GetFileKindFromPath(razorFilePath).IsLegacy() ? "view" : "component";
         return $"/* CSS for {componentName} {fileType} */\r\n";
     }
 
     private static string GenerateJavaScriptContent(string razorFilePath)
     {
         var componentName = Path.GetFileNameWithoutExtension(razorFilePath);
-        var fileType = FileKinds.GetFileKindFromPath(razorFilePath).IsComponent() ? "component" : "view";
+        var fileType = FileKinds.GetFileKindFromPath(razorFilePath).IsLegacy() ? "view" : "component";
         return $"// JavaScript for {componentName} {fileType}\r\n";
     }
 
@@ -150,13 +135,13 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
 
         // Use the Razor compiler's namespace resolution which handles @namespace directives,
         // _Imports.razor, and SDK-provided root namespace
-        if (!codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace))
+        if (!codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var ns))
         {
             Logger.LogWarning($"Could not determine namespace for: {razorFilePath}");
-            @namespace = "Unknown";
+            ns = "Unknown";
         }
 
-        var content = GenerateCodeBehindClass(className, @namespace, codeDocument);
+        var content = GenerateCodeBehindClass(className, ns);
 
         // Format via Roslyn (handles file-scoped namespaces, indentation, etc.)
         content = await _roslynCodeActionHelpers.GetFormattedNewFileContentsAsync(
@@ -168,40 +153,16 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
         return content;
     }
 
-    private static string GenerateCodeBehindClass(string className, string namespaceName, RazorCodeDocument razorCodeDocument)
+    private static string GenerateCodeBehindClass(string className, string namespaceName)
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-        var usingDirectives = razorCodeDocument
-            .GetRequiredDocumentNode()
-            .FindDescendantNodes<UsingDirectiveIntermediateNode>();
-
-        foreach (var usingDirective in usingDirectives)
-        {
-            builder.Append("using ");
-
-            var content = usingDirective.Content;
-            var startIndex = content.StartsWith("global::", StringComparison.Ordinal)
-                ? 8
-                : 0;
-
-            builder.Append(content, startIndex, content.Length - startIndex);
-            builder.Append(';');
-            builder.AppendLine();
-        }
-
-        builder.AppendLine();
-        builder.Append("namespace ");
-        builder.AppendLine(namespaceName);
-        builder.Append('{');
-        builder.AppendLine();
-        builder.Append("public partial class ");
-        builder.AppendLine(className);
-        builder.Append('{');
-        builder.AppendLine();
-        builder.Append('}');
-        builder.AppendLine();
-        builder.Append('}');
+        builder.AppendLine($"namespace {namespaceName}");
+        builder.AppendLine("{");
+        builder.AppendLine($"public partial class {className}");
+        builder.AppendLine("{");
+        builder.AppendLine("}");
+        builder.AppendLine("}");
 
         return builder.ToString();
     }

@@ -5,6 +5,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
@@ -27,7 +28,7 @@ internal sealed class CohostAddNestedFileEndpoint(
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CohostAddNestedFileEndpoint>();
 
-    protected override bool MutatesSolutionState => true;
+    protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
 
@@ -43,11 +44,17 @@ internal sealed class CohostAddNestedFileEndpoint(
             return new();
         }
 
+        if (!solution.TryGetRazorDocument(request.RazorFileUri, out var razorDocument))
+        {
+            _logger.LogWarning($"Could not find Razor document for URI: {request.RazorFileUri}");
+            return new();
+        }
+
         var workspaceEdit = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAddNestedFileService, WorkspaceEdit?>(
             solution,
-            (service, solutionInfo, ct) => service.AddNestedFileAsync(
+            (service, solutionInfo, ct) => service.GetNewNestedFileWorkspaceEditAsync(
                 solutionInfo,
-                request.RazorFileUri,
+                razorDocument.Id,
                 request.FileKind,
                 ct),
             cancellationToken).ConfigureAwait(false);

@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -11,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteAddNestedFileService : IRemoteJsonService
 {
     /// <summary>
-    /// Creates a nested file (CSS, C# code-behind, or JavaScript) for a Razor file.
+    /// Gets an edit to create a nested file (CSS, C# code-behind, or JavaScript) for a Razor file.
     /// Returns a <see cref="WorkspaceEdit"/> containing CreateFile + TextDocumentEdit operations,
     /// or null if the operation could not be completed.
     /// </summary>
-    ValueTask<WorkspaceEdit?> AddNestedFileAsync(
+    ValueTask<WorkspaceEdit?> GetNewNestedFileWorkspaceEditAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
-        Uri razorFileUri,
+        JsonSerializableDocumentId documentId,
         string fileKind,
         CancellationToken cancellationToken);
 }
