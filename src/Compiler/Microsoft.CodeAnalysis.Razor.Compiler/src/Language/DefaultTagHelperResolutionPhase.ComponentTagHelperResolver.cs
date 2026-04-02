@@ -91,28 +91,34 @@ internal partial class DefaultTagHelperResolutionPhase
             RazorSourceDocument sourceDocument,
             in ResolutionContext context)
         {
-            var renderedBoundAttributeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            tagHelperNode.Children.Add(bodyNode);
-
-            foreach (var child in elementNode.Children)
+            var renderedBoundAttributeNames = new PooledHashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
             {
-                if (child is MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr)
+                tagHelperNode.Children.Add(bodyNode);
+
+                foreach (var child in elementNode.Children)
                 {
-                    ConvertUnresolvedAttributeToTagHelper(tagHelperNode, bodyNode, unresolvedAttr, binding, renderedBoundAttributeNames, sourceDocument, in context);
+                    if (child is MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr)
+                    {
+                        ConvertUnresolvedAttributeToTagHelper(tagHelperNode, bodyNode, unresolvedAttr, binding, ref renderedBoundAttributeNames, sourceDocument, in context);
+                    }
+                    else if (child is HtmlAttributeIntermediateNode or
+                        ComponentAttributeIntermediateNode or
+                        SplatIntermediateNode or
+                        SetKeyIntermediateNode or
+                        ReferenceCaptureIntermediateNode)
+                    {
+                        ConvertComponentAttributeToTagHelper(tagHelperNode, child, binding);
+                    }
+                    else if (tagHelperNode.TagMode != TagMode.StartTagOnly)
+                    {
+                        bodyNode.Children.Add(child);
+                    }
                 }
-                else if (child is HtmlAttributeIntermediateNode or
-                    ComponentAttributeIntermediateNode or
-                    SplatIntermediateNode or
-                    SetKeyIntermediateNode or
-                    ReferenceCaptureIntermediateNode)
-                {
-                    ConvertComponentAttributeToTagHelper(tagHelperNode, child, binding);
-                }
-                else if (tagHelperNode.TagMode != TagMode.StartTagOnly)
-                {
-                    bodyNode.Children.Add(child);
-                }
+            }
+            finally
+            {
+                renderedBoundAttributeNames.Dispose();
             }
         }
 
@@ -127,7 +133,7 @@ internal partial class DefaultTagHelperResolutionPhase
             TagHelperBodyIntermediateNode bodyNode,
             MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr,
             TagHelperBinding binding,
-            HashSet<string> renderedBoundAttributeNames,
+            ref PooledHashSet<string> renderedBoundAttributeNames,
             RazorSourceDocument sourceDocument,
             in ResolutionContext context)
         {

@@ -40,60 +40,66 @@ internal partial class DefaultTagHelperResolutionPhase
             RazorSourceDocument sourceDocument,
             in ResolutionContext context)
         {
-            var renderedBoundAttributeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            // Add body node first (like the original lowering).
-            tagHelperNode.Children.Add(bodyNode);
-
-            // Use pre-computed boundary indices to identify body content and attribute region.
-            var startTagEndIdx = elementNode.StartTagEndIndex;
-            var bodyEndIdx = elementNode.BodyEndIndex;
-
-            // Body content is between the boundary indices.
-            if (startTagEndIdx >= 0 && bodyEndIdx >= 0 && tagHelperNode.TagMode != TagMode.StartTagOnly)
+            var renderedBoundAttributeNames = new PooledHashSet<string>(StringComparer.OrdinalIgnoreCase);
+            try
             {
-                for (var i = startTagEndIdx; i < bodyEndIdx; i++)
+                // Add body node first (like the original lowering).
+                tagHelperNode.Children.Add(bodyNode);
+
+                // Use pre-computed boundary indices to identify body content and attribute region.
+                var startTagEndIdx = elementNode.StartTagEndIndex;
+                var bodyEndIdx = elementNode.BodyEndIndex;
+
+                // Body content is between the boundary indices.
+                if (startTagEndIdx >= 0 && bodyEndIdx >= 0 && tagHelperNode.TagMode != TagMode.StartTagOnly)
                 {
-                    bodyNode.Children.Add(elementNode.Children[i]);
-                }
-            }
-
-            // Check if the element has dynamic C# expression children (e.g. @s).
-            // When present, unbound html attributes are excluded from the tag helper.
-            var attrEnd = startTagEndIdx >= 0 ? startTagEndIdx : elementNode.Children.Count;
-            var hasDynamicExpressionChild = elementNode.HasDynamicExpressionChild;
-
-            // RZ1031: Tag helpers must not have C# in the element's attribute declaration area.
-            if (hasDynamicExpressionChild)
-            {
-                TryAddCSharpInDeclarationDiagnostic(tagHelperNode, elementNode, attrEnd);
-            }
-
-            // Process attributes before StartTagEnd.
-            for (var i = 0; i < attrEnd; i++)
-            {
-                var child = elementNode.Children[i];
-                if (child is MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr)
-                {
-                    if (hasDynamicExpressionChild)
+                    for (var i = startTagEndIdx; i < bodyEndIdx; i++)
                     {
-                        if (!TagHelperMatchingConventions.HasAttributeMatches(binding.TagHelpers, unresolvedAttr.AttributeName))
+                        bodyNode.Children.Add(elementNode.Children[i]);
+                    }
+                }
+
+                // Check if the element has dynamic C# expression children (e.g. @s).
+                // When present, unbound html attributes are excluded from the tag helper.
+                var attrEnd = startTagEndIdx >= 0 ? startTagEndIdx : elementNode.Children.Count;
+                var hasDynamicExpressionChild = elementNode.HasDynamicExpressionChild;
+
+                // RZ1031: Tag helpers must not have C# in the element's attribute declaration area.
+                if (hasDynamicExpressionChild)
+                {
+                    TryAddCSharpInDeclarationDiagnostic(tagHelperNode, elementNode, attrEnd);
+                }
+
+                // Process attributes before StartTagEnd.
+                for (var i = 0; i < attrEnd; i++)
+                {
+                    var child = elementNode.Children[i];
+                    if (child is MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr)
+                    {
+                        if (hasDynamicExpressionChild)
+                        {
+                            if (!TagHelperMatchingConventions.HasAttributeMatches(binding.TagHelpers, unresolvedAttr.AttributeName))
+                            {
+                                continue;
+                            }
+                        }
+
+                        ConvertUnresolvedLegacyAttribute(tagHelperNode, unresolvedAttr, binding, ref renderedBoundAttributeNames, sourceDocument, in context);
+                    }
+                    else if (child is HtmlAttributeIntermediateNode htmlAttr)
+                    {
+                        if (hasDynamicExpressionChild)
                         {
                             continue;
                         }
-                    }
 
-                    ConvertUnresolvedLegacyAttribute(tagHelperNode, unresolvedAttr, binding, renderedBoundAttributeNames, sourceDocument, in context);
-                }
-                else if (child is HtmlAttributeIntermediateNode htmlAttr)
-                {
-                    if (hasDynamicExpressionChild)
-                    {
-                        continue;
+                        ConvertAttributeToTagHelper(tagHelperNode, htmlAttr, binding, ref renderedBoundAttributeNames, sourceDocument);
                     }
-
-                    ConvertAttributeToTagHelper(tagHelperNode, htmlAttr, binding, renderedBoundAttributeNames, sourceDocument);
                 }
+            }
+            finally
+            {
+                renderedBoundAttributeNames.Dispose();
             }
         }
 
@@ -106,7 +112,7 @@ internal partial class DefaultTagHelperResolutionPhase
             TagHelperIntermediateNode tagHelperNode,
             MarkupOrTagHelperAttributeIntermediateNode unresolvedAttr,
             TagHelperBinding binding,
-            HashSet<string> renderedBoundAttributeNames,
+            ref PooledHashSet<string> renderedBoundAttributeNames,
             RazorSourceDocument sourceDocument,
             in ResolutionContext context)
         {
@@ -255,7 +261,7 @@ internal partial class DefaultTagHelperResolutionPhase
             TagHelperIntermediateNode tagHelperNode,
             HtmlAttributeIntermediateNode htmlAttr,
             TagHelperBinding binding,
-            HashSet<string> renderedBoundAttributeNames,
+            ref PooledHashSet<string> renderedBoundAttributeNames,
             RazorSourceDocument sourceDocument)
         {
             var attributeName = htmlAttr.AttributeName;

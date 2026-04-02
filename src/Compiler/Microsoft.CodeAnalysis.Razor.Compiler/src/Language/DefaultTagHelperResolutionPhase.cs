@@ -537,8 +537,9 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 }
             }
 
-            // Compute merged source span.
-            if (htmlContent.Children.Count > 0)
+            // Compute merged source span when there are multiple children.
+            // For a single child, the source was already set above.
+            if (htmlContent.Children.Count > 1)
             {
                 var firstSrc = htmlContent.Children[0].Source;
                 var lastSrc = htmlContent.Children[^1].Source;
