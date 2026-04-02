@@ -12,9 +12,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectContext? projectContext)
+internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot)
 {
-    private readonly VSProjectContext? _projectContext = projectContext;
     private RazorCodeDocument? _codeDocument;
     private SourceText? _sourceText;
 
@@ -27,7 +26,6 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot, VSProjectCon
         => new VSTextDocumentIdentifier()
         {
             DocumentUri = new(Uri),
-            ProjectContext = _projectContext,
         };
 
     public TextDocumentIdentifierAndVersion GetTextDocumentIdentifierAndVersion()
