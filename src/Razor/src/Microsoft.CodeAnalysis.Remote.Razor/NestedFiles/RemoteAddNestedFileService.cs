@@ -133,7 +133,7 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
 
         // Use the Razor compiler's namespace resolution which handles @namespace directives,
         // _Imports.razor, and SDK-provided root namespace
-        if (!codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var ns))
+        if (!codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var ns) || ns.IsNullOrEmpty())
         {
             Logger.LogWarning($"Could not determine namespace for: {razorFilePath}");
             ns = "Unknown";
