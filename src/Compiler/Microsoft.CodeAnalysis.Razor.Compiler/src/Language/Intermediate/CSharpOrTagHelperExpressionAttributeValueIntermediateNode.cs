@@ -4,7 +4,7 @@
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 /// <summary>
-/// A unresolved intermediate node representing a dynamic/expression attribute value (e.g. the
+/// An unresolved intermediate node representing a dynamic/expression attribute value (e.g. the
 /// <c>@someExpr</c> in <c>Value="@someExpr"</c>) whose final IR form depends on whether
 /// the containing attribute is a bound tag helper property. Produced by initial lowering when
 /// inside an <see cref="ElementOrTagHelperIntermediateNode"/>.

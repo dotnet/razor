@@ -685,9 +685,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
             foreach (var child in descendantNodes)
             {
-                if (child is CSharpImplicitExpressionSyntax || child is CSharpExplicitExpressionSyntax)
+                if (child is CSharpImplicitExpressionSyntax or CSharpExplicitExpressionSyntax)
                 {
                     containsExpression = true;
+                    break;
                 }
             }
 
