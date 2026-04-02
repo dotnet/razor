@@ -93,7 +93,7 @@ internal class RenameService(
         string newName,
         [NotNullWhen(true)] out WorkspaceEdit? workspaceEdit)
     {
-        var oldPath = documentContext.FilePath;
+        var oldPath = documentContext.Snapshot.FilePath;
         var newPath = MakeNewPath(oldPath, newName);
 
         using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
