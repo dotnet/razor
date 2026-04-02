@@ -19,12 +19,6 @@ internal class DocumentContext(Uri uri, IDocumentSnapshot snapshot)
     public Uri Uri { get; } = uri;
     public IDocumentSnapshot Snapshot { get; } = snapshot;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier()
-        => new VSTextDocumentIdentifier()
-        {
-            DocumentUri = new(Uri),
-        };
-
     private bool TryGetCodeDocument([NotNullWhen(true)] out RazorCodeDocument? codeDocument)
     {
         codeDocument = _codeDocument;
