@@ -991,7 +991,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     var totalLength = source.Children[^1] is HtmlAttributeValueIntermediateNode lastValue && lastValue.Source is { } ls
                         ? (ls.AbsoluteIndex + ls.Length) - fs.AbsoluteIndex
                         : mergedText.Length;
-                    spanSource = new SourceSpan(fs.FilePath, fs.AbsoluteIndex, fs.LineIndex, fs.CharacterIndex, totalLength, fs.LineCount, fs.EndCharacterIndex);
+                    spanSource = fs.WithLength(totalLength);
                 }
 
                 mergedContent.Source = spanSource;
