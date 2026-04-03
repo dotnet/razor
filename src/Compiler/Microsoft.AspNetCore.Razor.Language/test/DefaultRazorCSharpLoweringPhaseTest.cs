@@ -19,7 +19,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source));
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() =>
@@ -36,7 +36,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateEmptyCodeDocument();
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source));
 
         var documentNode = new DocumentIntermediateNode()
         {
@@ -59,7 +59,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
     {
         // Arrange
         var codeDocument = ProjectEngine.CreateCodeDocument("<p class=@(");
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(codeDocument.Source));
 
         var documentNode = new DocumentIntermediateNode()
         {

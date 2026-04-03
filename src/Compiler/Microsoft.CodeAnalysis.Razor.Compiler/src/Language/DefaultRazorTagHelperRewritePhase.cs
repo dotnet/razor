@@ -10,7 +10,7 @@ internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
 {
     protected override RazorCodeDocument ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
-        if (!codeDocument.TryGetPreTagHelperSyntaxTree(out var syntaxTree) ||
+        if (!codeDocument.TryGetSyntaxTree(out var syntaxTree) ||
             !codeDocument.TryGetTagHelperContext(out var context) ||
             context.TagHelpers is [])
         {
@@ -25,6 +25,6 @@ internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
 
         return codeDocument
             .WithReferencedTagHelpers(usedHelpers.ToCollection())
-            .WithSyntaxTree(rewrittenSyntaxTree);
+            .WithTagHelperRewrittenSyntaxTree(rewrittenSyntaxTree);
     }
 }

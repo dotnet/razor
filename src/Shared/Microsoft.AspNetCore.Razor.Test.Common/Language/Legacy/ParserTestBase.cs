@@ -228,7 +228,7 @@ public abstract class ParserTestBase : IParserTest
         var diagnostics = context.ErrorSink.GetErrorsAndClear();
 
         var syntaxTree = new RazorSyntaxTree(root, source, diagnostics, parseOptions);
-        codeDocument = codeDocument.WithSyntaxTree(syntaxTree);
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(syntaxTree);
 
         var defaultDirectivePass = new DefaultDirectiveSyntaxTreePass();
         syntaxTree = defaultDirectivePass.Execute(codeDocument, syntaxTree);

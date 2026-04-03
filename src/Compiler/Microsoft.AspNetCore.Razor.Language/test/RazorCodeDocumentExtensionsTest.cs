@@ -289,7 +289,7 @@ public class RazorCodeDocumentExtensionsTest
             }),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         // Act
         codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
@@ -314,7 +314,7 @@ public class RazorCodeDocumentExtensionsTest
             }),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace My.Custom.NS",
@@ -346,7 +346,7 @@ public class RazorCodeDocumentExtensionsTest
             }),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace My.Custom.NS",
@@ -379,7 +379,7 @@ public class RazorCodeDocumentExtensionsTest
             }),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace My.Custom.NS",
@@ -412,7 +412,7 @@ public class RazorCodeDocumentExtensionsTest
                 builder.Directives = [NamespaceDirective.Directive];
             }));
 
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace My.Custom.NS",
@@ -444,7 +444,7 @@ public class RazorCodeDocumentExtensionsTest
                 builder.Directives = [NamespaceDirective.Directive];
             }));
 
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource1 = TestRazorSourceDocument.Create(
             content: "@namespace RazorPagesWebSite.Pages",
@@ -491,7 +491,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive));
 
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importRelativePath = "_ViewImports.cshtml";
         var importSource = TestRazorSourceDocument.Create(
@@ -521,7 +521,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive));
 
-        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace Base",

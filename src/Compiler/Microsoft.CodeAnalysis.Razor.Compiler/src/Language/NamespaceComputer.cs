@@ -189,7 +189,7 @@ internal static class NamespaceComputer
 
         var visitor = new NamespaceDirectiveVisitor();
 
-        if (codeDocument.TryGetSyntaxTree(out var syntaxTree) &&
+        if (codeDocument.TryGetTagHelperRewrittenSyntaxTree(out var syntaxTree) &&
             visitor.TryGetLastNamespaceDirective(syntaxTree, out namespaceName, out namespaceSpan))
         {
             return true;

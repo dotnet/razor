@@ -18,15 +18,18 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 {
     protected override RazorCodeDocument ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
-        var syntaxTree = codeDocument.GetPreTagHelperSyntaxTree() ?? codeDocument.GetSyntaxTree();
+        // Use the canonical syntax tree (saved here during a previous run), falling back to the
+        // working tree from parsing if this is the first time discovery runs for this document.
+        var syntaxTree = codeDocument.GetSyntaxTree() ?? codeDocument.GetTagHelperRewrittenSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);
 
         if (!codeDocument.TryGetTagHelpers(out var tagHelpers))
         {
             if (!Engine.TryGetFeature(out ITagHelperFeature? tagHelperFeature))
             {
-                // No feature, nothing to do.
-                return codeDocument;
+                // No feature, nothing to do -- but still establish the canonical syntax tree
+                // so that downstream phases (e.g. lowering) can rely on GetSyntaxTree().
+                return codeDocument.WithSyntaxTree(syntaxTree);
             }
 
             tagHelpers = tagHelperFeature.GetTagHelpers(cancellationToken);
@@ -56,7 +59,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         var context = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, visitor.GetResults());
         return codeDocument
             .WithTagHelperContext(context)
-            .WithPreTagHelperSyntaxTree(syntaxTree)
+            .WithSyntaxTree(syntaxTree)
             .WithDirectiveTagHelperContributions(directiveContributions);
     }
 

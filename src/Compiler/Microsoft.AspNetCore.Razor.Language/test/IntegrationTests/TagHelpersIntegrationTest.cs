@@ -121,7 +121,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        var addTagHelperDirective = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
         Assert.False(codeDocument.IsDirectiveUsed(addTagHelperDirective));
     }
 
@@ -147,7 +147,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        var addTagHelperDirective = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
         Assert.True(codeDocument.IsDirectiveUsed(addTagHelperDirective));
     }
 
@@ -173,7 +173,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        var addTagHelperDirective = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
         var contributions = codeDocument.GetDirectiveTagHelperContributions();
         var contribution = Assert.Single(contributions);
         Assert.Equal(addTagHelperDirective.SpanStart, contribution.DirectiveSpanStart);

@@ -17,7 +17,7 @@ public class FindTokenIntegrationTest() : IntegrationTestBase(layer: TestProject
 
         var codeDocument = projectEngine.Process(projectItem);
 
-        var root = codeDocument.GetRequiredSyntaxTree().Root;
+        var root = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root;
         var token = root.FindToken(27);
         AssertEx.Equal("Identifier;[<Missing>];", TestSyntaxSerializer.Serialize(token).Trim());
     }
