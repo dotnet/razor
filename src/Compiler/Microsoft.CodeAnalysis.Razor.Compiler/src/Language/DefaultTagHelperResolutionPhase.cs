@@ -42,7 +42,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var tagHelperContext = codeDocument.GetTagHelperContext();
 
         // This phase works with IR nodes only -- no syntax tree access needed.
-        // Parser options are read directly from the code document, where they are always set.
+        // RazorCodeDocument.ParserOptions is a non-nullable property initialized by Create(),
+        // so it is always available here.
         var parserOptions = codeDocument.ParserOptions;
 
         // Choose resolver based on file kind and language version. Component features

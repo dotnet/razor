@@ -24,8 +24,12 @@ public sealed partial class RazorCodeDocument
     private readonly TagHelperCollection? _tagHelpers;
     private readonly TagHelperCollection? _referencedTagHelpers;
     // The canonical syntax tree produced by parsing and syntax-tree passes, before tag helper rewriting.
+    // Established by DefaultRazorTagHelperContextDiscoveryPhase (which reads it from _tagHelperRewrittenSyntaxTree
+    // on the first run). Once set, this field is stable throughout the rest of the pipeline.
     private readonly RazorSyntaxTree? _syntaxTree;
-    // The tag-helper-rewritten syntax tree, set by DefaultRazorTagHelperRewritePhase.
+    // The working syntax tree: initially set by DefaultRazorParsingPhase (same value as _syntaxTree),
+    // updated by DefaultRazorSyntaxTreePhase, and finally replaced with the tag-helper-rewritten tree
+    // by DefaultRazorTagHelperRewritePhase.
     private readonly RazorSyntaxTree? _tagHelperRewrittenSyntaxTree;
     private readonly ImmutableArray<RazorSyntaxTree> _importSyntaxTrees;
     private readonly TagHelperDocumentContext? _tagHelperContext;

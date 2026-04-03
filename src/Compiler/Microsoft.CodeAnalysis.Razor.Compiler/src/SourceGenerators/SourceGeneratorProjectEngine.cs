@@ -58,9 +58,10 @@ internal sealed class SourceGeneratorProjectEngine
 
         codeDocument = ExecutePhases(Phases[.._discoveryPhaseIndex], codeDocument, cancellationToken);
 
-        // Record the canonical syntax tree, before the tag helper re-writing occurs.
-        // This is needed so that subsequent calls to ProcessTagHelpers that skip the
-        // discovery phase still have the canonical tree available.
+        // At this point in the pipeline (after parsing and syntax-tree passes, but before discovery),
+        // _tagHelperRewrittenSyntaxTree holds the parsed tree. Save it as the canonical tree so that
+        // subsequent calls to ProcessTagHelpers that skip the discovery phase can still read it via
+        // GetSyntaxTree(). Discovery would normally establish this, but it may be skipped for idempotency.
         codeDocument = codeDocument.WithSyntaxTree(codeDocument.GetRequiredTagHelperRewrittenSyntaxTree());
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
