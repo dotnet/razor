@@ -394,7 +394,9 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                     // Adjacent nodes are sequential, so next always ends after current.
                     var end = ns.AbsoluteIndex + ns.Length;
                     var lineCount = (ns.LineIndex + ns.LineCount) - cs.LineIndex;
-                    current.Source = cs.WithLength(end - cs.AbsoluteIndex).WithLineCount(lineCount).WithEndCharacterIndex(ns.EndCharacterIndex);
+                    current.Source = cs.WithLength(end - cs.AbsoluteIndex)
+                        .WithLineCount(lineCount)
+                        .WithEndCharacterIndex(ns.EndCharacterIndex);
                 }
                 else if (current.Source == null)
                 {
@@ -544,7 +546,9 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 var lastSrc = htmlContent.Children[^1].Source;
                 if (firstSrc is { } fs && lastSrc is { } ls)
                 {
-                    htmlContent.Source = fs.WithLength((ls.AbsoluteIndex + ls.Length) - fs.AbsoluteIndex).WithLineCount(ls.LineIndex - fs.LineIndex).WithEndCharacterIndex(ls.EndCharacterIndex);
+                    htmlContent.Source = fs.WithLength((ls.AbsoluteIndex + ls.Length) - fs.AbsoluteIndex)
+                        .WithLineCount(ls.LineIndex - fs.LineIndex)
+                        .WithEndCharacterIndex(ls.EndCharacterIndex);
                 }
             }
 
@@ -777,7 +781,10 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var first = a.AbsoluteIndex <= b.AbsoluteIndex ? a : b;
         var last = a.AbsoluteIndex + a.Length >= b.AbsoluteIndex + b.Length ? a : b;
         var lineCount = (last.LineIndex + last.LineCount) - first.LineIndex;
-        return first.WithAbsoluteIndex(start).WithLength(end - start).WithLineCount(lineCount).WithEndCharacterIndex(last.EndCharacterIndex);
+        return first.WithAbsoluteIndex(start)
+            .WithLength(end - start)
+            .WithLineCount(lineCount)
+            .WithEndCharacterIndex(last.EndCharacterIndex);
     }
 
     /// <summary>
@@ -870,7 +877,10 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         EmitExplicitExpressionTokens(expr, expressionSource.AbsoluteIndex, expressionSource.Length, sourceDocument);
 
         var exprLoc = sourceDocument.Text.Lines.GetLinePosition(expressionSource.AbsoluteIndex);
-        expr.Source = expressionSource.WithLineIndex(exprLoc.Line).WithCharacterIndex(exprLoc.Character).WithLineCount(0).WithEndCharacterIndex(exprLoc.Character + expressionSource.Length);
+        expr.Source = expressionSource.WithLineIndex(exprLoc.Line)
+            .WithCharacterIndex(exprLoc.Character)
+            .WithLineCount(0)
+            .WithEndCharacterIndex(exprLoc.Character + expressionSource.Length);
         target.Children.Add(expr);
     }
 
@@ -952,7 +962,9 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             return null;
         }
 
-        return s.WithAbsoluteIndex(s.AbsoluteIndex - prefixLength).WithCharacterIndex(s.CharacterIndex - prefixLength).WithLength(s.Length + prefixLength);
+        return s.WithAbsoluteIndex(s.AbsoluteIndex - prefixLength)
+            .WithCharacterIndex(s.CharacterIndex - prefixLength)
+            .WithLength(s.Length + prefixLength);
     }
 
     /// <summary>
@@ -1045,7 +1057,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var diagSource = elementNode.Source;
         if (elementNode.EndTagSpan is SourceSpan ets)
         {
-            diagSource = ets.WithAbsoluteIndex(ets.AbsoluteIndex + 2).WithCharacterIndex(ets.CharacterIndex + 2).WithLength(tagName.Length).WithLineCount(0).WithEndCharacterIndex(ets.CharacterIndex + 2 + tagName.Length);
+            diagSource = ets.WithAbsoluteIndex(ets.AbsoluteIndex + 2)
+                .WithCharacterIndex(ets.CharacterIndex + 2)
+                .WithLength(tagName.Length)
+                .WithLineCount(0)
+                .WithEndCharacterIndex(ets.CharacterIndex + 2 + tagName.Length);
         }
 
         if (diagSource is SourceSpan ds)

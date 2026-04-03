@@ -195,7 +195,9 @@ internal partial class DefaultTagHelperResolutionPhase
             var directiveNameSpan = nameSpan;
             if (directiveNameSpan is SourceSpan ns && attributeName.StartsWith('@'))
             {
-                directiveNameSpan = ns.WithAbsoluteIndex(ns.AbsoluteIndex + 1).WithCharacterIndex(ns.CharacterIndex + 1).WithLength(ns.Length - 1);
+                directiveNameSpan = ns.WithAbsoluteIndex(ns.AbsoluteIndex + 1)
+                    .WithCharacterIndex(ns.CharacterIndex + 1)
+                    .WithLength(ns.Length - 1);
             }
 
             // Strip parameter suffix from OriginalAttributeSpan for parameter matches
@@ -203,7 +205,8 @@ internal partial class DefaultTagHelperResolutionPhase
             if (match.IsParameterMatch && directiveAttributeName.HasParameter && parameterOriginalSpan is SourceSpan ps)
             {
                 var nameWithoutParamLen = directiveAttributeName.TextWithoutParameter.Length;
-                parameterOriginalSpan = ps.WithLength(nameWithoutParamLen).WithEndCharacterIndex(ps.CharacterIndex + nameWithoutParamLen);
+                parameterOriginalSpan = ps.WithLength(nameWithoutParamLen)
+                    .WithEndCharacterIndex(ps.CharacterIndex + nameWithoutParamLen);
             }
 
             IntermediateNode directiveNode = match.IsParameterMatch && directiveAttributeName.HasParameter
@@ -581,7 +584,9 @@ internal partial class DefaultTagHelperResolutionPhase
             if (firstSpan is { } first && lastSpan is { } last)
             {
                 var endAbsolute = last.AbsoluteIndex + last.Length;
-                mergedSpan = first.WithLength(endAbsolute - first.AbsoluteIndex).WithLineCount(last.LineIndex - first.LineIndex + 1).WithEndCharacterIndex(last.EndCharacterIndex);
+                mergedSpan = first.WithLength(endAbsolute - first.AbsoluteIndex)
+                    .WithLineCount(last.LineIndex - first.LineIndex + 1)
+                    .WithEndCharacterIndex(last.EndCharacterIndex);
             }
 
             var content = sb.ToString();
@@ -870,7 +875,9 @@ internal partial class DefaultTagHelperResolutionPhase
                         var directiveNameSpan = attributeNameSpan;
                         if (directiveNameSpan is SourceSpan nameSpan && attributeName.StartsWith('@'))
                         {
-                            directiveNameSpan = nameSpan.WithAbsoluteIndex(nameSpan.AbsoluteIndex + 1).WithCharacterIndex(nameSpan.CharacterIndex + 1).WithLength(nameSpan.Length - 1);
+                            directiveNameSpan = nameSpan.WithAbsoluteIndex(nameSpan.AbsoluteIndex + 1)
+                                .WithCharacterIndex(nameSpan.CharacterIndex + 1)
+                                .WithLength(nameSpan.Length - 1);
                         }
 
                         IntermediateNode directiveNode = match.IsParameterMatch && directiveAttributeName.HasParameter
@@ -1038,7 +1045,11 @@ internal partial class DefaultTagHelperResolutionPhase
 
             var nameCharIndex = attrSource.CharacterIndex + nameIndex;
 
-            return attrSource.WithAbsoluteIndex(attrSource.AbsoluteIndex + nameIndex).WithCharacterIndex(nameCharIndex).WithLength(nameLength).WithLineCount(0).WithEndCharacterIndex(nameCharIndex + nameLength);
+            return attrSource.WithAbsoluteIndex(attrSource.AbsoluteIndex + nameIndex)
+                .WithCharacterIndex(nameCharIndex)
+                .WithLength(nameLength)
+                .WithLineCount(0)
+                .WithEndCharacterIndex(nameCharIndex + nameLength);
         }
 
         private static SourceSpan? ComputeAttributeValueSpan(HtmlAttributeIntermediateNode htmlAttr)
@@ -1087,7 +1098,11 @@ internal partial class DefaultTagHelperResolutionPhase
 
             var valueCharIndex = attrSource.CharacterIndex + valueStart;
 
-            return attrSource.WithAbsoluteIndex(attrSource.AbsoluteIndex + valueStart).WithCharacterIndex(valueCharIndex).WithLength(valueLength).WithLineCount(0).WithEndCharacterIndex(valueCharIndex + valueLength);
+            return attrSource.WithAbsoluteIndex(attrSource.AbsoluteIndex + valueStart)
+                .WithCharacterIndex(valueCharIndex)
+                .WithLength(valueLength)
+                .WithLineCount(0)
+                .WithEndCharacterIndex(valueCharIndex + valueLength);
         }
 
         /// <summary>
