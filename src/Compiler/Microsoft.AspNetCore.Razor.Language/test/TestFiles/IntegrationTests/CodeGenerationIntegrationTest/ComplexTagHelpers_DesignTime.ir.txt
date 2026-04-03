@@ -114,7 +114,7 @@
                                         CSharpExpression - (495:16,46 [8] ComplexTagHelpers.cshtml)
                                             LazyIntermediateToken - (495:16,46 [8] ComplexTagHelpers.cshtml) - CSharp - checkbox
                                     DefaultTagHelperProperty - (512:16,63 [4] ComplexTagHelpers.cshtml) - checked - bool TestNamespace.InputTagHelper2.Checked - HtmlAttributeValueStyle.DoubleQuotes
-                                        LazyIntermediateToken - (512:16,63 [4] ComplexTagHelpers.cshtml) - CSharp - true
+                                        IntermediateToken - (512:16,63 [4] ComplexTagHelpers.cshtml) - CSharp - true
                                     DefaultTagHelperExecute - 
                             DefaultTagHelperCreate -  - TestNamespace.PTagHelper
                             DefaultTagHelperExecute - 
@@ -201,7 +201,7 @@
                             LazyIntermediateToken - (741:21,20 [11] ComplexTagHelpers.cshtml) - Html - first value
                     DefaultTagHelperProperty - (759:21,38 [31] ComplexTagHelpers.cshtml) - age - int TestNamespace.PTagHelper.Age - HtmlAttributeValueStyle.DoubleQuotes
                         CSharpExpression - (760:21,39 [30] ComplexTagHelpers.cshtml)
-                            LazyIntermediateToken - (760:21,39 [30] ComplexTagHelpers.cshtml) - CSharp - DateTimeOffset.Now.Year\-1970
+                            IntermediateToken - (760:21,39 [30] ComplexTagHelpers.cshtml) - CSharp - DateTimeOffset.Now.Year\-1970
                     DefaultTagHelperHtmlAttribute -  - unbound - HtmlAttributeValueStyle.DoubleQuotes
                         HtmlContent - (801:21,80 [12] ComplexTagHelpers.cshtml)
                             LazyIntermediateToken - (801:21,80 [12] ComplexTagHelpers.cshtml) - Html - second value
@@ -232,7 +232,7 @@
                             LazyIntermediateToken - (1061:26,97 [10] ComplexTagHelpers.cshtml) - Html - \n        
                     DefaultTagHelperCreate -  - TestNamespace.PTagHelper
                     DefaultTagHelperProperty - (928:25,16 [32] ComplexTagHelpers.cshtml) - age - int TestNamespace.PTagHelper.Age - HtmlAttributeValueStyle.DoubleQuotes
-                        LazyIntermediateToken - (928:25,16 [32] ComplexTagHelpers.cshtml) - CSharp - -1970 + @DateTimeOffset.Now.Year
+                        IntermediateToken - (928:25,16 [32] ComplexTagHelpers.cshtml) - CSharp - -1970 + @DateTimeOffset.Now.Year
                     DefaultTagHelperExecute - 
                 HtmlContent - (1075:27,12 [10] ComplexTagHelpers.cshtml)
                     LazyIntermediateToken - (1075:27,12 [10] ComplexTagHelpers.cshtml) - Html - \n        
@@ -245,13 +245,13 @@
                             DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
                             DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
                             DefaultTagHelperProperty - (1155:29,28 [30] ComplexTagHelpers.cshtml) - checked - bool TestNamespace.InputTagHelper2.Checked - HtmlAttributeValueStyle.DoubleQuotes
-                                LazyIntermediateToken - (1155:29,28 [30] ComplexTagHelpers.cshtml) - CSharp - DateTimeOffset.Now.Year > 2014
+                                IntermediateToken - (1155:29,28 [30] ComplexTagHelpers.cshtml) - CSharp - DateTimeOffset.Now.Year > 2014
                             DefaultTagHelperExecute - 
                         HtmlContent - (1187:29,60 [10] ComplexTagHelpers.cshtml)
                             LazyIntermediateToken - (1187:29,60 [10] ComplexTagHelpers.cshtml) - Html - \n        
                     DefaultTagHelperCreate -  - TestNamespace.PTagHelper
                     DefaultTagHelperProperty - (1093:28,16 [30] ComplexTagHelpers.cshtml) - age - int TestNamespace.PTagHelper.Age - HtmlAttributeValueStyle.DoubleQuotes
-                        LazyIntermediateToken - (1093:28,16 [30] ComplexTagHelpers.cshtml) - CSharp - DateTimeOffset.Now.Year\-1970
+                        IntermediateToken - (1093:28,16 [30] ComplexTagHelpers.cshtml) - CSharp - DateTimeOffset.Now.Year\-1970
                     DefaultTagHelperExecute - 
                 HtmlContent - (1201:30,12 [10] ComplexTagHelpers.cshtml)
                     LazyIntermediateToken - (1201:30,12 [10] ComplexTagHelpers.cshtml) - Html - \n        
@@ -264,7 +264,7 @@
                             DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
                             DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
                             DefaultTagHelperProperty - (1283:32,28 [43] ComplexTagHelpers.cshtml) - checked - bool TestNamespace.InputTagHelper2.Checked - HtmlAttributeValueStyle.DoubleQuotes
-                                LazyIntermediateToken - (1283:32,28 [43] ComplexTagHelpers.cshtml) - CSharp -    @(  DateTimeOffset.Now.Year  ) > 2014   
+                                IntermediateToken - (1283:32,28 [43] ComplexTagHelpers.cshtml) - CSharp -    @(  DateTimeOffset.Now.Year  ) > 2014   
                             DefaultTagHelperExecute - 
                         HtmlContent - (1330:32,75 [10] ComplexTagHelpers.cshtml)
                             LazyIntermediateToken - (1330:32,75 [10] ComplexTagHelpers.cshtml) - Html - \n        
@@ -288,11 +288,11 @@
                                     DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
                                     DefaultTagHelperProperty - (1409:34,63 [8] ComplexTagHelpers.cshtml) - checked - bool TestNamespace.InputTagHelper2.Checked - HtmlAttributeValueStyle.DoubleQuotes
                                         CSharpExpression - (1410:34,64 [7] ComplexTagHelpers.cshtml)
-                                            LazyIntermediateToken - (1410:34,64 [7] ComplexTagHelpers.cshtml) - CSharp - checked
+                                            IntermediateToken - (1410:34,64 [7] ComplexTagHelpers.cshtml) - CSharp - checked
                                     DefaultTagHelperExecute - 
                             DefaultTagHelperCreate -  - TestNamespace.PTagHelper
                             DefaultTagHelperProperty - (1375:34,29 [3] ComplexTagHelpers.cshtml) - age - int TestNamespace.PTagHelper.Age - HtmlAttributeValueStyle.DoubleQuotes
-                                LazyIntermediateToken - (1375:34,29 [3] ComplexTagHelpers.cshtml) - CSharp - 123
+                                IntermediateToken - (1375:34,29 [3] ComplexTagHelpers.cshtml) - CSharp - 123
                             DefaultTagHelperHtmlAttribute -  - class - HtmlAttributeValueStyle.DoubleQuotes
                                 HtmlContent - (1387:34,41 [5] ComplexTagHelpers.cshtml)
                                     LazyIntermediateToken - (1387:34,41 [5] ComplexTagHelpers.cshtml) - Html - hello
