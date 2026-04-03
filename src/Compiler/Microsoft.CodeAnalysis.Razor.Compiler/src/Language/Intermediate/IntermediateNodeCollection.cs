@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -85,6 +86,14 @@ public sealed class IntermediateNodeCollection : IList<IntermediateNode>
         for (var i = 0; i < count; i++)
         {
             _inner.Add(items[i]);
+        }
+    }
+
+    internal void AddRange(in PooledArrayBuilder<IntermediateNode> items)
+    {
+        foreach (var item in items)
+        {
+            _inner.Add(item);
         }
     }
 
