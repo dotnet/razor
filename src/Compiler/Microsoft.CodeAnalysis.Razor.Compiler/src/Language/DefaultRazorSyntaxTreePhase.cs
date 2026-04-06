@@ -17,7 +17,7 @@ internal class DefaultRazorSyntaxTreePhase : RazorEnginePhaseBase, IRazorSyntaxT
 
     protected override RazorCodeDocument ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
-        var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree();
+        var syntaxTree = codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);
 
         foreach (var pass in Passes)
@@ -27,6 +27,6 @@ internal class DefaultRazorSyntaxTreePhase : RazorEnginePhaseBase, IRazorSyntaxT
             syntaxTree = pass.Execute(codeDocument, syntaxTree, cancellationToken);
         }
 
-        return codeDocument.WithTagHelperRewrittenSyntaxTree(syntaxTree);
+        return codeDocument.WithSyntaxTree(syntaxTree);
     }
 }

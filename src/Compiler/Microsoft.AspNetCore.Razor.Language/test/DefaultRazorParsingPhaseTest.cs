@@ -25,7 +25,7 @@ public class DefaultRazorParsingPhaseTest
         codeDocument = phase.Execute(codeDocument);
 
         // Assert
-        Assert.NotNull(codeDocument.GetTagHelperRewrittenSyntaxTree());
+        Assert.NotNull(codeDocument.GetSyntaxTree());
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class DefaultRazorParsingPhaseTest
         codeDocument = phase.Execute(codeDocument);
 
         // Assert
-        Assert.True(codeDocument.TryGetTagHelperRewrittenSyntaxTree(out var syntaxTree));
+        Assert.True(codeDocument.TryGetSyntaxTree(out var syntaxTree));
         var directive = Assert.Single(syntaxTree.Options.Directives);
         Assert.Equal("test", directive.Directive);
     }

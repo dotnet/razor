@@ -90,7 +90,7 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.Process(source, RazorFileKind.Legacy, [], tagHelpers: null);
 
         // Assert
-        var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree();
+        var syntaxTree = codeDocument.GetSyntaxTree();
         Assert.NotNull(syntaxTree);
         
         // The section directive should be recognized without errors
@@ -115,7 +115,7 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
         var codeDocument = ProjectEngine.Process(source, RazorFileKind.Component, [], tagHelpers: null);
 
         // Assert
-        var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree();
+        var syntaxTree = codeDocument.GetSyntaxTree();
         Assert.NotNull(syntaxTree);
         
         // The section directive should NOT be recognized in component files.

@@ -58,11 +58,8 @@ internal sealed class SourceGeneratorProjectEngine
 
         codeDocument = ExecutePhases(Phases[.._discoveryPhaseIndex], codeDocument, cancellationToken);
 
-        // At this point in the pipeline (after parsing and syntax-tree passes, but before discovery),
-        // _tagHelperRewrittenSyntaxTree holds the parsed tree. Save it as the canonical tree so that
-        // subsequent calls to ProcessTagHelpers that skip the discovery phase can still read it via
-        // GetSyntaxTree(). Discovery would normally establish this, but it may be skipped for idempotency.
-        codeDocument = codeDocument.WithSyntaxTree(codeDocument.GetRequiredTagHelperRewrittenSyntaxTree());
+        // By this point, DefaultRazorParsingPhase has set the canonical syntax tree (_syntaxTree)
+        // so that discovery and subsequent phases can read it via GetSyntaxTree().
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 

@@ -62,7 +62,7 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
         }
 
         return codeDocument
-            .WithTagHelperRewrittenSyntaxTree(syntaxTree)
+            .WithSyntaxTree(syntaxTree)
             .WithImportSyntaxTrees(importSyntaxTrees.ToImmutableAndClear());
 
         static bool TryGetCachedImportTree(RazorSourceDocument import, RazorParserOptions options, [NotNullWhen(true)] out RazorSyntaxTree? tree)
