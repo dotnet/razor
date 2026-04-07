@@ -108,6 +108,7 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
             return null;
         }
 
-        return testFile.ReadAllText();
+        // Formatting logs capture absolute spans against the original file contents, so we must not normalize line endings.
+        return testFile.ReadAllText(normalizeLineEndings: false);
     }
 }
