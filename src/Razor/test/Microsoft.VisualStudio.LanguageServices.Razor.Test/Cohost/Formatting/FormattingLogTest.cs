@@ -81,7 +81,7 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
         }
 
         TextSpan span = default;
-        if (GetResource(testName, "Range.json") is { } rangeFile)
+        if (GetResource(testName, "Range.json") is { } rangeFile && rangeFile != "null")
         {
             var linePositionSpan = (LinePositionSpan)JsonSerializer.Deserialize(rangeFile, typeof(LinePositionSpan), JsonHelpers.JsonSerializerOptions).AssumeNotNull();
             span = sourceText.GetTextSpan(linePositionSpan);
@@ -90,7 +90,7 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         formattingService.GetTestAccessor().SetFormattingLoggerFactory(new TestFormattingLoggerFactory(TestOutputHelper));
 
-        return await GetFormattingEditsAsync(document, htmlEdits, span: default, options.CodeBlockBraceOnNextLine, options.AttributeIndentStyle, options.InsertSpaces, options.TabSize, options.CSharpSyntaxFormattingOptions.AssumeNotNull());
+        return await GetFormattingEditsAsync(document, htmlEdits, span, options.CodeBlockBraceOnNextLine, options.AttributeIndentStyle, options.InsertSpaces, options.TabSize, options.CSharpSyntaxFormattingOptions.AssumeNotNull());
     }
 
     private string? GetResource(string testName, string name)
