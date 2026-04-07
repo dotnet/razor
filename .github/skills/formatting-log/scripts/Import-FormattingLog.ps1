@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+Imports a locally downloaded Razor formatting log zip into FormattingLogTest.
+
+.DESCRIPTION
+Developer Community and Azure DevOps feedback attachments must be downloaded by the user first.
+Pass the local archive path with -ZipPath.
+#>
+
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
@@ -15,6 +24,11 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+if ($ZipPath -match '^[A-Za-z][A-Za-z0-9+\-.]*://')
+{
+    throw "ZipPath must be a local file path. Download the formatting log archive first, then pass the local zip path."
+}
 
 function Get-RepositoryRoot {
     return (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
@@ -75,7 +89,7 @@ function Get-ContentRoot {
         [string]$ExtractPath
     )
 
-    $items = Get-ChildItem -LiteralPath $ExtractPath -Force
+    $items = @(Get-ChildItem -LiteralPath $ExtractPath -Force)
     if ($items.Count -eq 1 -and $items[0].PSIsContainer)
     {
         return $items[0].FullName
