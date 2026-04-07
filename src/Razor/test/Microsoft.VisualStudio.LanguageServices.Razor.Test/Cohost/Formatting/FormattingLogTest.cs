@@ -58,6 +58,11 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
     public async Task MultiLineLambda()
         => Assert.NotNull(await GetFormattingEditsAsync());
 
+    [Fact]
+    [WorkItem("https://developercommunity.visualstudio.com/t/Razor-Formatting-Feature---Internal-Erro/11068847")]
+    public async Task GameTracAdmin()
+        => Assert.NotNull(await GetFormattingEditsAsync());
+
     private async Task<TextEdit[]?> GetFormattingEditsAsync([CallerMemberName] string? testName = null)
     {
         var contents = GetResource(testName.AssumeNotNull(), "InitialDocument.txt").AssumeNotNull();
