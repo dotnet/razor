@@ -600,10 +600,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     // Compute value source span with correct line/char positions.
                     var valueCharIndex = attrSource.CharacterIndex + prefix.Length + (attrSource.AbsoluteIndex + prefix.Length < valueStart ? 1 : 0);
                     var valueEndCharIndex = attrSource.EndCharacterIndex - suffix.Length;
-                    var valueSource = attrSource.WithAbsoluteIndex(valueStart)
-                        .WithCharacterIndex(valueCharIndex)
-                        .WithLength(valueLength)
-                        .WithEndCharacterIndex(valueEndCharIndex);
+                    var valueSource = new SourceSpan(attrSource.FilePath, valueStart, attrSource.LineIndex, valueCharIndex, valueLength, attrSource.LineCount, valueEndCharIndex);
                     targetNode.Children.Add(new CSharpIntermediateToken(sourceText, valueSource));
                 }
             }
@@ -679,18 +676,10 @@ internal partial class DefaultTagHelperResolutionPhase
                         var transAbsIdx = atSrc.AbsoluteIndex + 2;
                         var transCharIdx = atSrc.CharacterIndex + 2;
                         // Empty token (MarkupEphemeralTextLiteral equivalent)
-                        var emptySource = atSrc.WithAbsoluteIndex(transAbsIdx)
-                            .WithCharacterIndex(transCharIdx)
-                            .WithLength(0)
-                            .WithLineCount(0)
-                            .WithEndCharacterIndex(transCharIdx);
+                        var emptySource = new SourceSpan(atSrc.FilePath, transAbsIdx, atSrc.LineIndex, transCharIdx, 0, 0, transCharIdx);
                         targetNode.Children.Add(new CSharpIntermediateToken(string.Empty, emptySource));
                         // @ transition token
-                        var transSource = atSrc.WithAbsoluteIndex(transAbsIdx)
-                            .WithCharacterIndex(transCharIdx)
-                            .WithLength(1)
-                            .WithLineCount(0)
-                            .WithEndCharacterIndex(transCharIdx + 1);
+                        var transSource = new SourceSpan(atSrc.FilePath, transAbsIdx, atSrc.LineIndex, transCharIdx, 1, 0, transCharIdx + 1);
                         targetNode.Children.Add(new CSharpIntermediateToken("@", transSource));
                     }
 
@@ -702,11 +691,7 @@ internal partial class DefaultTagHelperResolutionPhase
                         {
                             var openAbsIndex = innerSource.AbsoluteIndex - 1;
                             var openCharIndex = innerSource.CharacterIndex - 1;
-                            var openSource = innerSource.WithAbsoluteIndex(openAbsIndex)
-                                .WithCharacterIndex(openCharIndex)
-                                .WithLength(1)
-                                .WithLineCount(0)
-                                .WithEndCharacterIndex(openCharIndex + 1);
+                            var openSource = new SourceSpan(innerSource.FilePath, openAbsIndex, innerSource.LineIndex, openCharIndex, 1, 0, openCharIndex + 1);
                             targetNode.Children.Add(new CSharpIntermediateToken("(", openSource));
 
                             foreach (var innerChild in csharpExprValue.Children)
@@ -719,11 +704,7 @@ internal partial class DefaultTagHelperResolutionPhase
                             {
                                 var closeAbsIndex = lastSource.AbsoluteIndex + lastSource.Length;
                                 var closeCharIndex = lastSource.EndCharacterIndex;
-                                var closeSource = lastSource.WithAbsoluteIndex(closeAbsIndex)
-                                    .WithCharacterIndex(closeCharIndex)
-                                    .WithLength(1)
-                                    .WithLineCount(0)
-                                    .WithEndCharacterIndex(closeCharIndex + 1);
+                                var closeSource = new SourceSpan(lastSource.FilePath, closeAbsIndex, lastSource.LineIndex, closeCharIndex, 1, 0, closeCharIndex + 1);
                                 targetNode.Children.Add(new CSharpIntermediateToken(")", closeSource));
                             }
                         }
@@ -759,11 +740,7 @@ internal partial class DefaultTagHelperResolutionPhase
                         // to match baseline's separate token structure.
                         var openParenAbsIndex = valueStart + 1; // after @
                         var openParenCharIndex = attrSource.CharacterIndex + prefix.Length + 1;
-                        var openParenSource = attrSource.WithAbsoluteIndex(openParenAbsIndex)
-                            .WithCharacterIndex(openParenCharIndex)
-                            .WithLength(1)
-                            .WithLineCount(0)
-                            .WithEndCharacterIndex(openParenCharIndex + 1);
+                        var openParenSource = new SourceSpan(attrSource.FilePath, openParenAbsIndex, attrSource.LineIndex, openParenCharIndex, 1, 0, openParenCharIndex + 1);
                         targetNode.Children.Add(new CSharpIntermediateToken("(", openParenSource));
 
                         // Inner expression content from the CSharpExpressionAttributeValueIntermediateNode
@@ -787,11 +764,7 @@ internal partial class DefaultTagHelperResolutionPhase
 
                         var closeParenAbsIndex = valueStart + valueLength - 1; // last char
                         var closeParenCharIndex = attrSource.CharacterIndex + prefix.Length + valueLength - 1;
-                        var closeParenSource = attrSource.WithAbsoluteIndex(closeParenAbsIndex)
-                            .WithCharacterIndex(closeParenCharIndex)
-                            .WithLength(1)
-                            .WithLineCount(0)
-                            .WithEndCharacterIndex(closeParenCharIndex + 1);
+                        var closeParenSource = new SourceSpan(attrSource.FilePath, closeParenAbsIndex, attrSource.LineIndex, closeParenCharIndex, 1, 0, closeParenCharIndex + 1);
                         targetNode.Children.Add(new CSharpIntermediateToken(")", closeParenSource));
                     }
                     else
@@ -896,11 +869,7 @@ internal partial class DefaultTagHelperResolutionPhase
             var valueAbsIndex = attrSource.AbsoluteIndex + prefix.Length;
             var valueCharIndex = attrSource.CharacterIndex + prefix.Length;
 
-            return attrSource.WithAbsoluteIndex(valueAbsIndex)
-                .WithCharacterIndex(valueCharIndex)
-                .WithLength(0)
-                .WithLineCount(0)
-                .WithEndCharacterIndex(valueCharIndex);
+            return new SourceSpan(attrSource.FilePath, valueAbsIndex, attrSource.LineIndex, valueCharIndex, 0, 0, valueCharIndex);
         }
 
         /// <summary>
@@ -1166,9 +1135,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     current.Children.AddRange(next.Children);
                     if (current.Source is SourceSpan currentSource && next.Source is SourceSpan nextSource)
                     {
-                        current.Source = currentSource.WithLength((nextSource.AbsoluteIndex + nextSource.Length) - currentSource.AbsoluteIndex)
-                            .WithLineCount(nextSource.LineCount)
-                            .WithEndCharacterIndex(nextSource.EndCharacterIndex);
+                        current.Source = new SourceSpan(currentSource.FilePath, currentSource.AbsoluteIndex, currentSource.LineIndex, currentSource.CharacterIndex, (nextSource.AbsoluteIndex + nextSource.Length) - currentSource.AbsoluteIndex, nextSource.LineCount, nextSource.EndCharacterIndex);
                     }
                     else if (current.Source == null)
                     {
@@ -1353,23 +1320,13 @@ internal partial class DefaultTagHelperResolutionPhase
 
                     var openLoc = sourceDocument.Text.Lines.GetLinePosition(contentStart);
                     var closeLoc = sourceDocument.Text.Lines.GetLinePosition(contentStart + contentLength - 1);
-                    expr.Source = exprSource.WithAbsoluteIndex(contentStart)
-                        .WithLineIndex(openLoc.Line)
-                        .WithCharacterIndex(openLoc.Character)
-                        .WithLength(contentLength)
-                        .WithLineCount(0)
-                        .WithEndCharacterIndex(closeLoc.Character + 1);
+                    expr.Source = new SourceSpan(exprSource.FilePath, contentStart, openLoc.Line, openLoc.Character, contentLength, 0, closeLoc.Character + 1);
                 }
                 else
                 {
                     // Implicit expression: single token.
                     var contentLocation = sourceDocument.Text.Lines.GetLinePosition(contentStart);
-                    var contentSpan = exprSource.WithAbsoluteIndex(contentStart)
-                        .WithLineIndex(contentLocation.Line)
-                        .WithCharacterIndex(contentLocation.Character)
-                        .WithLength(contentLength)
-                        .WithLineCount(0)
-                        .WithEndCharacterIndex(contentLocation.Character + contentLength);
+                    var contentSpan = new SourceSpan(exprSource.FilePath, contentStart, contentLocation.Line, contentLocation.Character, contentLength, 0, contentLocation.Character + contentLength);
                     expr.Children.Add(new CSharpIntermediateToken(
                         LazyContent.Create(text, static s => s), contentSpan));
                     expr.Source = contentSpan;
@@ -1399,9 +1356,7 @@ internal partial class DefaultTagHelperResolutionPhase
 
                 var mergedContent = sb.ToString();
                 var tokenSpan = firstSpan is { } f && lastSpan is { } l
-                    ? f.WithLength((l.AbsoluteIndex + l.Length) - f.AbsoluteIndex)
-                        .WithLineCount(l.LineIndex - f.LineIndex)
-                        .WithEndCharacterIndex(l.EndCharacterIndex)
+                    ? new SourceSpan(f.FilePath, f.AbsoluteIndex, f.LineIndex, f.CharacterIndex, (l.AbsoluteIndex + l.Length) - f.AbsoluteIndex, l.LineIndex - f.LineIndex, l.EndCharacterIndex)
                     : firstSpan;
                 expr.Children.Add(new CSharpIntermediateToken(
                     LazyContent.Create(mergedContent, static s => s), tokenSpan));
@@ -1475,11 +1430,7 @@ internal partial class DefaultTagHelperResolutionPhase
                         if (i + 1 < htmlAttr.Children.Count && htmlAttr.Children[i + 1].Source is { } nextSrc)
                         {
                             var loc = sourceDocument.Text.Lines.GetLinePosition(nextSrc.AbsoluteIndex);
-                            emptySpan = nextSrc.WithLineIndex(loc.Line)
-                                .WithCharacterIndex(loc.Character)
-                                .WithLength(0)
-                                .WithLineCount(0)
-                                .WithEndCharacterIndex(loc.Character);
+                            emptySpan = new SourceSpan(nextSrc.FilePath, nextSrc.AbsoluteIndex, loc.Line, loc.Character, 0, 0, loc.Character);
                         }
 
                         target.Children.Add(CreateEmptyCSharpToken(emptySpan));
@@ -1627,9 +1578,7 @@ internal partial class DefaultTagHelperResolutionPhase
 
             if (pendingFirstSpan is { } f && pendingLastSpan is { } l)
             {
-                htmlContent.Source = f.WithLength((l.AbsoluteIndex + l.Length) - f.AbsoluteIndex)
-                    .WithLineCount(l.LineIndex - f.LineIndex + 1)
-                    .WithEndCharacterIndex(l.EndCharacterIndex);
+                htmlContent.Source = new SourceSpan(f.FilePath, f.AbsoluteIndex, f.LineIndex, f.CharacterIndex, (l.AbsoluteIndex + l.Length) - f.AbsoluteIndex, l.LineIndex - f.LineIndex + 1, l.EndCharacterIndex);
             }
 
             target.Children.Add(htmlContent);
@@ -1660,9 +1609,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     var diagSource = exprChild.Source ?? elementNode.Source ?? SourceSpan.Undefined;
                     if (diagSource.AbsoluteIndex > 0)
                     {
-                        diagSource = diagSource.WithAbsoluteIndex(diagSource.AbsoluteIndex - 1)
-                            .WithCharacterIndex(diagSource.CharacterIndex - 1)
-                            .WithLength(diagSource.Length + 1);
+                        diagSource = new SourceSpan(diagSource.FilePath, diagSource.AbsoluteIndex - 1, diagSource.LineIndex, diagSource.CharacterIndex - 1, diagSource.Length + 1, diagSource.LineCount, diagSource.EndCharacterIndex);
                     }
 
                     tagHelperNode.AddDiagnostic(
