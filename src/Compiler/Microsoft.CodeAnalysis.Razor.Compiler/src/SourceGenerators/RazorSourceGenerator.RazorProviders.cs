@@ -17,7 +17,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     public partial class RazorSourceGenerator
     {
-        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions(((AnalyzerConfigOptionsProvider, ParseOptions), ImmutableArray<MetadataReference>) pair, CancellationToken ct)
+        private (RazorSourceGenerationOptions?, ImmutableArray<Diagnostic>) ComputeRazorSourceGeneratorOptions(((AnalyzerConfigOptionsProvider, ParseOptions), ImmutableArray<MetadataReference>) pair, CancellationToken ct)
         {
             var ((options, parseOptions), references) = pair;
             var globalOptions = options.GlobalOptions;
@@ -29,16 +29,34 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             globalOptions.TryGetValue("build_property.SupportLocalizedComponentNames", out var supportLocalizedComponentNames);
             globalOptions.TryGetValue("build_property.GenerateRazorMetadataSourceChecksumAttributes", out var generateMetadataSourceChecksumAttributes);
 
-            Diagnostic? diagnostic = null;
+            var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
+
             if (!globalOptions.TryGetValue("build_property.RazorLangVersion", out var razorLanguageVersionString) ||
                 !RazorLanguageVersion.TryParse(razorLanguageVersionString, out var razorLanguageVersion))
             {
-                diagnostic = Diagnostic.Create(
+                diagnostics.Add(Diagnostic.Create(
                     RazorDiagnostics.InvalidRazorLangVersionDescriptor,
                     Location.None,
                     razorLanguageVersionString,
-                    RazorLanguageVersion.Preview.ToString());
+                    RazorLanguageVersion.Preview.ToString()));
                 razorLanguageVersion = RazorLanguageVersion.Latest;
+            }
+
+            uint razorWarningLevel = razorLanguageVersion.GetDefaultWarningLevel();
+            if (globalOptions.TryGetValue("build_property.RazorWarningLevel", out var razorWarningLevelString) &&
+                !string.IsNullOrEmpty(razorWarningLevelString))
+            {
+                if (uint.TryParse(razorWarningLevelString, out var parsedLevel))
+                {
+                    razorWarningLevel = parsedLevel;
+                }
+                else
+                {
+                    diagnostics.Add(Diagnostic.Create(
+                        RazorDiagnostics.InvalidRazorWarningLevelDescriptor,
+                        Location.None,
+                        razorWarningLevelString));
+                }
             }
 
             var minimalReferences = references
@@ -49,7 +67,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 ? false
                 : CSharpCompilation.Create("components", references: minimalReferences).HasAddComponentParameter();
 
-            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported);
+            var razorConfiguration = new RazorConfiguration(razorLanguageVersion, configurationName ?? "default", Extensions: [], UseConsolidatedMvcViews: true, SuppressAddComponentParameter: !isComponentParameterSupported, RazorWarningLevel: razorWarningLevel);
 
             // We use the new tokenizer only when requested for now.
             var useRoslynTokenizer = parseOptions.UseRoslynTokenizer();
@@ -65,7 +83,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 UseRoslynTokenizer = useRoslynTokenizer,
             };
 
-            return (razorSourceGenerationOptions, diagnostic);
+            return (razorSourceGenerationOptions, diagnostics.ToImmutable());
         }
 
         private static (SourceGeneratorProjectItem?, Diagnostic?) ComputeProjectItems((AdditionalText, AnalyzerConfigOptionsProvider) pair, CancellationToken ct)

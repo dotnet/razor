@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
@@ -45,6 +46,20 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             {
                 var (_, diagnostic) = source;
                 if (diagnostic != null)
+                {
+                    spc.ReportDiagnostic(diagnostic);
+                }
+            });
+
+            return source.Select((pair, ct) => pair.Item1!);
+        }
+
+        internal static IncrementalValueProvider<TSource> ReportDiagnostics<TSource>(this IncrementalValueProvider<(TSource?, ImmutableArray<Diagnostic>)> source, IncrementalGeneratorInitializationContext context)
+        {
+            context.RegisterSourceOutput(source, (spc, source) =>
+            {
+                var (_, diagnostics) = source;
+                foreach (var diagnostic in diagnostics)
                 {
                     spc.ReportDiagnostic(diagnostic);
                 }
