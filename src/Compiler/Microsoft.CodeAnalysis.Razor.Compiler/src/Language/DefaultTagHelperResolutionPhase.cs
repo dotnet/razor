@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -774,8 +775,10 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     /// Merges two already-ordered source spans into a single span covering both.
     /// <paramref name="first"/> must start at or before <paramref name="last"/>.
     /// </summary>
-    private static SourceSpan MergeSourceSpans(SourceSpan first, SourceSpan last)
+    internal static SourceSpan MergeSourceSpans(SourceSpan first, SourceSpan last)
     {
+        Debug.Assert(first.AbsoluteIndex <= last.AbsoluteIndex,
+            "first span must start at or before the last span");
         return new SourceSpan(
             first.FilePath,
             first.AbsoluteIndex,
