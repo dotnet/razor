@@ -1,2 +1,2 @@
-# Formatting-log fixtures are imported artifacts. Preserve them exactly as committed.
-* -text
+# Formatting-log text artifacts come directly from customer machines and must be preserved byte-for-byte.
+*.txt -text
