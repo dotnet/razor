@@ -108,7 +108,9 @@ public class FormattingLogTest(ITestOutputHelper testOutput) : DocumentFormattin
             return null;
         }
 
-        // Formatting logs capture absolute spans against the original file contents, so we must not normalize line endings.
-        return testFile.ReadAllText(normalizeLineEndings: false);
+        // Most imported formatting logs were historically normalized to CRLF by the test harness.
+        // GameTracAdmin was captured against the raw LF file contents, so its spans must preserve the original bytes.
+        var normalizeLineEndings = name == "InitialDocument.txt" && testName != nameof(GameTracAdmin);
+        return testFile.ReadAllText(normalizeLineEndings);
     }
 }

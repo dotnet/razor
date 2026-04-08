@@ -1,3 +1,2 @@
-# GameTracAdmin was captured with LF-only line endings, and its HtmlChanges spans
-# depend on preserving the file bytes exactly as committed.
-GameTracAdmin/** -text
+# Formatting-log fixtures are imported artifacts. Preserve them exactly as committed.
+* -text
