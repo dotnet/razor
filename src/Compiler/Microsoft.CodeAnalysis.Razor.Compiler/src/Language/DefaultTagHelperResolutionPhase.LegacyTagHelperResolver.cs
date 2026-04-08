@@ -1545,7 +1545,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     if (child is CSharpOrTagHelperExpressionAttributeValueIntermediateNode unresolvedExpr2
                         && !string.IsNullOrEmpty(unresolvedExpr2.Prefix))
                     {
-                        pendingLiteralParts.Add((unresolvedExpr2.Prefix, (SourceSpan?)null));
+                        pendingLiteralParts.Add((unresolvedExpr2.Prefix, null));
                     }
 
                     // Flush pending literals as HtmlContent with individual tokens.
