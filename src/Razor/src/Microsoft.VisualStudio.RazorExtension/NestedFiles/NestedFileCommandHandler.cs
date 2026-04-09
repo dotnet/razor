@@ -42,8 +42,8 @@ internal sealed class NestedFileCommandHandler(
     string fileExtension,
     NestedFileKind fileKind,
     Lazy<LSPRequestInvokerWrapper> requestInvoker,
-    bool allowExternalHandlers = false,
-    bool hideWhenFileExists = false)
+    bool allowExternalHandlers,
+    bool hideWhenFileExists)
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly string _fileExtension = fileExtension;

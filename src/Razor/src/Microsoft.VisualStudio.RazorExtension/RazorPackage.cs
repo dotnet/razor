@@ -176,19 +176,19 @@ internal sealed class RazorPackage : AsyncPackage
         var requestInvoker = new Lazy<LSPRequestInvokerWrapper>(() => componentModel.GetService<LSPRequestInvokerWrapper>());
 
         // Add nested file commands
-        AddMenuNestedFileCommand(".cs", NestedFileKind.CSharp, (int)CmdIdAddOrViewNestedCsFile, GuidRazorNestedFilesCmdSet);
-        AddMenuNestedFileCommand(".css", NestedFileKind.Css, (int)CmdIdAddOrViewNestedCssFile, GuidRazorNestedFilesCmdSet);
-        AddMenuNestedFileCommand(".js", NestedFileKind.JavaScript, (int)CmdIdAddOrViewNestedJsFile, GuidRazorNestedFilesCmdSet);
+        AddMenuNestedFileCommand(".cs", NestedFileKind.CSharp, (int)CmdIdAddOrViewNestedCsFile, GuidRazorNestedFilesCmdSet, allowExternalHandlers: false, hideWhenFileExists: false);
+        AddMenuNestedFileCommand(".css", NestedFileKind.Css, (int)CmdIdAddOrViewNestedCssFile, GuidRazorNestedFilesCmdSet, allowExternalHandlers: false, hideWhenFileExists: false);
+        AddMenuNestedFileCommand(".js", NestedFileKind.JavaScript, (int)CmdIdAddOrViewNestedJsFile, GuidRazorNestedFilesCmdSet, allowExternalHandlers: false, hideWhenFileExists: false);
 
         // .cs View Code (Editor) — override standard ViewCode (F7) command so VS displays the F7
         // keybinding annotation. Only shows when .cs file exists; yields when missing so the
         // cmdidAddNestedCsFileEditor command (without F7) handles the "Add" case instead.
         // When not in a Razor file, sets Supported = false to fall through to default ViewCode.
-        AddMenuNestedFileCommand(".cs", NestedFileKind.CSharp, (int)VSConstants.VSStd97CmdID.ViewCode, VSConstants.GUID_VSStandardCommandSet97, allowExternalHandlers: true);
+        AddMenuNestedFileCommand(".cs", NestedFileKind.CSharp, (int)VSConstants.VSStd97CmdID.ViewCode, VSConstants.GUID_VSStandardCommandSet97, allowExternalHandlers: true, hideWhenFileExists: false);
 
         // .cs Add Code (Editor) — shows "Add .cs file" only when the .cs doesn't exist yet.
         // Uses a separate command ID from ViewCode so it doesn't display the F7 keybinding.
-        AddMenuNestedFileCommand(".cs", NestedFileKind.CSharp, (int)CmdIdAddNestedCsFileEditor, GuidRazorNestedFilesCmdSet, hideWhenFileExists: true);
+        AddMenuNestedFileCommand(".cs", NestedFileKind.CSharp, (int)CmdIdAddNestedCsFileEditor, GuidRazorNestedFilesCmdSet, allowExternalHandlers: false, hideWhenFileExists: true);
 
         // View Page Command (Editor) — appears in nested file editors (.cshtml.cs, etc.)
         var viewPageHandler = new ViewPageCommandHandler(this);
@@ -204,7 +204,7 @@ internal sealed class RazorPackage : AsyncPackage
             mcs.AddCommand(command);
         }
 
-        void AddMenuNestedFileCommand(string fileExtension, NestedFileKind fileKind, int cmdId, Guid cmdSet, bool allowExternalHandlers = false, bool hideWhenFileExists = false)
+        void AddMenuNestedFileCommand(string fileExtension, NestedFileKind fileKind, int cmdId, Guid cmdSet, bool allowExternalHandlers, bool hideWhenFileExists)
         {
             var handler = new NestedFileCommandHandler(this, fileExtension, fileKind, requestInvoker, allowExternalHandlers, hideWhenFileExists);
             AddMenuCommand(cmdId, cmdSet, handler.Execute, handler.OnBeforeQueryStatus);
