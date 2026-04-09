@@ -142,8 +142,8 @@ steps:
       DropPath: ${{ parameters.dropPath }}
 
   # Now that everything is set, actually perform the insertion.
-  # Uses AzureCLI@2 so that roslyn-tools can acquire a dnceng AzDO token
-  # via DefaultAzureCredential (AzureCliCredential) instead of a PAT.
+  # Uses AzureCLI@2 so that the WIF service connection's SP is logged in,
+  # then explicitly acquires an AzDO token via az CLI for dnceng auth.
   - task: AzureCLI@2
     displayName: 'Create VS Insertion PR'
     inputs:
@@ -151,6 +151,15 @@ steps:
       scriptType: ps
       scriptLocation: inlineScript
       inlineScript: |
+        # Explicitly acquire an AzDO token from the logged-in WIF service principal.
+        # Do NOT rely on DefaultAzureCredential — it may pick up the agent's
+        # managed identity instead of the WIF SP.
+        $dncengToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Failed to acquire AzDO token for dnceng via az CLI"
+          exit 1
+        }
+
         $arguments = @(
           "create-insertion"
           "--insertion-name", "Razor"
@@ -165,7 +174,7 @@ steps:
           "--run-speedometer-in-validation", "${{ parameters.queueSpeedometerValidation }}"
           "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"
           "--devdiv-azdo-token", $Env:DevDivToken
-          "--dnceng-azdo-token", "unset"
+          "--dnceng-azdo-token", $dncengToken
           "--ci"
         )
 
