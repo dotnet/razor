@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <!--
     We don't follow Arcade conventions for project naming.
@@ -80,7 +80,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)eng\BannedSymbols.txt" />
+    <AdditionalFiles Include="$(RepositoryEngineeringDir)BannedSymbols.txt" />
 
     <!--
       This language support type (used for init-only properties) is linked directly into every project to avoid conflicts with
