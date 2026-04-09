@@ -20,7 +20,7 @@ public class RazorDiagnosticDescriptorTest
         Assert.Equal("RZ0001", descriptor.Id);
         Assert.Equal(RazorDiagnosticSeverity.Error, descriptor.Severity);
         Assert.Equal("Hello, World!", descriptor.MessageFormat);
-        Assert.Equal(0u, descriptor.WarningLevel);
+        Assert.Equal(0, descriptor.WarningLevel);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class RazorDiagnosticDescriptorTest
         Assert.Equal("RZ0001", descriptor.Id);
         Assert.Equal(RazorDiagnosticSeverity.Warning, descriptor.Severity);
         Assert.Equal("Hello, World!", descriptor.MessageFormat);
-        Assert.Equal(11u, descriptor.WarningLevel);
+        Assert.Equal(11, descriptor.WarningLevel);
     }
 
     [Fact]

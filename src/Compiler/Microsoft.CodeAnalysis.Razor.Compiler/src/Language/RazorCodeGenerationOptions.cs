@@ -51,7 +51,7 @@ public sealed partial class RazorCodeGenerationOptions
     /// <see cref="RazorDiagnosticDescriptor.WarningLevel"/> greater than this value are suppressed.
     /// A value of <c>0</c> means only always-on diagnostics (level 0) are reported.
     /// </summary>
-    public uint RazorWarningLevel { get; }
+    public int RazorWarningLevel { get; }
 
     private readonly Flags _flags;
 
@@ -61,7 +61,7 @@ public sealed partial class RazorCodeGenerationOptions
         string? rootNamespace,
         string? cssScope,
         string? suppressUniqueIds,
-        uint razorWarningLevel,
+        int razorWarningLevel,
         Flags flags)
     {
         IndentSize = indentSize;
@@ -191,11 +191,11 @@ public sealed partial class RazorCodeGenerationOptions
             : new(IndentSize, NewLine, RootNamespace, value, SuppressUniqueIds, RazorWarningLevel, _flags);
 
     public RazorCodeGenerationOptions WithSuppressUniqueIds(string? value)
-        => RootNamespace == value
+        => SuppressUniqueIds == value
             ? this
             : new(IndentSize, NewLine, RootNamespace, CssScope, value, RazorWarningLevel, _flags);
 
-    public RazorCodeGenerationOptions WithRazorWarningLevel(uint value)
+    public RazorCodeGenerationOptions WithRazorWarningLevel(int value)
         => RazorWarningLevel == value
             ? this
             : new(IndentSize, NewLine, RootNamespace, CssScope, SuppressUniqueIds, value, _flags);

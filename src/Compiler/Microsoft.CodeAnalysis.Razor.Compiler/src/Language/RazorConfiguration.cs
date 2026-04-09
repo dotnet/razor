@@ -17,7 +17,7 @@ public sealed record class RazorConfiguration(
     bool SuppressAddComponentParameter = false,
     bool UseRoslynTokenizer = false,
     ImmutableArray<string> PreprocessorSymbols = default,
-    uint RazorWarningLevel = 0)
+    int RazorWarningLevel = 0)
 {
     public ImmutableArray<string> PreprocessorSymbols
     {

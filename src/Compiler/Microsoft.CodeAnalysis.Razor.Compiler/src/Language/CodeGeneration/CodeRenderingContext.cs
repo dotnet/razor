@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -97,16 +98,9 @@ public sealed class CodeRenderingContext : IDisposable
 
         // Filter out diagnostics whose warning level exceeds the configured level.
         // Diagnostics with level 0 are always reported regardless of the configured level.
-        using var filtered = new PooledArrayBuilder<RazorDiagnostic>(capacity: _diagnostics.Count);
-        foreach (var diagnostic in _diagnostics)
-        {
-            if (diagnostic.WarningLevel <= warningLevel)
-            {
-                filtered.Add(diagnostic);
-            }
-        }
-
-        return filtered.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex);
+        return _diagnostics
+            .Where(d => d.WarningLevel <= warningLevel)
+            .OrderByAsArray(static d => d.Span.AbsoluteIndex);
     }
 
     public void AddSourceMappingFor(IntermediateNode node)

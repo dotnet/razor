@@ -118,5 +118,5 @@ public sealed record RazorLanguageVersion : IComparable<RazorLanguageVersion>
     /// The warning level corresponds to the major version number
     /// (e.g., <see cref="Version_11_0"/> → <c>11</c>).
     /// </summary>
-    public uint GetDefaultWarningLevel() => (uint)Major;
+    public int GetDefaultWarningLevel() => Major;
 }

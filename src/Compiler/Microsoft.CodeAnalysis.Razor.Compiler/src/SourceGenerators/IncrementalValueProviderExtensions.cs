@@ -56,7 +56,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         internal static IncrementalValueProvider<TSource> ReportDiagnostics<TSource>(this IncrementalValueProvider<(TSource?, ImmutableArray<Diagnostic>)> source, IncrementalGeneratorInitializationContext context)
         {
-            context.RegisterSourceOutput(source, (spc, source) =>
+            context.RegisterSourceOutput(source, static (spc, source) =>
             {
                 var (_, diagnostics) = source;
                 foreach (var diagnostic in diagnostics)
@@ -65,7 +65,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 }
             });
 
-            return source.Select((pair, ct) => pair.Item1!);
+            return source.Select(static (pair, ct) => pair.Item1!);
         }
     }
 

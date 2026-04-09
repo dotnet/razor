@@ -10,11 +10,11 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 public class CodeRenderingContextTest
 {
     [Theory]
-    [InlineData(0u, false)]
-    [InlineData(11u, false)]
-    [InlineData(12u, true)]
-    [InlineData(9999u, true)]
-    public void GetDiagnostics_FiltersWarningsByLevel(uint warningLevel, bool expectDiagnostic)
+    [InlineData(0, false)]
+    [InlineData(11, false)]
+    [InlineData(12, true)]
+    [InlineData(9999, true)]
+    public void GetDiagnostics_FiltersWarningsByLevel(int warningLevel, bool expectDiagnostic)
     {
         // Arrange
         var descriptor = new RazorDiagnosticDescriptor("RZTest", "Test warning for '{0}'", RazorDiagnosticSeverity.Warning, warningLevel: 12);
@@ -69,11 +69,11 @@ public class CodeRenderingContextTest
     }
 
     [Theory]
-    [InlineData(10u)]
-    [InlineData(11u)]
-    [InlineData(12u)]
-    [InlineData(13u)]
-    public void GetDiagnostics_MultipleLevels_FiltersCorrectly(uint warningLevel)
+    [InlineData(10)]
+    [InlineData(11)]
+    [InlineData(12)]
+    [InlineData(13)]
+    public void GetDiagnostics_MultipleLevels_FiltersCorrectly(int warningLevel)
     {
         // Arrange — diagnostics at levels 0, 11, 12, and 13
         var alwaysOn = RazorDiagnostic.Create(

@@ -30,7 +30,7 @@ public sealed partial class RazorCodeGenerationOptions
         /// <summary>
         /// Gets or sets the warning level for diagnostic filtering.
         /// </summary>
-        public uint RazorWarningLevel { get; set; }
+        public int RazorWarningLevel { get; set; }
 
         internal Builder()
         {
