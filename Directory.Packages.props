@@ -99,7 +99,8 @@
     <PackageVersion Include="Moq" Version="4.18.4" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
-    <PackageVersion Include="NuGet.VisualStudio" Version="17.9.1" />
+    <PackageVersion Include="NuGet.VisualStudio" Version="6.0.0-preview.3" />
+    <PackageVersion Include="NuGet.VisualStudio.Contracts" Version="6.0.0-preview.3" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersPackageVersion)" />
     <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.1" />
