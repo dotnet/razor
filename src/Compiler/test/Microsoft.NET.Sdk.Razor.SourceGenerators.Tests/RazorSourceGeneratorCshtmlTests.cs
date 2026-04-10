@@ -167,4 +167,81 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
             <img src="/test">
             """, html);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AutoDetectedFromInherits()
+    {
+        // Arrange
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        var generatedSource = result.GeneratedSources[0].SourceText.ToString();
+        Assert.Contains("u8)", generatedSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_WithoutOverload_UsesStringLiterals()
+    {
+        // Arrange
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyPageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        var generatedSource = result.GeneratedSources[0].SourceText.ToString();
+        Assert.DoesNotContain("u8)", generatedSource);
+    }
 }

@@ -358,6 +358,7 @@ public sealed class RazorProjectEngine
         // Intermediate Node Passes
         features.Add(new DefaultDocumentClassifierPass());
         features.Add(new MetadataAttributePass());
+        features.Add(new Utf8WriteLiteralDetectionPass());
         features.Add(new DesignTimeDirectivePass());
         features.Add(new DirectiveRemovalOptimizationPass());
         features.Add(new DefaultTagHelperOptimizationPass());

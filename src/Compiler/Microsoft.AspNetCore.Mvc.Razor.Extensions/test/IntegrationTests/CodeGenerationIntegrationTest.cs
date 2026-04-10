@@ -926,6 +926,82 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         CompileToAssembly(generated, throwOnFailure: false, ignoreRazorDiagnostics: true);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public void Utf8HtmlLiterals_AutoDetectedFromInherits_Runtime()
+    {
+        // Arrange
+        _configuration = new(RazorLanguageVersion.Preview, "MVC-3.0", Extensions: []);
+
+        AddCSharpSyntaxTree("""
+
+            using System;
+            using System.Threading.Tasks;
+            using Microsoft.AspNetCore.Mvc.Razor;
+
+            public abstract class MyUtf8PageBase : RazorPage
+            {
+                public void WriteLiteral(ReadOnlySpan<byte> value)
+                {
+                    WriteLiteral(System.Text.Encoding.UTF8.GetString(value));
+                }
+            }
+
+            """);
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits MyUtf8PageBase
+
+            <html>
+            <body>
+                <h1>Hello World</h1>
+                <p>This is UTF-8 encoded HTML content.</p>
+            </body>
+            </html>
+            """);
+
+        // Assert
+        CompileToAssembly(generated);
+
+        var generatedCode = generated.CodeDocument.GetCSharpDocument().Text.ToString();
+        Assert.Contains("u8)", generatedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public void Utf8HtmlLiterals_WithoutOverload_UsesStringLiterals_Runtime()
+    {
+        // Arrange
+        _configuration = new(RazorLanguageVersion.Preview, "MVC-3.0", Extensions: []);
+
+        AddCSharpSyntaxTree("""
+
+            using System.Threading.Tasks;
+            using Microsoft.AspNetCore.Mvc.Razor;
+
+            public abstract class MyPageBase : RazorPage
+            {
+            }
+
+            """);
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits MyPageBase
+
+            <html>
+            <body>
+                <h1>Hello World</h1>
+            </body>
+            </html>
+            """);
+
+        // Assert
+        CompileToAssembly(generated);
+
+        var generatedCode = generated.CodeDocument.GetCSharpDocument().Text.ToString();
+        Assert.DoesNotContain("u8)", generatedCode);
+    }
+
     #endregion
 
     #region DesignTime

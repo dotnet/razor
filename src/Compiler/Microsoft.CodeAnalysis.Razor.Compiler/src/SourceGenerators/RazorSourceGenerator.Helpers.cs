@@ -133,6 +133,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     builder.CSharpParseOptions = razorSourceGeneratorOptions.CSharpParseOptions;
                 });
 
+                b.Features.Add(new DefaultMetadataReferenceFeature()
+                {
+                    References = razorSourceGeneratorOptions.MetadataReferences,
+                });
+
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);
 

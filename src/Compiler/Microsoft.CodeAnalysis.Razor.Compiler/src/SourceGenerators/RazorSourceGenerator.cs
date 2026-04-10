@@ -44,6 +44,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var razorSourceGeneratorOptions = analyzerConfigOptions
                 .Combine(parseOptions)
                 .Combine(metadataRefs.Collect())
+                .Combine(compilation)
                 .Select(ComputeRazorSourceGeneratorOptions)
                 .WithTrackingName("RazorSourceGeneratorOptions")
                 .ReportDiagnostics(context);
