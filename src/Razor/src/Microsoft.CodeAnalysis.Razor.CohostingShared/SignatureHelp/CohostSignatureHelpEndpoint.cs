@@ -55,7 +55,7 @@ internal sealed class CohostSignatureHelpEndpoint(
     }
 
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(SignatureHelpParams request)
-        => new RazorTextDocumentIdentifier(request.TextDocument.DocumentUri.GetRequiredParsedUri(), (request.TextDocument as VSTextDocumentIdentifier)?.ProjectContext?.Id);
+        => request.TextDocument.ToRazorTextDocumentIdentifier();
 
     protected async override Task<SignatureHelp?> HandleRequestAsync(SignatureHelpParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
