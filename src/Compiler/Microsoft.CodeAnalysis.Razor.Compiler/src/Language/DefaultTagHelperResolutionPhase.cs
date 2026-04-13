@@ -57,7 +57,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         if (tagHelperContext == null || tagHelperContext.TagHelpers is [])
         {
-            // No tag helpers discovered - unwrap all ElementOrTagHelper nodes to their fallback.
+            // No tag helpers discovered - unwrap all UnresolvedElement nodes to their fallback.
             UnwrapAllElements(documentNode, documentNode);
 
             // Still need to set referenced tag helpers for downstream phases.
@@ -176,6 +176,49 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             return;
         }
 
+        // Build the tag helper node (binding validation + node creation + diagnostics + body).
+        var (tagHelperNode, bodyNode) = BuildTagHelperNode(elementNode, binding, tagName, prefix, usedHelpers, in context);
+
+        // Resolve any body children that are still UnresolvedElementIntermediateNode.
+        ResolveBodyChildren(bodyNode, binder, prefix, usedHelpers, in context, tagHelperNode);
+
+        // Check AllowedChildren constraints (RZ2009, RZ2010).
+        ValidateAllowedChildren(tagHelperNode, bodyNode, binding, prefix);
+
+        // Replace the UnresolvedElement with the TagHelperIntermediateNode.
+        parent.Children[index] = tagHelperNode;
+
+        // For StartTagOnly elements, body content from the original element
+        // belongs to the parent, not the tag helper. Promote it.
+        if (tagHelperNode.TagMode == TagMode.StartTagOnly)
+        {
+            var startTagEndIdx = elementNode.StartTagEndIndex;
+            var bodyEndIdx = elementNode.BodyEndIndex;
+
+            if (startTagEndIdx >= 0 && bodyEndIdx >= 0)
+            {
+                var insertIdx = index + 1;
+                for (var i = startTagEndIdx; i < bodyEndIdx; i++)
+                {
+                    parent.Children.Insert(insertIdx++, elementNode.Children[i]);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a <see cref="TagHelperIntermediateNode"/> from a confirmed tag helper binding,
+    /// adds all binding-level diagnostics, and builds the body node by delegating to the resolver.
+    /// Covers the "tag helper binding and validation" and "element construction" split points.
+    /// </summary>
+    private (TagHelperIntermediateNode TagHelperNode, TagHelperBodyIntermediateNode BodyNode) BuildTagHelperNode(
+        UnresolvedElementIntermediateNode elementNode,
+        TagHelperBinding binding,
+        string tagName,
+        string prefix,
+        TagHelperCollection.Builder usedHelpers,
+        in ResolutionContext context)
+    {
         // It IS a tag helper. Track the used helpers.
         usedHelpers.AddRange(binding.TagHelpers);
 
@@ -218,15 +261,33 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         // Build body and attributes.
         var bodyNode = new TagHelperBodyIntermediateNode();
-
         _resolver.BuildTagHelper(tagHelperNode, bodyNode, elementNode, binding, context.SourceDocument, in context);
 
-        // After building the tag helper, resolve any body children that are still
-        // UnresolvedElementIntermediateNode. Pass the tagHelperNode as parent so the
-        // binder can see the parent tag name. This is needed for:
-        // - Components: child content matching (e.g., Found/NotFound inside Router)
-        // - Legacy tag helpers: RequireParentTag matching (e.g., <td> inside <tr>)
-        var tagHelperParentForBody = tagHelperNode;
+        return (tagHelperNode, bodyNode);
+    }
+
+    /// <summary>
+    /// Resolves body children of a newly built tag helper node.
+    /// Iterates over <paramref name="bodyNode"/> children in reverse order, recursively
+    /// resolving any <see cref="UnresolvedElementIntermediateNode"/> entries with the
+    /// tag helper as the parent context. Covers the "child attribute processing" split point.
+    /// </summary>
+    /// <remarks>
+    /// Passing <paramref name="tagHelperParent"/> is critical so the binder can see the parent tag
+    /// name. This is needed for:
+    /// <list type="bullet">
+    ///   <item><description>Components: child content matching (e.g., Found/NotFound inside Router)</description></item>
+    ///   <item><description>Legacy tag helpers: RequireParentTag matching (e.g., &lt;td&gt; inside &lt;tr&gt;)</description></item>
+    /// </list>
+    /// </remarks>
+    private void ResolveBodyChildren(
+        TagHelperBodyIntermediateNode bodyNode,
+        TagHelperBinder binder,
+        string prefix,
+        TagHelperCollection.Builder usedHelpers,
+        in ResolutionContext context,
+        TagHelperIntermediateNode tagHelperParent)
+    {
         for (var i = bodyNode.Children.Count - 1; i >= 0; i--)
         {
             var bodyChild = bodyNode.Children[i];
@@ -240,7 +301,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 // would descend into the element's children and prematurely resolve them
                 // without knowing the parent tag helper (e.g., Found/NotFound inside Router
                 // need to know Router is their parent to be matched as child content).
-                ResolveElement(bodyNode, i, bodyElementNode, binder, prefix, usedHelpers, in context, tagHelperParentForBody);
+                ResolveElement(bodyNode, i, bodyElementNode, binder, prefix, usedHelpers, in context, tagHelperParent);
             }
             else
             {
@@ -254,29 +315,6 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         // start tag on the tracker stack). For matched pairs like <component ...></component>,
         // the rewriter handles them normally. The rewriter (which still runs after this phase)
         // will emit RZ1033 for orphan end tags.
-
-        // Check AllowedChildren constraints (RZ2009, RZ2010).
-        ValidateAllowedChildren(tagHelperNode, bodyNode, binding, prefix);
-
-        // Replace the ElementOrTagHelper with the TagHelperIntermediateNode.
-        parent.Children[index] = tagHelperNode;
-
-        // For StartTagOnly elements, body content from the original element
-        // belongs to the parent, not the tag helper. Promote it.
-        if (tagHelperNode.TagMode == TagMode.StartTagOnly)
-        {
-            var startTagEndIdx = elementNode.StartTagEndIndex;
-            var bodyEndIdx = elementNode.BodyEndIndex;
-
-            if (startTagEndIdx >= 0 && bodyEndIdx >= 0)
-            {
-                var insertIdx = index + 1;
-                for (var i = startTagEndIdx; i < bodyEndIdx; i++)
-                {
-                    parent.Children.Insert(insertIdx++, elementNode.Children[i]);
-                }
-            }
-        }
     }
 
     /// <summary>
