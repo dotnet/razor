@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -393,10 +394,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 if (current.Source is SourceSpan cs && next.Source is SourceSpan ns)
                 {
                     // Adjacent nodes are sequential, so next always ends after current.
-                    var end = ns.AbsoluteIndex + ns.Length;
-                    var lineCount = (ns.LineIndex + ns.LineCount) - cs.LineIndex;
-                    current.Source = new SourceSpan(cs.FilePath, cs.AbsoluteIndex, cs.LineIndex, cs.CharacterIndex,
-                        end - cs.AbsoluteIndex, lineCount, ns.EndCharacterIndex);
+                    current.Source = MergeSourceSpans(cs, ns);
                 }
                 else if (current.Source == null)
                 {
@@ -546,8 +544,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 var lastSrc = htmlContent.Children[^1].Source;
                 if (firstSrc is { } fs && lastSrc is { } ls)
                 {
-                    htmlContent.Source = new SourceSpan(fs.FilePath, fs.AbsoluteIndex, fs.LineIndex, fs.CharacterIndex,
-                        (ls.AbsoluteIndex + ls.Length) - fs.AbsoluteIndex, ls.LineIndex - fs.LineIndex, ls.EndCharacterIndex);
+                    htmlContent.Source = MergeSourceSpans(fs, ls);
                 }
             }
 
@@ -744,20 +741,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         SourceSpan? result = null;
         foreach (var child in htmlAttr.Children)
         {
-            // For HtmlAttributeValueIntermediateNode, use the inner token sources (not the wrapper).
-            if (child is HtmlAttributeValueIntermediateNode attrValue)
+            // For HtmlAttributeValueIntermediateNode and CSharpExpressionAttributeValueIntermediateNode,
+            // use the inner token sources (not the wrapper).
+            if (child is HtmlAttributeValueIntermediateNode or CSharpExpressionAttributeValueIntermediateNode)
             {
-                foreach (var token in attrValue.Children)
-                {
-                    if (token.Source is SourceSpan tokenSource)
-                    {
-                        result = result == null ? tokenSource : MergeSpans(result.Value, tokenSource);
-                    }
-                }
-            }
-            else if (child is CSharpExpressionAttributeValueIntermediateNode csharpAttrValue)
-            {
-                foreach (var token in csharpAttrValue.Children)
+                foreach (var token in child.Children)
                 {
                     if (token.Source is SourceSpan tokenSource)
                     {
@@ -782,6 +770,24 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         var lineCount = (last.LineIndex + last.LineCount) - first.LineIndex;
         return new SourceSpan(first.FilePath, start, first.LineIndex, first.CharacterIndex,
             end - start, lineCount, last.EndCharacterIndex);
+    }
+
+    /// <summary>
+    /// Merges two already-ordered source spans into a single span covering both.
+    /// <paramref name="first"/> must start at or before <paramref name="last"/>.
+    /// </summary>
+    internal static SourceSpan MergeSourceSpans(SourceSpan first, SourceSpan last)
+    {
+        Debug.Assert(first.AbsoluteIndex <= last.AbsoluteIndex,
+            "first span must start at or before the last span");
+        return new SourceSpan(
+            first.FilePath,
+            first.AbsoluteIndex,
+            first.LineIndex,
+            first.CharacterIndex,
+            last.AbsoluteIndex + last.Length - first.AbsoluteIndex,
+            last.LineIndex + last.LineCount - first.LineIndex,
+            last.EndCharacterIndex);
     }
 
     /// <summary>
