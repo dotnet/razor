@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-public sealed class IntermediateNodeCollection : IList<IntermediateNode>
+public sealed class IntermediateNodeCollection : IList<IntermediateNode>, IReadOnlyList<IntermediateNode>
 {
     public static readonly IntermediateNodeCollection ReadOnly = new IntermediateNodeCollection(new List<IntermediateNode>().AsReadOnly());
 
