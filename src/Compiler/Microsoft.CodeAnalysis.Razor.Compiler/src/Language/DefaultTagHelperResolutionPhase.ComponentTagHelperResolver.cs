@@ -639,9 +639,7 @@ internal partial class DefaultTagHelperResolutionPhase
                             var mergedContent = prefix + htmlToken.Content;
                             var mergedSource = ExtendSpanBackward(htmlToken.Source, prefix.Length);
 
-                            htmlContent.Children.Add(htmlToken.IsLazy
-                                ? new HtmlIntermediateToken(LazyContent.Create(mergedContent, static s => s), mergedSource)
-                                : new HtmlIntermediateToken(mergedContent, mergedSource));
+                            htmlContent.Children.Add(new HtmlIntermediateToken(mergedContent, mergedSource));
                             htmlContent.Source ??= mergedSource;
                             mergedFirst = true;
                         }
@@ -773,9 +771,7 @@ internal partial class DefaultTagHelperResolutionPhase
                         var mergedContent = prefix + firstToken.Content;
                         var mergedSource = ExtendSpanBackward(firstToken.Source, prefix.Length);
 
-                        htmlContent.Children.Add(firstToken.IsLazy
-                            ? new HtmlIntermediateToken(LazyContent.Create(mergedContent, static s => s), mergedSource)
-                            : new HtmlIntermediateToken(mergedContent, mergedSource));
+                        htmlContent.Children.Add(new HtmlIntermediateToken(mergedContent, mergedSource));
                         htmlContent.Source = mergedSource ?? htmlAttrValue.Source;
 
                         for (var j = 1; j < htmlAttrValue.Children.Count; j++)

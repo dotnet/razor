@@ -847,8 +847,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         {
             // @
             var atLoc = sourceDocument.Text.Lines.GetLinePosition(exprStart);
-            target.Children.Add(new CSharpIntermediateToken(
-                LazyContent.Create("@", static s => s),
+            target.Children.Add(IntermediateNodeFactory.CSharpToken(
+                "@",
                 new SourceSpan(filePath, exprStart, atLoc.Line, atLoc.Character, 1, 0, atLoc.Character + 1)));
 
             // (, inner content, )
@@ -858,8 +858,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         {
             // Not @() -- emit as single token.
             var loc = sourceDocument.Text.Lines.GetLinePosition(exprStart);
-            target.Children.Add(new CSharpIntermediateToken(
-                LazyContent.Create(exprText, static s => s),
+            target.Children.Add(IntermediateNodeFactory.CSharpToken(
+                exprText,
                 new SourceSpan(filePath, exprStart, loc.Line, loc.Character, exprLength, 0, loc.Character + exprLength)));
         }
     }
@@ -879,8 +879,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         // (
         var openLoc = sourceDocument.Text.Lines.GetLinePosition(parenStart);
-        target.Children.Add(new CSharpIntermediateToken(
-            LazyContent.Create("(", static s => s),
+        target.Children.Add(IntermediateNodeFactory.CSharpToken(
+            "(",
             new SourceSpan(filePath, parenStart, openLoc.Line, openLoc.Character, 1, 0, openLoc.Character + 1)));
 
         // inner content
@@ -891,16 +891,16 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             var innerText = sourceDocument.Text.ToString(
                 new Microsoft.CodeAnalysis.Text.TextSpan(innerStart, innerLen));
             var innerLoc = sourceDocument.Text.Lines.GetLinePosition(innerStart);
-            target.Children.Add(new CSharpIntermediateToken(
-                LazyContent.Create(innerText, static s => s),
+            target.Children.Add(IntermediateNodeFactory.CSharpToken(
+                innerText,
                 new SourceSpan(filePath, innerStart, innerLoc.Line, innerLoc.Character, innerLen, 0, innerLoc.Character + innerLen)));
         }
 
         // )
         var closePos = parenStart + parenLength - 1;
         var closeLoc = sourceDocument.Text.Lines.GetLinePosition(closePos);
-        target.Children.Add(new CSharpIntermediateToken(
-            LazyContent.Create(")", static s => s),
+        target.Children.Add(IntermediateNodeFactory.CSharpToken(
+            ")",
             new SourceSpan(filePath, closePos, closeLoc.Line, closeLoc.Character, 1, 0, closeLoc.Character + 1)));
     }
 
@@ -950,7 +950,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     private static CSharpIntermediateToken ToCSharpToken(HtmlIntermediateToken htmlToken)
     {
         return htmlToken.IsLazy
-            ? new CSharpIntermediateToken(LazyContent.Create(htmlToken, static t => t.Content), htmlToken.Source)
+            ? IntermediateNodeFactory.CSharpToken(htmlToken, static t => t.Content, htmlToken.Source)
             : new CSharpIntermediateToken(htmlToken.Content, htmlToken.Source);
     }
 
@@ -962,16 +962,16 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         return new HtmlContentIntermediateNode()
         {
             Source = source,
-            Children = { new HtmlIntermediateToken(LazyContent.Create("", static s => s), source) }
+            Children = { IntermediateNodeFactory.HtmlToken("", source) }
         };
     }
 
     /// <summary>
-    /// Creates an empty <see cref="CSharpIntermediateToken"/> with a lazy empty string.
+    /// Creates an empty <see cref="CSharpIntermediateToken"/> with an empty string.
     /// </summary>
     private static CSharpIntermediateToken CreateEmptyCSharpToken(SourceSpan? source)
     {
-        return new CSharpIntermediateToken(LazyContent.Create("", static s => s), source);
+        return IntermediateNodeFactory.CSharpToken("", source);
     }
 
     /// <summary>
