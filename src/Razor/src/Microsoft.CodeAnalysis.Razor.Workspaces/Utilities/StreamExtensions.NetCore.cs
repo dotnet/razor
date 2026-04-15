@@ -47,7 +47,7 @@ internal static class StreamExtensions
         stream.Write(sizeBytes);
     }
 
-    public unsafe static int ReadSize(this Stream stream)
+    public static unsafe int ReadSize(this Stream stream)
     {
         Span<byte> bytes = stackalloc byte[4];
         stream.ReadExactly(bytes);
