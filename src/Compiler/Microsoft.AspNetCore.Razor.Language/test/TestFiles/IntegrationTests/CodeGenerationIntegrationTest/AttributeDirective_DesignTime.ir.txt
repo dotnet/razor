@@ -45,7 +45,7 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (269:4,0 [13] AttributeDirective.cshtml)
-                    LazyIntermediateToken - (269:4,0 [13] AttributeDirective.cshtml) - Html - \nHello World
+                    IntermediateToken - (269:4,0 [13] AttributeDirective.cshtml) - Html - \nHello World
             Inject - 
             Inject - 
             Inject - 

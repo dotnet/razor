@@ -19,7 +19,7 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (84:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (84:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (84:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 Component - (86:3,0 [64] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     ComponentAttribute - (107:3,21 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Data - Data - AttributeStructure.DoubleQuotes
                         IntermediateToken - (107:3,21 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - null
@@ -28,6 +28,6 @@
                     ComponentTypeArgument - (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml) - TValue
                         IntermediateToken - (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - decimal
                 HtmlContent - (150:3,64 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (150:3,64 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (150:3,64 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public List<(TDomain Domain, TValue Value)> Data { get; set; }\n
+                IntermediateToken - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public List<(TDomain Domain, TValue Value)> Data { get; set; }\n

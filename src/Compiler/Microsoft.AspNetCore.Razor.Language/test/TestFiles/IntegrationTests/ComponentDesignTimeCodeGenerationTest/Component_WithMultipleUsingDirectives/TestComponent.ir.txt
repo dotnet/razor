@@ -17,6 +17,6 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (16:0,16 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (16:0,16 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  ;
+                    IntermediateToken - (16:0,16 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  ;
                 HtmlContent - (56:0,56 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (56:0,56 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n; 
+                    IntermediateToken - (56:0,56 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n; 

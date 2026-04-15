@@ -16,4 +16,4 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [41] x:\dir\subdir\Test\TestComponent.cshtml) - ComponentWithEditorRequiredParameters
                 HtmlContent - (41:0,41 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (41:0,41 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (41:0,41 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

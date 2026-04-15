@@ -24,6 +24,6 @@
                             IntermediateToken -  - CSharp - __value => myField = __value
                             IntermediateToken -  - CSharp - , myField)
                 HtmlContent - (67:0,67 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (67:0,67 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (67:0,67 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (78:2,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (78:2,7 [46] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string myField = "Some Value";\n
+                IntermediateToken - (78:2,7 [46] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string myField = "Some Value";\n

@@ -10,4 +10,4 @@
                 MarkupElement - (29:2,0 [55] x:\dir\subdir\Test\TestComponent.cshtml) - parent
                     MarkupElement - (43:3,4 [30] x:\dir\subdir\Test\TestComponent.cshtml) - child
                         CSharpExpression - (52:3,13 [12] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (52:3,13 [12] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - DateTime.Now
+                            IntermediateToken - (52:3,13 [12] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - DateTime.Now

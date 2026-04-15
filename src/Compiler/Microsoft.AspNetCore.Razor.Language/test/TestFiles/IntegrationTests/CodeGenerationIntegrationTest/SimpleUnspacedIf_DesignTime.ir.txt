@@ -33,13 +33,13 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 CSharpCode - (1:0,1 [15] SimpleUnspacedIf.cshtml)
-                    LazyIntermediateToken - (1:0,1 [15] SimpleUnspacedIf.cshtml) - CSharp - if (true)\n{\n	
+                    IntermediateToken - (1:0,1 [15] SimpleUnspacedIf.cshtml) - CSharp - if (true)\n{\n	
                 HtmlContent - (16:2,1 [11] SimpleUnspacedIf.cshtml)
-                    LazyIntermediateToken - (16:2,1 [4] SimpleUnspacedIf.cshtml) - Html - <div
-                    LazyIntermediateToken - (20:2,5 [1] SimpleUnspacedIf.cshtml) - Html - >
-                    LazyIntermediateToken - (21:2,6 [6] SimpleUnspacedIf.cshtml) - Html - </div>
+                    IntermediateToken - (16:2,1 [4] SimpleUnspacedIf.cshtml) - Html - <div
+                    IntermediateToken - (20:2,5 [1] SimpleUnspacedIf.cshtml) - Html - >
+                    IntermediateToken - (21:2,6 [6] SimpleUnspacedIf.cshtml) - Html - </div>
                 CSharpCode - (27:2,12 [3] SimpleUnspacedIf.cshtml)
-                    LazyIntermediateToken - (27:2,12 [3] SimpleUnspacedIf.cshtml) - CSharp - \n}
+                    IntermediateToken - (27:2,12 [3] SimpleUnspacedIf.cshtml) - CSharp - \n}
             Inject - 
             Inject - 
             Inject - 

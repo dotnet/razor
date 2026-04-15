@@ -15,4 +15,4 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [99] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (2:0,2 [99] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n#pragma warning disable 219 // variable declared but not used\n#if true\n    var x = 1;\n#endif\n
+                    IntermediateToken - (2:0,2 [99] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n#pragma warning disable 219 // variable declared but not used\n#if true\n    var x = 1;\n#endif\n

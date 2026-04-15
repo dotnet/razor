@@ -21,7 +21,7 @@
                             IntermediateToken -  - CSharp - __value => _componentValue = __value
                             IntermediateToken -  - CSharp - , _componentValue)
                 HtmlContent - (89:0,89 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (89:0,89 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (89:0,89 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 Component - (91:1,0 [89] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                     ComponentTypeArgument - (114:1,23 [18] x:\dir\subdir\Test\TestComponent.cshtml) - TService
                         IntermediateToken - (114:1,23 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - IComposedInterface
@@ -36,4 +36,4 @@
                             IntermediateToken -  - CSharp - __value => _componentValue = __value
                             IntermediateToken -  - CSharp - , _componentValue)
             CSharpCode - (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string _componentValue = string.Empty;\n
+                IntermediateToken - (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string _componentValue = string.Empty;\n

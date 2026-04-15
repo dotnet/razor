@@ -24,6 +24,6 @@
                         HtmlContent - (107:0,107 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (107:0,107 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - def
                 HtmlContent - (114:0,114 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (114:0,114 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (114:0,114 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (126:3,1 [94] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (126:3,1 [94] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]public string P1 {get; set;}\n\n    [Parameter]public string P2 {get; set;}\n
+                IntermediateToken - (126:3,1 [94] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]public string P1 {get; set;}\n\n    [Parameter]public string P2 {get; set;}\n

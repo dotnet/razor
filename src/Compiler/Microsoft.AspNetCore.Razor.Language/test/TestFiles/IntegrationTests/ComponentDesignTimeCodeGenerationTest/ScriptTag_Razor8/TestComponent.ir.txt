@@ -16,4 +16,4 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (0:0,0 [32] x:\dir\subdir\Test\TestComponent.cshtml) - script
                     HtmlContent - (8:0,8 [15] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (8:0,8 [15] x:\dir\subdir\Test\TestComponent.cshtml) - Html - alert("Hello");
+                        IntermediateToken - (8:0,8 [15] x:\dir\subdir\Test\TestComponent.cshtml) - Html - alert("Hello");

@@ -16,7 +16,7 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (42:0,42 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (42:0,42 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (42:0,42 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 MarkupElement - (44:1,0 [77] x:\dir\subdir\Test\TestComponent.cshtml) - input
                     HtmlAttribute - (61:1,17 [7] x:\dir\subdir\Test\TestComponent.cshtml) - onfocus=" - "
                         CSharpExpressionAttributeValue -  - 
@@ -27,6 +27,6 @@
                         CSharpExpression - 
                             IntermediateToken - (95:1,51 [22] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ShouldPreventDefault()
                 HtmlContent - (121:1,77 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (121:1,77 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (121:1,77 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void OnFocus(FocusEventArgs e) { }\n\n    bool ShouldPreventDefault() { return false; }\n
+                IntermediateToken - (130:2,7 [95] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void OnFocus(FocusEventArgs e) { }\n\n    bool ShouldPreventDefault() { return false; }\n

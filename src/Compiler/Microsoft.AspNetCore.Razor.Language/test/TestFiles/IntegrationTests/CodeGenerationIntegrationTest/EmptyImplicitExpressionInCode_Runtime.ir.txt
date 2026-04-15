@@ -14,11 +14,11 @@
         ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_EmptyImplicitExpressionInCode - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 CSharpCode - (2:0,2 [6] EmptyImplicitExpressionInCode.cshtml)
-                    LazyIntermediateToken - (2:0,2 [6] EmptyImplicitExpressionInCode.cshtml) - CSharp - \n    
+                    IntermediateToken - (2:0,2 [6] EmptyImplicitExpressionInCode.cshtml) - CSharp - \n    
                 CSharpExpression - (9:1,5 [0] EmptyImplicitExpressionInCode.cshtml)
-                    LazyIntermediateToken - (9:1,5 [0] EmptyImplicitExpressionInCode.cshtml) - CSharp - 
+                    IntermediateToken - (9:1,5 [0] EmptyImplicitExpressionInCode.cshtml) - CSharp - 
                 CSharpCode - (9:1,5 [2] EmptyImplicitExpressionInCode.cshtml)
-                    LazyIntermediateToken - (9:1,5 [2] EmptyImplicitExpressionInCode.cshtml) - CSharp - \n
+                    IntermediateToken - (9:1,5 [2] EmptyImplicitExpressionInCode.cshtml) - CSharp - \n
             Inject - 
             Inject - 
             Inject - 

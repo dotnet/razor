@@ -15,12 +15,12 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [45] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (2:0,2 [45] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    RenderFragment<Person> p = (person) => 
+                    IntermediateToken - (2:0,2 [45] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    RenderFragment<Person> p = (person) => 
                 Template - (48:1,44 [23] x:\dir\subdir\Test\TestComponent.cshtml)
                     MarkupElement - (48:1,44 [23] x:\dir\subdir\Test\TestComponent.cshtml) - div
                         CSharpExpression - (54:1,50 [11] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (54:1,50 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - person.Name
+                            IntermediateToken - (54:1,50 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - person.Name
                 CSharpCode - (71:1,67 [3] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (71:1,67 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ;\n
+                    IntermediateToken - (71:1,67 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ;\n
             CSharpCode - (84:3,7 [76] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (84:3,7 [76] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    class Person\n    {\n        public string Name { get; set; }\n    }\n
+                IntermediateToken - (84:3,7 [76] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    class Person\n    {\n        public string Name { get; set; }\n    }\n

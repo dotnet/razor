@@ -35,22 +35,22 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (0:0,0 [12] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                    LazyIntermediateToken - (0:0,0 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - <html
-                    LazyIntermediateToken - (5:0,5 [1] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - >
-                    LazyIntermediateToken - (6:0,6 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n    
+                    IntermediateToken - (0:0,0 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - <html
+                    IntermediateToken - (5:0,5 [1] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - >
+                    IntermediateToken - (6:0,6 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n    
                 TagHelper - (12:1,4 [30] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - head - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                         HtmlContent - (18:1,10 [10] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                            LazyIntermediateToken - (18:1,10 [10] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n        
+                            IntermediateToken - (18:1,10 [10] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n        
                         CSharpExpression - (29:2,9 [0] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                            LazyIntermediateToken - (29:2,9 [0] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - 
+                            IntermediateToken - (29:2,9 [0] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - 
                         HtmlContent - (29:2,9 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                            LazyIntermediateToken - (29:2,9 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n    
+                            IntermediateToken - (29:2,9 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n    
                     DefaultTagHelperCreate -  - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper
                     DefaultTagHelperExecute - 
                 HtmlContent - (42:3,11 [9] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                    LazyIntermediateToken - (42:3,11 [2] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n
-                    LazyIntermediateToken - (44:4,0 [7] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - </html>
+                    IntermediateToken - (42:3,11 [2] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n
+                    IntermediateToken - (44:4,0 [7] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - </html>
             Inject - 
             Inject - 
             Inject - 

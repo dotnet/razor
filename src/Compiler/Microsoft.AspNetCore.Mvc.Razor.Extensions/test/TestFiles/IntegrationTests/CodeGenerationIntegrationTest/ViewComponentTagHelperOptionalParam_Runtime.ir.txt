@@ -18,13 +18,13 @@
             FieldDeclaration -  - private - global::AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalWithMultipleTypesViewComponentTagHelper - __OptionalWithMultipleTypesViewComponentTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (28:1,0 [2] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (28:1,0 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
+                    IntermediateToken - (28:1,0 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
                 TagHelper - (30:2,0 [37] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-test - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalTestViewComponentTagHelper
                     DefaultTagHelperExecute - 
                 HtmlContent - (67:2,37 [2] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (67:2,37 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
+                    IntermediateToken - (67:2,37 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
                 TagHelper - (69:3,0 [57] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-test - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalTestViewComponentTagHelper
@@ -33,34 +33,34 @@
                             IntermediateToken - (101:3,32 [4] ViewComponentTagHelperOptionalParam.cshtml) - CSharp - true
                     DefaultTagHelperExecute - 
                 HtmlContent - (126:3,57 [4] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (126:3,57 [4] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n\n
+                    IntermediateToken - (126:3,57 [4] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n\n
                 TagHelper - (130:5,0 [77] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-test-with-param - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalTestWithParamViewComponentTagHelper
                     DefaultTagHelperProperty - (167:5,37 [8] ViewComponentTagHelperOptionalParam.cshtml) - secret - string OptionalTestWithParamViewComponentTagHelper.secret - HtmlAttributeValueStyle.DoubleQuotes
                         HtmlContent - (167:5,37 [8] ViewComponentTagHelperOptionalParam.cshtml)
-                            LazyIntermediateToken - (167:5,37 [8] ViewComponentTagHelperOptionalParam.cshtml) - Html - mysecret
+                            IntermediateToken - (167:5,37 [8] ViewComponentTagHelperOptionalParam.cshtml) - Html - mysecret
                     DefaultTagHelperExecute - 
                 HtmlContent - (207:5,77 [2] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (207:5,77 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
+                    IntermediateToken - (207:5,77 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
                 TagHelper - (209:6,0 [97] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-test-with-param - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalTestWithParamViewComponentTagHelper
                     DefaultTagHelperProperty - (246:6,37 [8] ViewComponentTagHelperOptionalParam.cshtml) - secret - string OptionalTestWithParamViewComponentTagHelper.secret - HtmlAttributeValueStyle.DoubleQuotes
                         HtmlContent - (246:6,37 [8] ViewComponentTagHelperOptionalParam.cshtml)
-                            LazyIntermediateToken - (246:6,37 [8] ViewComponentTagHelperOptionalParam.cshtml) - Html - mysecret
+                            IntermediateToken - (246:6,37 [8] ViewComponentTagHelperOptionalParam.cshtml) - Html - mysecret
                     DefaultTagHelperProperty - (269:6,60 [5] ViewComponentTagHelperOptionalParam.cshtml) - show-secret - bool OptionalTestWithParamViewComponentTagHelper.showSecret - HtmlAttributeValueStyle.DoubleQuotes
                         CSharpExpression - (270:6,61 [4] ViewComponentTagHelperOptionalParam.cshtml)
                             IntermediateToken - (270:6,61 [4] ViewComponentTagHelperOptionalParam.cshtml) - CSharp - true
                     DefaultTagHelperExecute - 
                 HtmlContent - (306:6,97 [4] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (306:6,97 [4] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n\n
+                    IntermediateToken - (306:6,97 [4] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n\n
                 TagHelper - (310:8,0 [67] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-with-multiple-types - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalWithMultipleTypesViewComponentTagHelper
                     DefaultTagHelperExecute - 
                 HtmlContent - (377:8,67 [2] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (377:8,67 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
+                    IntermediateToken - (377:8,67 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
                 TagHelper - (379:9,0 [122] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-with-multiple-types - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalWithMultipleTypesViewComponentTagHelper
@@ -72,7 +72,7 @@
                         IntermediateToken - (462:9,83 [3] ViewComponentTagHelperOptionalParam.cshtml) - CSharp - 'a'
                     DefaultTagHelperExecute - 
                 HtmlContent - (501:9,122 [2] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (501:9,122 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
+                    IntermediateToken - (501:9,122 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
                 TagHelper - (503:10,0 [100] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-with-multiple-types - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalWithMultipleTypesViewComponentTagHelper
@@ -82,7 +82,7 @@
                         IntermediateToken - (563:10,60 [4] ViewComponentTagHelperOptionalParam.cshtml) - CSharp - 10.8
                     DefaultTagHelperExecute - 
                 HtmlContent - (603:10,100 [2] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (603:10,100 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
+                    IntermediateToken - (603:10,100 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
                 TagHelper - (605:11,0 [126] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-with-multiple-types - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalWithMultipleTypesViewComponentTagHelper
@@ -94,7 +94,7 @@
                         IntermediateToken - (683:11,78 [12] ViewComponentTagHelperOptionalParam.cshtml) - CSharp - DateTime.Now
                     DefaultTagHelperExecute - 
                 HtmlContent - (731:11,126 [2] ViewComponentTagHelperOptionalParam.cshtml)
-                    LazyIntermediateToken - (731:11,126 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
+                    IntermediateToken - (731:11,126 [2] ViewComponentTagHelperOptionalParam.cshtml) - Html - \n
                 TagHelper - (733:12,0 [126] ViewComponentTagHelperOptionalParam.cshtml) - vc:optional-with-multiple-types - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelperOptionalParam.__Generated__OptionalWithMultipleTypesViewComponentTagHelper

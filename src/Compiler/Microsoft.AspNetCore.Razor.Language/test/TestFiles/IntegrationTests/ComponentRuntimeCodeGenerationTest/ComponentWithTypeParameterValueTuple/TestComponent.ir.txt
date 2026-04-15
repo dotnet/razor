@@ -10,13 +10,13 @@
                 MarkupBlock -  - <h1>Item</h1>\n\n
                 MarkupElement - (98:6,0 [27] x:\dir\subdir\Test\TestComponent.cshtml) - p
                     CSharpExpression - (102:6,4 [19] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (102:6,4 [19] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildContent(Item1)
+                        IntermediateToken - (102:6,4 [19] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildContent(Item1)
                 CSharpCode - (130:8,1 [33] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (130:8,1 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - foreach (var item in Items2)\n{\n
+                    IntermediateToken - (130:8,1 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - foreach (var item in Items2)\n{\n
                 MarkupElement - (167:10,4 [26] x:\dir\subdir\Test\TestComponent.cshtml) - p
                     CSharpExpression - (171:10,8 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (171:10,8 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildContent(item)
+                        IntermediateToken - (171:10,8 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildContent(item)
                 CSharpCode - (195:11,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (195:11,0 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - }\n
+                    IntermediateToken - (195:11,0 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - }\n
             CSharpCode - (207:13,7 [215] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (207:13,7 [215] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public (TItem1, TItem2) Item1 { get; set; }\n    [Parameter] public List<(TItem1, TItem2)> Items2 { get; set; }\n    [Parameter] public RenderFragment<(TItem1, TItem2)> ChildContent { get; set; }\n
+                IntermediateToken - (207:13,7 [215] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public (TItem1, TItem2) Item1 { get; set; }\n    [Parameter] public List<(TItem1, TItem2)> Items2 { get; set; }\n    [Parameter] public RenderFragment<(TItem1, TItem2)> ChildContent { get; set; }\n

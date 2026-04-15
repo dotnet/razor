@@ -36,11 +36,11 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (81:3,0 [2] Implements_Multiple.cshtml)
-                    LazyIntermediateToken - (81:3,0 [2] Implements_Multiple.cshtml) - Html - \n
+                    IntermediateToken - (81:3,0 [2] Implements_Multiple.cshtml) - Html - \n
                 HtmlContent - (234:10,1 [2] Implements_Multiple.cshtml)
-                    LazyIntermediateToken - (234:10,1 [2] Implements_Multiple.cshtml) - Html - \n
+                    IntermediateToken - (234:10,1 [2] Implements_Multiple.cshtml) - Html - \n
             CSharpCode - (95:4,12 [138] Implements_Multiple.cshtml)
-                LazyIntermediateToken - (95:4,12 [138] Implements_Multiple.cshtml) - CSharp - \n    void IDisposable.Dispose() { }\n\n    bool IEquatable<string>.Equals(string x) => false;\n\n    object ICloneable.Clone() => this;\n
+                IntermediateToken - (95:4,12 [138] Implements_Multiple.cshtml) - CSharp - \n    void IDisposable.Dispose() { }\n\n    bool IEquatable<string>.Equals(string x) => false;\n\n    object ICloneable.Clone() => this;\n
             Inject - 
             Inject - 
             Inject - 

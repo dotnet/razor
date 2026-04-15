@@ -16,12 +16,12 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (0:0,0 [26] x:\dir\subdir\Test\TestComponent.cshtml) - strong
                     CSharpExpression - (9:0,9 [8] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (9:0,9 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - TestBool
+                        IntermediateToken - (9:0,9 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - TestBool
                 HtmlContent - (26:0,26 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (26:0,26 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (26:0,26 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
                 Component - (30:2,0 [26] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     ComponentAttribute -  - TestBool - TestBool - AttributeStructure.Minimized
                 HtmlContent - (56:2,26 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (56:2,26 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (56:2,26 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (67:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (67:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public bool TestBool { get; set; }\n
+                IntermediateToken - (67:4,7 [59] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public bool TestBool { get; set; }\n

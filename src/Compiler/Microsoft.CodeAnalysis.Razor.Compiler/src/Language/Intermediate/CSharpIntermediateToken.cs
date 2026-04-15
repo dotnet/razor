@@ -9,9 +9,4 @@ public sealed class CSharpIntermediateToken : IntermediateToken
         : base(content, source)
     {
     }
-
-    internal CSharpIntermediateToken(LazyContent content, SourceSpan? source)
-        : base(content, source)
-    {
-    }
 }

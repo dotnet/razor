@@ -14,7 +14,7 @@
         ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ParserError - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 CSharpCode - (2:0,2 [31] ParserError.cshtml)
-                    LazyIntermediateToken - (2:0,2 [31] ParserError.cshtml) - CSharp - \n/*\nint i =10;\nint j =20;\n}
+                    IntermediateToken - (2:0,2 [31] ParserError.cshtml) - CSharp - \n/*\nint i =10;\nint j =20;\n}
             Inject - 
             Inject - 
             Inject - 

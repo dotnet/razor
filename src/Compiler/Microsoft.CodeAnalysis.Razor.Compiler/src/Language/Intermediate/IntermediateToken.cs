@@ -5,30 +5,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public abstract class IntermediateToken : IntermediateNode
 {
-    public bool IsLazy { get; }
-
-    private object _content;
+    private string _content;
 
     public string Content
-        => _content is LazyContent lazy ? lazy.Value : (string)_content;
+        => _content;
 
     public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
 
     protected IntermediateToken(string content, SourceSpan? source)
     {
         _content = content;
-        IsLazy = false;
-
-        if (source != null)
-        {
-            Source = source;
-        }
-    }
-
-    private protected IntermediateToken(LazyContent content, SourceSpan? source)
-    {
-        _content = content;
-        IsLazy = true;
 
         if (source != null)
         {

@@ -15,4 +15,4 @@
                     ComponentTypeArgument - (13:0,13 [8] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
                         IntermediateToken - (13:0,13 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - DateTime
                     ComponentAttribute - (30:0,30 [26] x:\dir\subdir\Test\TestComponent.cshtml) - Items - Items - AttributeStructure.DoubleQuotes
-                        LazyIntermediateToken - (32:0,32 [23] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Array.Empty<DateTime>()
+                        IntermediateToken - (32:0,32 [23] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Array.Empty<DateTime>()

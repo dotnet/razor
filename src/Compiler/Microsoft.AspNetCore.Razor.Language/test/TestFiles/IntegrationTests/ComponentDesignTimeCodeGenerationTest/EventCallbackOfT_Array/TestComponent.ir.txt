@@ -27,9 +27,9 @@
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - () => Selected
                 HtmlContent - (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (49:2,7 [64] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (49:2,7 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string[] Selected { get; set; } = Array.Empty<string>();\n
+                IntermediateToken - (49:2,7 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string[] Selected { get; set; } = Array.Empty<string>();\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0
