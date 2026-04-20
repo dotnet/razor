@@ -90,7 +90,17 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         // the approach in ComponentRuntimeNodeWriter. It is not a perfect mapping, but generally works:
         // - Common case: there is only a single C# node, so it maps correctly.
         // - Error cases: there are no C# children, so no pragma is emitted.
-        var firstCSharpChild = node.Children.OfType<CSharpIntermediateToken>().FirstOrDefault();
+        CSharpIntermediateToken firstCSharpChild = null;
+        var firstCSharpChildIndex = -1;
+        for (var i = 0; i < node.Children.Count; i++)
+        {
+            if (node.Children[i] is CSharpIntermediateToken csharpChild)
+            {
+                firstCSharpChild = csharpChild;
+                firstCSharpChildIndex = i;
+                break;
+            }
+        }
         using (context.BuildEnhancedLinePragma(firstCSharpChild?.Source, characterOffset))
         {
             context.CodeWriter.WriteStartMethodInvocation(WriteCSharpExpressionMethod);
@@ -103,25 +113,14 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
 
         // Render the remaining children. We still emit #line pragmas for the remaining C# tokens but
         // these won't actually generate any sequence points for debugging.
-        foreach (var child in node.Children)
+        if (firstCSharpChildIndex >= 0)
         {
-            if (child == firstCSharpChild)
-            {
-                continue;
-            }
-
-            if (child is CSharpIntermediateToken csharpToken)
-            {
-                using (context.BuildEnhancedLinePragma(csharpToken.Source))
-                {
-                    context.CodeWriter.Write(csharpToken.Content);
-                }
-            }
-            else
-            {
-                // There may be something else inside the expression like an extension node.
-                context.RenderNode(child);
-            }
+            WriteCSharpChildren(node.Children, context, startIndex: 0, endIndex: firstCSharpChildIndex);
+            WriteCSharpChildren(node.Children, context, startIndex: firstCSharpChildIndex + 1);
+        }
+        else
+        {
+            WriteCSharpChildren(node.Children, context);
         }
 
         context.CodeWriter.WriteEndMethodInvocation();
@@ -150,8 +149,14 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
     }
 
     private static void WriteCSharpChildren(IntermediateNodeCollection children, CodeRenderingContext context)
+        => WriteCSharpChildren(children, context, startIndex: 0, endIndex: children.Count);
+
+    private static void WriteCSharpChildren(IntermediateNodeCollection children, CodeRenderingContext context, int startIndex)
+        => WriteCSharpChildren(children, context, startIndex, endIndex: children.Count);
+
+    private static void WriteCSharpChildren(IntermediateNodeCollection children, CodeRenderingContext context, int startIndex, int endIndex)
     {
-        for (var i = 0; i < children.Count; i++)
+        for (var i = startIndex; i < endIndex; i++)
         {
             if (children[i] is CSharpIntermediateToken token)
             {
