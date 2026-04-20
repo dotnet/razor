@@ -115,6 +115,8 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         // these won't actually generate any sequence points for debugging.
         if (firstCSharpChildIndex >= 0)
         {
+            // The first C# child is already written inside Write(...); render everything else around it.
+            // This first range is intentionally empty when firstCSharpChildIndex == 0.
             WriteCSharpChildren(node.Children, context, startIndex: 0, endIndex: firstCSharpChildIndex);
             WriteCSharpChildren(node.Children, context, startIndex: firstCSharpChildIndex + 1);
         }
