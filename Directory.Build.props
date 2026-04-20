@@ -27,6 +27,7 @@
     <EnableWindowsTargeting Condition="'$(DotNetBuildFromSource)' != 'true'">true</EnableWindowsTargeting>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+    <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.14.0</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
 
     <SharedSourceRoot>$(MSBuildThisFileDirectory)src\Shared\</SharedSourceRoot>
 

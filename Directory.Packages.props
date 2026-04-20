@@ -54,7 +54,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit" Version="1.1.2-beta1.24121.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces" Version="$(MicrosoftCodeAnalysisWorkspacesPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(MicrosoftCodeAnalysisWorkspacesCommonPackageVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="$(MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion)" />
     <PackageVersion Include="Microsoft.CommonLanguageServerProtocol.Framework" Version="$(MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion)" PrivateAssets="all" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.Css.Parser" Version="1.0.0-20230414.1" />
