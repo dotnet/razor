@@ -615,15 +615,8 @@ internal partial class CSharpFormattingPass
                 // about single-line elements here, because these Visit methods only ever see the first node on a line.
                 _builder.Append('}');
 
-                // If this is the last line of a multi-line CSharp template (ie, RenderFragment), and the semicolon that ends
-                // if is on the same line, then we need to close out the lambda expression that we started when we opened it.
-                // If the semicolon is on the next line, then we'll take care of that when we get to it.
-                if (node.Parent.Parent.Parent is CSharpTemplateBlockSyntax template &&
-                    GetLineNumber(template.GetLastToken()) == GetLineNumber(_currentToken) &&
-                    GetLineNumber(template.GetFirstToken()) != GetLineNumber(template.GetLastToken()) &&
-                    template.GetLastToken().GetNextToken() is { } semiColonToken &&
-                    semiColonToken.Content == ";" &&
-                    GetLineNumber(semiColonToken) == GetLineNumber(_currentToken))
+                // Close multiline template lambdas when the template ends on this line.
+                if (TryGetMultilineTemplateClosure(node, out var appendSemicolon) && appendSemicolon)
                 {
                     _builder.Append(';');
                 }
@@ -743,6 +736,14 @@ internal partial class CSharpFormattingPass
                 if (RazorSyntaxFacts.IsAttributeName(node, out var startTag))
                 {
                     GetAttributeIndentation(startTag, out var htmlIndentLevel, out var additionalIndentation);
+
+                    // Self-closing tags can be the last line of a multiline template, so emit the synthetic close here.
+                    if (startTag.IsSelfClosing() &&
+                        GetLineNumber(startTag.CloseAngle) == _currentLine.LineNumber &&
+                        TryGetMultilineTemplateClosure(startTag, out _))
+                    {
+                        return EmitSyntheticLambdaBodyCloseLine(startTag, htmlIndentLevel, additionalIndentation);
+                    }
 
                     if (ElementHasSignificantWhitespace(startTag) &&
                         GetLineNumber(node) == GetLineNumber(startTag.CloseAngle))
@@ -1147,6 +1148,21 @@ internal partial class CSharpFormattingPass
                 return CreateLineInfo(skipNextLineIfBrace: true);
             }
 
+            private LineInfo EmitSyntheticLambdaBodyCloseLine(BaseMarkupStartTagSyntax startTag, int htmlIndentLevel, int? additionalIndentation)
+            {
+                _builder.Append('}');
+
+                // Preserve trailing C# like `/>);` for self-closing multiline templates.
+                var closeAngleEnd = startTag.CloseAngle.Position + startTag.CloseAngle.Content.Length;
+                if (closeAngleEnd < _currentLine.End)
+                {
+                    _builder.Append(_sourceText.ToString(TextSpan.FromBounds(closeAngleEnd, _currentLine.End)));
+                }
+
+                _builder.AppendLine();
+                return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
+            }
+
             private int AppendSyntheticLambdaBodyStart()
             {
                 _builder.AppendLine(SyntheticLambdaBodyStart);
@@ -1161,6 +1177,39 @@ internal partial class CSharpFormattingPass
                 return _csharpSyntaxFormattingOptions?.NewLines.IsFlagSet(RazorNewLinePlacement.BeforeOpenBraceInLambdaExpressionBody) ?? true
                     ? SyntheticLambdaSignatureLength
                     : SyntheticLambdaBodyStart.Length;
+            }
+
+            private bool TryGetMultilineTemplateClosure(RazorSyntaxNode node, out bool appendSemicolon)
+            {
+                appendSemicolon = false;
+
+                // Only the last line of a multiline C# template closes the synthetic lambda body.
+                if (GetContainingTemplate(node) is not { } template ||
+                    GetLineNumber(template.GetFirstToken()) == GetLineNumber(template.GetLastToken()) ||
+                    GetLineNumber(template.GetLastToken()) != _currentLine.LineNumber)
+                {
+                    return false;
+                }
+
+                // Preserve a same-line semicolon when the template ends as `</div>);` or `/>);`.
+                appendSemicolon = template.GetLastToken().GetNextToken() is { } semiColonToken &&
+                    semiColonToken.Content == ";" &&
+                    GetLineNumber(semiColonToken) == _currentLine.LineNumber;
+
+                return true;
+            }
+
+            private static CSharpTemplateBlockSyntax? GetContainingTemplate(RazorSyntaxNode node)
+            {
+                for (var current = node; current is not null; current = current.Parent as RazorSyntaxNode)
+                {
+                    if (current is CSharpTemplateBlockSyntax template)
+                    {
+                        return template;
+                    }
+                }
+
+                return null;
             }
 
             private LineInfo EmitOpenBraceLine()

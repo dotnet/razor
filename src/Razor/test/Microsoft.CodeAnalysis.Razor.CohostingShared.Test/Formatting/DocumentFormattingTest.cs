@@ -10535,6 +10535,133 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13064")]
+    public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @code {
+                    private async Task FluentAutocomplete_SetParametersAsync_SelectedItemChanged_SyncsInternalState()
+                    {
+                        // Arrange - Render with SelectedItem = "Three"
+                        var cut = Render(@<FluentAutocomplete Id="my-list"
+                                                    TOption="string"
+                                                    TValue="string"
+                                                    Multiple="false"
+                                                    Items="@Digits"
+                                                SelectedItem="@("Three")" />);
+
+                        // Verify initial state: "Three" is displayed
+                        var badge = cut.Find("span.fluent-badge[alone]");
+                        Assert.Equal("Three", badge.GetAttribute("title"));
+
+                        // Act - Change the SelectedItem parameter externally to "Six"
+                        // This triggers SetParametersAsync where newSelectedItem ("Six") != currentSelectedItem ("Three")
+                        var component = cut.FindComponent<FluentAutocomplete<string, string>>().Instance;
+                        var newParameters = ParameterView.FromDictionary(new Dictionary<string, object?>
+                        {
+                        { nameof(FluentAutocomplete<string, string>.SelectedItem), "Six" }
+                        });
+                        await cut.InvokeAsync(() => component.SetParametersAsync(newParameters));
+
+                        // Assert - The badge now shows "Six" (internal state was synced)
+                        badge = cut.Find("span.fluent-badge[alone]");
+                        Assert.Equal("Six", badge.GetAttribute("title"));
+
+                        // Only one badge should be present
+                        var badges = cut.FindAll("span.fluent-badge");
+                        Assert.Single(badges);
+
+                        // Verify internal state
+                        Assert.Equal("Six", component.SelectedItem);
+                        Assert.Single(component.SelectedItems);
+                        Assert.Contains("Six", component.SelectedItems);
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                    private async Task FluentAutocomplete_SetParametersAsync_SelectedItemChanged_SyncsInternalState()
+                    {
+                        // Arrange - Render with SelectedItem = "Three"
+                        var cut = Render(@<FluentAutocomplete Id="my-list"
+                        TOption="string"
+                        TValue="string"
+                        Multiple="false"
+                        Items="@Digits"
+                        SelectedItem="@("Three")" />);
+
+                        // Verify initial state: "Three" is displayed
+                        var badge = cut.Find("span.fluent-badge[alone]");
+                        Assert.Equal("Three", badge.GetAttribute("title"));
+
+                        // Act - Change the SelectedItem parameter externally to "Six"
+                        // This triggers SetParametersAsync where newSelectedItem ("Six") != currentSelectedItem ("Three")
+                        var component = cut.FindComponent<FluentAutocomplete<string, string>>().Instance;
+                        var newParameters = ParameterView.FromDictionary(new Dictionary<string, object?>
+                        {
+                        { nameof(FluentAutocomplete<string, string>.SelectedItem), "Six" }
+                        });
+                        await cut.InvokeAsync(() => component.SetParametersAsync(newParameters));
+
+                        // Assert - The badge now shows "Six" (internal state was synced)
+                        badge = cut.Find("span.fluent-badge[alone]");
+                        Assert.Equal("Six", badge.GetAttribute("title"));
+
+                        // Only one badge should be present
+                        var badges = cut.FindAll("span.fluent-badge");
+                        Assert.Single(badges);
+
+                        // Verify internal state
+                        Assert.Equal("Six", component.SelectedItem);
+                        Assert.Single(component.SelectedItems);
+                        Assert.Contains("Six", component.SelectedItems);
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private async Task FluentAutocomplete_SetParametersAsync_SelectedItemChanged_SyncsInternalState()
+                    {
+                        // Arrange - Render with SelectedItem = "Three"
+                        var cut = Render(@<FluentAutocomplete Id="my-list"
+                                                                  TOption="string"
+                                                                  TValue="string"
+                                                                  Multiple="false"
+                                                                  Items="@Digits"
+                                                              SelectedItem="@("Three")" />);
+
+                        // Verify initial state: "Three" is displayed
+                        var badge = cut.Find("span.fluent-badge[alone]");
+                        Assert.Equal("Three", badge.GetAttribute("title"));
+
+                        // Act - Change the SelectedItem parameter externally to "Six"
+                        // This triggers SetParametersAsync where newSelectedItem ("Six") != currentSelectedItem ("Three")
+                        var component = cut.FindComponent<FluentAutocomplete<string, string>>().Instance;
+                        var newParameters = ParameterView.FromDictionary(new Dictionary<string, object?>
+                        {
+                        { nameof(FluentAutocomplete<string, string>.SelectedItem), "Six" }
+                        });
+                        await cut.InvokeAsync(() => component.SetParametersAsync(newParameters));
+
+                        // Assert - The badge now shows "Six" (internal state was synced)
+                        badge = cut.Find("span.fluent-badge[alone]");
+                        Assert.Equal("Six", badge.GetAttribute("title"));
+
+                        // Only one badge should be present
+                        var badges = cut.FindAll("span.fluent-badge");
+                        Assert.Single(badges);
+
+                        // Verify internal state
+                        Assert.Equal("Six", component.SelectedItem);
+                        Assert.Single(component.SelectedItems);
+                        Assert.Contains("Six", component.SelectedItems);
+                    }
+                }
+                """);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/9119")]
     public async Task CollectionInitializers()
     {
