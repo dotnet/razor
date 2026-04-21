@@ -1161,7 +1161,10 @@ internal partial class CSharpFormattingPass
                 }
 
                 _builder.AppendLine();
-                return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
+
+                // Roslyn indents the synthetic `}` one level shallower than the attribute lines it closes, so compensate
+                // here to keep the last attribute aligned with the preceding ones when we map indentation back to Razor.
+                return CreateLineInfo(htmlIndentLevel: htmlIndentLevel + 1, additionalIndentation: additionalIndentation);
             }
 
             private int AppendSyntheticLambdaBodyStart()

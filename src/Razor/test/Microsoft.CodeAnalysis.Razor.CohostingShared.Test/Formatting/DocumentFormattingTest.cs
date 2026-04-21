@@ -10545,11 +10545,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     private void RenderFragment_First()
                     {
                         Render(@<FluentAutocomplete Id="my-list"
-                                                    TOption="string"
-                                                    TValue="string"
-                                                    Multiple="false"
-                                                    Items="@Digits"
-                                                    SelectedItem="@("Three")" />);
+                                        TOption="string"
+                                TValue="string"
+                                              Multiple="false"
+                                   Items="@Digits"
+                                              SelectedItem="@("Three")" />);
                     }
 
                     [Fact]
@@ -10563,12 +10563,13 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     [Fact]
                     private void RenderFragment_First()
                     {
-                        Render(@<FluentAutocomplete Id="my-list"
-                        TOption="string"
-                        TValue="string"
-                        Multiple="false"
-                        Items="@Digits"
-                        SelectedItem="@("Three")" />);
+                        Render(@
+                <FluentAutocomplete Id="my-list"
+                                    TOption="string"
+                                    TValue="string"
+                                    Multiple="false"
+                                    Items="@Digits"
+                                    SelectedItem="@("Three")" />);
                     }
 
                     [Fact]
@@ -10583,11 +10584,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     private void RenderFragment_First()
                     {
                         Render(@<FluentAutocomplete Id="my-list"
-                                                    TOption="string"
-                                                    TValue="string"
-                                                    Multiple="false"
-                                                    Items="@Digits"
-                                                    SelectedItem="@("Three")" />);
+                                                        TOption="string"
+                                                        TValue="string"
+                                                        Multiple="false"
+                                                        Items="@Digits"
+                                                        SelectedItem="@("Three")" />);
                     }
 
                     [Fact]
