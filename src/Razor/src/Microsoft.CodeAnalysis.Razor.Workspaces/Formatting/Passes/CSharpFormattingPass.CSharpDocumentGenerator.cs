@@ -1152,7 +1152,8 @@ internal partial class CSharpFormattingPass
             {
                 _builder.Append('}');
 
-                // Preserve trailing C# like `/>);` for self-closing multiline templates.
+                // Preserve any same-line C# that follows the self-closing tag, such as the `);` in
+                // `Render(@<Component />);`.
                 var closeAngleEnd = startTag.CloseAngle.Position + startTag.CloseAngle.Content.Length;
                 if (closeAngleEnd < _currentLine.End)
                 {
