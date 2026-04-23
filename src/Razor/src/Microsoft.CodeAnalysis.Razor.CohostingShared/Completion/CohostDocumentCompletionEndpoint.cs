@@ -146,10 +146,17 @@ internal sealed class CohostDocumentCompletionEndpoint(
         {
             htmlCompletionList = await GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken).ConfigureAwait(false);
 
-            if (htmlCompletionList is not null)
+            if (htmlCompletionList is { IsIncomplete: true, Items: [] })
             {
-                existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
+                // HTML server failed to respond (e.g., not yet initialized on first document open).
+                // Return the incomplete empty list directly so the client retries, rather than
+                // continuing to merge with Razor results and showing partial Razor-only items
+                // that could cause the user to accidentally commit a wrong item.
+                _logger.LogDebug($"HTML completion failed for {razorDocument.FilePath}, returning incomplete list");
+                return htmlCompletionList;
             }
+
+            existingHtmlCompletions.UnionWith(htmlCompletionList.Items.Select(i => i.Label));
         }
 
         _logger.LogDebug($"Calling OOP to get completion items at {request.Position} invoked by typing '{request.Context?.TriggerCharacter}'");
@@ -207,7 +214,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
         return combinedCompletionList;
     }
 
-    private async Task<RazorVSInternalCompletionList?> GetHtmlCompletionListAsync(
+    private async Task<RazorVSInternalCompletionList> GetHtmlCompletionListAsync(
         RazorVSInternalCompletionParams completionParams,
         TextDocument razorDocument,
         RazorCompletionOptions razorCompletionOptions,

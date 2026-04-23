@@ -428,6 +428,66 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    public async Task HtmlCompletionFailure_ReturnsIncompleteEmptyList()
+    {
+        // When the HTML language server fails to respond (e.g., not yet initialized on first document open),
+        // we should return an empty IsIncomplete list so the client retries, rather than showing partial
+        // Razor-only results that could cause the user to accidentally commit a wrong item.
+        var input = new TestCode("""
+            This is a Razor document.
+
+            <$$
+
+            The end.
+            """);
+
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var sourceText = await document.GetTextAsync(DisposalToken);
+
+        // Use a TestHtmlRequestInvoker that returns null (simulating HTML server not ready)
+        var requestInvoker = new TestHtmlRequestInvoker((Methods.TextDocumentCompletionName, (object?)null));
+
+#if VSCODE
+        ISnippetCompletionItemProvider? snippetCompletionItemProvider = null;
+#else
+        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(new SnippetCache());
+#endif
+
+        var completionListCache = new CompletionListCache();
+        var endpoint = new CohostDocumentCompletionEndpoint(
+            IncompatibleProjectService,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            ClientCapabilitiesService,
+            snippetCompletionItemProvider,
+            requestInvoker,
+            completionListCache,
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+
+        var request = new RazorVSInternalCompletionParams()
+        {
+            TextDocument = new TextDocumentIdentifier()
+            {
+                DocumentUri = document.CreateDocumentUri()
+            },
+            Position = sourceText.GetPosition(input.Position),
+            Context = new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            }
+        };
+
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsIncomplete);
+        Assert.Empty(result.Items);
+    }
+
+    [Fact]
     public async Task Component_FullyQualified()
     {
         await VerifyCompletionListAsync(
