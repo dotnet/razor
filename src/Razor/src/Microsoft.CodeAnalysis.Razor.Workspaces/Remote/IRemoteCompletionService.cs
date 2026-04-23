@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -27,7 +26,6 @@ internal interface IRemoteCompletionService : IRemoteJsonService
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
-        HashSet<string> existingHtmlCompletions,
         Guid correlationId,
         CancellationToken cancellationToken);
 

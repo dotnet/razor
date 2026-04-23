@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
@@ -92,7 +93,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
-        HashSet<string> existingHtmlCompletions,
         Guid correlationId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -103,7 +103,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 positionInfo,
                 completionContext,
                 razorCompletionOptions,
-                existingHtmlCompletions,
                 correlationId,
                 cancellationToken),
             cancellationToken);
@@ -113,7 +112,6 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
-        HashSet<string> existingDelegatedCompletions,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
@@ -153,24 +151,24 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 positionInfo.ProvisionalTextEdit,
                 cancellationToken)
                 .ConfigureAwait(false);
-
-            if (csharpCompletionList is not null)
-            {
-                Debug.Assert(existingDelegatedCompletions.Count == 0, "Delegated completion should be either C# or HTML, not both");
-                existingDelegatedCompletions.UnionWith(csharpCompletionList.Items.Select((item) => item.Label));
-            }
         }
 
         RazorVSInternalCompletionList? razorCompletionList = null;
 
         if (isRazorTrigger)
         {
+            using var _ = HashSetPool<string>.GetPooledObject(out var existingCompletions);
+            if (csharpCompletionList is not null)
+            {
+                existingCompletions.UnionWith(csharpCompletionList.Items.Select((item) => item.Label));
+            }
+
             razorCompletionList = _razorCompletionListProvider.GetCompletionList(
                 codeDocument,
                 documentPositionInfo.HostDocumentIndex,
                 completionContext,
                 _clientCapabilitiesService.ClientCapabilities,
-                existingCompletions: existingDelegatedCompletions,
+                existingCompletions,
                 razorCompletionOptions);
         }
 
