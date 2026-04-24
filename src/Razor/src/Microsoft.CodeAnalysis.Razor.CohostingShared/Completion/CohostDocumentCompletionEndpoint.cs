@@ -217,40 +217,19 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
     /// <summary>
     /// Merges up to three completion lists: HTML, Razor (C# + Razor items), and Razor HTML-dependent
-    /// (tag helper element completions). Razor items are deduped against HTML labels before merging.
-    /// Any null lists are skipped.
+    /// (tag helper element completions).
     /// </summary>
+    /// <remarks>
+    /// No dedup is performed here. The only label-based filtering happens inside
+    /// <see cref="TagHelperCompletionService.GetElementCompletions"/>, which uses HTML labels
+    /// as an inclusion filter (not for dedup) to decide which tag helpers to offer.
+    /// That filtering is handled by phase 2 via <see cref="RazorHtmlDependentCompletionContext.HtmlLabels"/>.
+    /// </remarks>
     private static RazorVSInternalCompletionList? MergeCompletionLists(
         RazorVSInternalCompletionList? htmlCompletionList,
         RazorVSInternalCompletionList? razorCompletionList,
         RazorVSInternalCompletionList? razorHtmlDependentCompletionList)
     {
-        // When HTML is present, remove any Razor items whose labels duplicate HTML items.
-        if (htmlCompletionList is not null && razorCompletionList is not null)
-        {
-            using var _ = HashSetPool<string>.GetPooledObject(out var htmlLabels);
-            foreach (var item in htmlCompletionList.Items)
-            {
-                htmlLabels.Add(item.Label);
-            }
-
-            var duplicateCount = razorCompletionList.Items.Count(htmlLabels, static (item, htmlLabels) => htmlLabels.Contains(item.Label));
-            if (duplicateCount > 0)
-            {
-                var filtered = new VSInternalCompletionItem[razorCompletionList.Items.Length - duplicateCount];
-                var index = 0;
-                foreach (var item in razorCompletionList.Items)
-                {
-                    if (!htmlLabels.Contains(item.Label))
-                    {
-                        filtered[index++] = item;
-                    }
-                }
-
-                razorCompletionList.Items = filtered;
-            }
-        }
-
         // Merge all non-null lists together. Razor lists are passed as the first argument to
         // CompletionListMerger.Merge so their commit characters take precedence at the list
         // level, matching the pre-parallel behavior where the Razor list was always first.

@@ -188,36 +188,6 @@ internal static class ReadOnlyListExtensions
     }
 
     /// <summary>
-    ///  Returns the number of elements in a list that satisfy a condition.
-    /// </summary>
-    /// <param name="list">
-    ///  An <see cref="IReadOnlyList{T}"/> whose elements to apply the predicate to.
-    /// </param>
-    /// <param name="arg">
-    ///  An argument to pass to <paramref name="predicate"/>.
-    /// </param>
-    /// <param name="predicate">
-    ///  A function to test each element for a condition.
-    /// </param>
-    /// <returns>
-    ///  The number of elements in the list that satisfy the condition in the predicate.
-    /// </returns>
-    public static int Count<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
-    {
-        var count = 0;
-
-        foreach (var item in list.AsEnumerable())
-        {
-            if (predicate(item, arg))
-            {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    /// <summary>
     ///  Determines whether all elements of a list satisfy a condition.
     /// </summary>
     /// <param name="list">

@@ -83,8 +83,10 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
-            // Element completions are handled by GetHtmlDependentCompletionItems in phase 2,
-            // where HTML labels are available for deduplication.
+            // Element completions are handled by GetHtmlDependentCompletionItems in phase 2.
+            // This branch should not be reached because NeedsHtmlCompletions returns true
+            // for element positions, causing the caller to skip this method.
+            Debug.Fail("GetCompletionItems should not be called for element positions.");
             return [];
         }
 

@@ -37,7 +37,7 @@ internal static class CompletionListMerger
         EnsureMergeableData(razorCompletionList, delegatedCompletionList);
 
         var mergedIsIncomplete = razorCompletionList.IsIncomplete || delegatedCompletionList.IsIncomplete;
-        var mergedItems = [.. razorCompletionList.Items, .. delegatedCompletionList.Items];
+        VSInternalCompletionItem[] mergedItems = [.. razorCompletionList.Items, .. delegatedCompletionList.Items];
         var mergedData = MergeData(razorCompletionList.Data, delegatedCompletionList.Data);
         var mergedCommitCharacters = razorCompletionList.CommitCharacters
             ?? delegatedCompletionList.CommitCharacters;
