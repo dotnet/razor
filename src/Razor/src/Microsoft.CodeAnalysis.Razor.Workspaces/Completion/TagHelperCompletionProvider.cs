@@ -17,7 +17,7 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider
+internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider, IHtmlDependentCompletionItemProvider
 {
     // Internal for testing
     internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = RazorCommitCharacter.CreateArray(["=", " "]);
@@ -29,7 +29,17 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
 
     private readonly ITagHelperCompletionService _tagHelperCompletionService = tagHelperCompletionService;
 
-    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public bool NeedsHtmlCompletions(RazorCompletionContext context)
+    {
+        // Only the element completion path uses HTML labels to decide which tag helpers to
+        // surface. The attribute path does not depend on HTML labels at all.
+        var owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(context.Owner);
+        return owner is not null
+            && HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _)
+            && containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex);
+    }
+
+    public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)
     {
         var owner = context.Owner;
         if (owner is null)
@@ -47,11 +57,35 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
-            // Trying to complete the element type
             var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
             var containingElement = owner.Parent;
-            var elementCompletions = GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context);
-            return elementCompletions;
+            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, context.HtmlLabels);
+        }
+
+        return [];
+    }
+
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    {
+        var owner = context.Owner;
+        if (owner is null)
+        {
+            Debug.Fail("Owner should never be null.");
+            return [];
+        }
+
+        owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(owner);
+        if (owner is null)
+        {
+            return [];
+        }
+
+        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _) &&
+            containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
+        {
+            // Element completions are handled by GetHtmlDependentCompletionItems in phase 2,
+            // where HTML labels are available for deduplication.
+            return [];
         }
 
         if (HtmlFacts.TryGetAttributeInfo(
@@ -60,7 +94,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
                 out var prefixLocation,
                 out var selectedAttributeName,
                 out var selectedAttributeNameLocation,
-                out attributes) &&
+                out var attributes) &&
             (selectedAttributeName is null ||
             selectedAttributeNameLocation?.IntersectsWith(context.AbsoluteIndex) == true ||
             (prefixLocation?.IntersectsWith(context.AbsoluteIndex) ?? false)))
@@ -207,13 +241,14 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         RazorSyntaxNode containingElement,
         string containingTagName,
         ImmutableArray<KeyValuePair<string, string>> attributes,
-        RazorCompletionContext context)
+        RazorCompletionContext context,
+        HashSet<string> htmlLabels)
     {
         var ancestors = containingElement.Ancestors();
         var (ancestorTagName, ancestorIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
         var elementCompletionContext = new ElementCompletionContext(
             context.TagHelperDocumentContext,
-            context.ExistingCompletions,
+            htmlLabels,
             containingTagName,
             attributes,
             ancestorTagName,

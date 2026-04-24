@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -21,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using CompletionResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.Completion.CompletionResult>;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.RazorVSInternalCompletionList?>;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -136,7 +136,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
         _logger.LogDebug($"Calling OOP to get completion items at {request.Position} invoked by typing '{request.Context?.TriggerCharacter}'");
 
-        var razorCompletionTask = _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, Response>(
+        var razorCompletionTask = _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, CompletionResponse>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
                 => service.GetCompletionAsync(
@@ -154,8 +154,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
             _triggerAndCommitCharacters.IsValidHtmlTrigger(completionContext))
         {
             // Fire HTML request concurrently with the OOP request already in flight.
-            // The OOP call no longer receives existing HTML labels for dedup — we handle
-            // that in the merge step below.
+            // Phase 1 OOP call excludes providers that need HTML labels (e.g., tag helper
+            // element completions). After HTML completes, a lightweight phase 2 OOP call
+            // runs only those providers with the HTML labels available.
             var htmlTask = GetHtmlCompletionListAsync(request, razorDocument, razorCompletionOptions, correlationId, cancellationToken);
 
             await Task.WhenAll(htmlTask, razorCompletionTask).ConfigureAwait(false);
@@ -173,22 +174,26 @@ internal sealed class CohostDocumentCompletionEndpoint(
             }
         }
 
-        var data = await razorCompletionTask.ConfigureAwait(false);
+        var razorCompletionResponse = await razorCompletionTask.ConfigureAwait(false);
 
-        if (data.StopHandling)
+        if (razorCompletionResponse.StopHandling)
         {
             return null;
         }
 
-        var combinedCompletionList = htmlCompletionList;
-        if (htmlCompletionList is null)
+        var razorCompletionResult = razorCompletionResponse.Result;
+
+        // If HTML completed successfully and the initial Razor call indicated that some providers
+        // were skipped because they need HTML labels, run those providers now.
+        RazorVSInternalCompletionList? razorHtmlDependentCompletionList = null;
+        if (htmlCompletionList is not null && razorCompletionResult.NeedsHtmlDependentPhase)
         {
-            combinedCompletionList = data.Result;
+            razorHtmlDependentCompletionList = await GetHtmlDependentCompletionsAsync(
+                htmlCompletionList, razorDocument, completionPositionInfo,
+                completionContext, razorCompletionOptions, cancellationToken).ConfigureAwait(false);
         }
-        else if (data.Result is { } oopCompletionList)
-        {
-            combinedCompletionList = GetCombinedCompletionList(htmlCompletionList, oopCompletionList);
-        }
+
+        var combinedCompletionList = MergeCompletionLists(htmlCompletionList, razorCompletionResult.CompletionList, razorHtmlDependentCompletionList);
 
         if (completionPositionInfo.ShouldIncludeDelegationSnippets &&
             _snippetCompletionItemProvider is not null)
@@ -210,35 +215,86 @@ internal sealed class CohostDocumentCompletionEndpoint(
         return combinedCompletionList;
     }
 
-    private static RazorVSInternalCompletionList GetCombinedCompletionList(RazorVSInternalCompletionList htmlCompletionList, RazorVSInternalCompletionList oopCompletionList)
+    /// <summary>
+    /// Merges up to three completion lists: HTML, Razor (C# + Razor items), and Razor HTML-dependent
+    /// (tag helper element completions). Razor items are deduped against HTML labels before merging.
+    /// Any null lists are skipped.
+    /// </summary>
+    private static RazorVSInternalCompletionList? MergeCompletionLists(
+        RazorVSInternalCompletionList? htmlCompletionList,
+        RazorVSInternalCompletionList? razorCompletionList,
+        RazorVSInternalCompletionList? razorHtmlDependentCompletionList)
     {
-        // OOP no longer deduplicates against HTML labels, so remove any Razor items
-        // whose labels already appear in the HTML completion list before merging.
-        using var _ = HashSetPool<string>.GetPooledObject(out var htmlLabels);
-        foreach (var item in htmlCompletionList.Items)
+        // When HTML is present, remove any Razor items whose labels duplicate HTML items.
+        if (htmlCompletionList is not null && razorCompletionList is not null)
         {
-            htmlLabels.Add(item.Label);
-        }
-
-        // If there are any razor completion items matching an html completion item,
-        // then we need to remove them from oopCompletionList before merging.
-        var duplicateCount = oopCompletionList.Items.Count(htmlLabels, static (item, htmlLabels) => htmlLabels.Contains(item.Label));
-        if (duplicateCount > 0)
-        {
-            var filtered = new VSInternalCompletionItem[oopCompletionList.Items.Length - duplicateCount];
-            var index = 0;
-            foreach (var item in oopCompletionList.Items)
+            using var _ = HashSetPool<string>.GetPooledObject(out var htmlLabels);
+            foreach (var item in htmlCompletionList.Items)
             {
-                if (!htmlLabels.Contains(item.Label))
-                {
-                    filtered[index++] = item;
-                }
+                htmlLabels.Add(item.Label);
             }
 
-            oopCompletionList.Items = filtered;
+            var duplicateCount = razorCompletionList.Items.Count(htmlLabels, static (item, htmlLabels) => htmlLabels.Contains(item.Label));
+            if (duplicateCount > 0)
+            {
+                var filtered = new VSInternalCompletionItem[razorCompletionList.Items.Length - duplicateCount];
+                var index = 0;
+                foreach (var item in razorCompletionList.Items)
+                {
+                    if (!htmlLabels.Contains(item.Label))
+                    {
+                        filtered[index++] = item;
+                    }
+                }
+
+                razorCompletionList.Items = filtered;
+            }
         }
 
-        return CompletionListMerger.Merge(oopCompletionList, htmlCompletionList);
+        // Merge all non-null lists together. Razor lists are passed as the first argument to
+        // CompletionListMerger.Merge so their commit characters take precedence at the list
+        // level, matching the pre-parallel behavior where the Razor list was always first.
+        var result = CompletionListMerger.Merge(razorCompletionList, htmlCompletionList);
+        return CompletionListMerger.Merge(result, razorHtmlDependentCompletionList);
+    }
+
+    /// <summary>
+    /// Phase 2: runs only the HTML-dependent completion providers (e.g., tag helper element
+    /// completions) with the HTML labels available for deduplication.
+    /// </summary>
+    private async Task<RazorVSInternalCompletionList?> GetHtmlDependentCompletionsAsync(
+        RazorVSInternalCompletionList htmlCompletionList,
+        TextDocument razorDocument,
+        CompletionPositionInfo completionPositionInfo,
+        VSInternalCompletionContext completionContext,
+        RazorCompletionOptions razorCompletionOptions,
+        CancellationToken cancellationToken)
+    {
+        var htmlLabels = new string[htmlCompletionList.Items.Length];
+        for (var i = 0; i < htmlCompletionList.Items.Length; i++)
+        {
+            htmlLabels[i] = htmlCompletionList.Items[i].Label;
+        }
+
+        var htmlDependentResponse = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, Response>(
+            razorDocument.Project.Solution,
+            (service, solutionInfo, cancellationToken)
+                => service.GetHtmlDependentCompletionsAsync(
+                        solutionInfo,
+                        razorDocument.Id,
+                        completionPositionInfo,
+                        completionContext,
+                        razorCompletionOptions,
+                        htmlLabels,
+                        cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+
+        if (htmlDependentResponse is { StopHandling: false, Result: { } htmlDependentCompletionList })
+        {
+            return htmlDependentCompletionList;
+        }
+
+        return null;
     }
 
     private async Task<RazorVSInternalCompletionList?> GetHtmlCompletionListAsync(

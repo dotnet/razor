@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
@@ -329,7 +329,7 @@ public class RazorCompletionListProviderTest
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: cursorPosition, _defaultCompletionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: cursorPosition, _defaultCompletionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
 
@@ -357,7 +357,7 @@ public class RazorCompletionListProviderTest
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
@@ -387,7 +387,7 @@ public class RazorCompletionListProviderTest
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
@@ -415,7 +415,7 @@ public class RazorCompletionListProviderTest
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.Null(completionList);
@@ -440,7 +440,7 @@ public class RazorCompletionListProviderTest
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
@@ -464,8 +464,8 @@ public class RazorCompletionListProviderTest
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
 
         // Act
-        var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, _defaultCompletionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+        var completionList = provider.GetHtmlDependentCompletionList(
+            codeDocument, absoluteIndex: 1, _defaultCompletionContext, _clientCapabilities, _razorCompletionOptions, []);
 
         // Assert
         Assert.NotNull(completionList);
@@ -493,7 +493,7 @@ public class RazorCompletionListProviderTest
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 6, _defaultCompletionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 6, _defaultCompletionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
@@ -525,7 +525,7 @@ public class RazorCompletionListProviderTest
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 6, _defaultCompletionContext, _clientCapabilities, existingCompletions: null, razorCompletionOptions);
+            codeDocument, absoluteIndex: 6, _defaultCompletionContext, _clientCapabilities, razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);

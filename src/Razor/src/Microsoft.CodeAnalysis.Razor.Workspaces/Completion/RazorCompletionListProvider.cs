@@ -12,6 +12,10 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
+#pragma warning disable IDE0065 // Misplaced using directive
+using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+#pragma warning restore IDE0065 // Misplaced using directive
+
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class RazorCompletionListProvider(
@@ -29,13 +33,93 @@ internal class RazorCompletionListProvider(
     };
 
     // virtual for tests
-    public virtual RazorVSInternalCompletionList? GetCompletionList(
+    public virtual (RazorVSInternalCompletionList? CompletionList, bool NeedsHtmlDependentPhase) GetCompletionList(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
         VSInternalClientCapabilities clientCapabilities,
-        HashSet<string>? existingCompletions,
         RazorCompletionOptions completionOptions)
+    {
+        var razorCompletionContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
+
+        var (razorCompletionItems, needsHtmlDependentPhase) = _completionFactsService.GetCompletionItems(razorCompletionContext);
+
+        _logger.LogTrace($"Resolved {razorCompletionItems.Length} completion items.");
+
+        if (razorCompletionItems.Length == 0)
+        {
+            return (null, needsHtmlDependentPhase);
+        }
+
+        var completionList = CreateAndCacheCompletionList(codeDocument, razorCompletionItems, clientCapabilities);
+        return (completionList, needsHtmlDependentPhase);
+    }
+
+    // virtual for tests
+    public virtual RazorVSInternalCompletionList? GetHtmlDependentCompletionList(
+        RazorCodeDocument codeDocument,
+        int absoluteIndex,
+        VSInternalCompletionContext completionContext,
+        VSInternalClientCapabilities clientCapabilities,
+        RazorCompletionOptions completionOptions,
+        HashSet<string> htmlLabels)
+    {
+        var razorCompletionContext = CreateHtmlDependentCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions, htmlLabels);
+
+        var razorCompletionItems = _completionFactsService.GetHtmlDependentCompletionItems(razorCompletionContext);
+
+        _logger.LogTrace($"Resolved {razorCompletionItems.Length} HTML-dependent completion items.");
+
+        if (razorCompletionItems.Length == 0)
+        {
+            return null;
+        }
+
+        return CreateAndCacheCompletionList(codeDocument, razorCompletionItems, clientCapabilities);
+    }
+
+    private static RazorCompletionContext CreateCompletionContext(
+        RazorCodeDocument codeDocument,
+        int absoluteIndex,
+        VSInternalCompletionContext completionContext,
+        RazorCompletionOptions completionOptions)
+    {
+        var (reason, syntaxTree, tagHelperContext, owner) = ResolveCompletionParts(codeDocument, absoluteIndex, completionContext);
+
+        return new RazorCompletionContext(
+            codeDocument,
+            absoluteIndex,
+            owner,
+            syntaxTree,
+            tagHelperContext,
+            reason,
+            completionOptions);
+    }
+
+    private static RazorHtmlDependentCompletionContext CreateHtmlDependentCompletionContext(
+        RazorCodeDocument codeDocument,
+        int absoluteIndex,
+        VSInternalCompletionContext completionContext,
+        RazorCompletionOptions completionOptions,
+        HashSet<string> htmlLabels)
+    {
+        var (reason, syntaxTree, tagHelperContext, owner) = ResolveCompletionParts(codeDocument, absoluteIndex, completionContext);
+
+        return new RazorHtmlDependentCompletionContext(
+            codeDocument,
+            absoluteIndex,
+            owner,
+            syntaxTree,
+            tagHelperContext,
+            htmlLabels,
+            reason,
+            completionOptions);
+    }
+
+    private static (CompletionReason Reason, RazorSyntaxTree SyntaxTree, TagHelperDocumentContext TagHelperContext, RazorSyntaxNode? Owner) ResolveCompletionParts(
+        RazorCodeDocument codeDocument,
+        int absoluteIndex,
+        VSInternalCompletionContext completionContext)
     {
         var reason = completionContext.TriggerKind switch
         {
@@ -51,26 +135,14 @@ internal class RazorCompletionListProvider(
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
 
-        var razorCompletionContext = new RazorCompletionContext(
-            codeDocument,
-            absoluteIndex,
-            owner,
-            syntaxTree,
-            tagHelperContext,
-            reason,
-            completionOptions,
-            existingCompletions);
+        return (reason, syntaxTree, tagHelperContext, owner);
+    }
 
-        var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
-
-        _logger.LogTrace($"Resolved {razorCompletionItems.Length} completion items.");
-
-        // No point caching or setting data for an empty completion list.
-        if (razorCompletionItems.Length == 0)
-        {
-            return null;
-        }
-
+    private RazorVSInternalCompletionList CreateAndCacheCompletionList(
+        RazorCodeDocument codeDocument,
+        ImmutableArray<RazorCompletionItem> razorCompletionItems,
+        VSInternalClientCapabilities clientCapabilities)
+    {
         var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
 
         // The completion list is cached and can be retrieved via this result id to enable the resolve completion functionality.
