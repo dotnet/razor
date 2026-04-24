@@ -762,6 +762,8 @@ internal partial class CSharpFormattingPass
             {
                 additionalIndentation = 0;
                 var startTagAddsIndentation = ElementCausesIndentation(startTag) && !ElementHasSignificantWhitespace(startTag);
+                var firstAttribute = startTag.Attributes[0];
+                var firstAttributeNameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
 
                 if (_attributeIndentStyle == AttributeIndentStyle.IndentByOne)
                 {
@@ -776,17 +778,14 @@ internal partial class CSharpFormattingPass
                 else if (_attributeIndentStyle == AttributeIndentStyle.AlignWithFirst)
                 {
                     // Align attributes with the first attribute in their tag.
-                    var firstAttribute = startTag.Attributes[0];
-                    var nameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
-
                     // We need to line up with the first attribute, but the start tag might not be the first thing on the line,
                     // so it's really relative to the first non-whitespace character on the line. We use the line that the attribute
                     // is on, just in case it's not on the same line as the start tag.
-                    var lineStart = _sourceText.Lines[GetLineNumber(nameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(nameSpan.Start - lineStart, _tabSize, out additionalIndentation);
+                    var lineStart = _sourceText.Lines[GetLineNumber(firstAttributeNameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(firstAttributeNameSpan.Start - lineStart, _tabSize, out additionalIndentation);
 
                     if (startTagAddsIndentation &&
-                        GetLineNumber(nameSpan) == GetLineNumber(startTag.Name))
+                        GetLineNumber(firstAttributeNameSpan) == GetLineNumber(startTag.Name))
                     {
                         // If the element has caused indentation, then we'll want to take one level off our attribute indentation to
                         // compensate.
@@ -797,6 +796,27 @@ internal partial class CSharpFormattingPass
                 {
                     throw new InvalidOperationException($"Unknown attribute indentation style '{_attributeIndentStyle}'.");
                 }
+
+                if (TemplateStartAddsIndentation(startTag, firstAttributeNameSpan) && htmlIndentLevel > 0)
+                {
+                    // Inline multiline templates already contribute a continuation indent through the synthetic lambda body.
+                    htmlIndentLevel--;
+                }
+            }
+
+            private bool TemplateStartAddsIndentation(BaseMarkupStartTagSyntax startTag, TextSpan firstAttributeNameSpan)
+            {
+                if (GetContainingTemplate(startTag) is not { } template ||
+                    !_sourceText.GetLinePositionSpan(template.Span).SpansMultipleLines() ||
+                    GetLineNumber(template.GetFirstToken()) != GetLineNumber(startTag.Name) ||
+                    GetLineNumber(firstAttributeNameSpan) != GetLineNumber(startTag.Name))
+                {
+                    return false;
+                }
+
+                var templateLine = _sourceText.Lines[GetLineNumber(template.GetFirstToken())];
+                return templateLine.GetFirstNonWhitespacePosition() is int firstNonWhitespacePosition &&
+                    template.GetFirstToken().Position > firstNonWhitespacePosition;
             }
 
             public override LineInfo VisitMarkupTransition(MarkupTransitionSyntax node)
