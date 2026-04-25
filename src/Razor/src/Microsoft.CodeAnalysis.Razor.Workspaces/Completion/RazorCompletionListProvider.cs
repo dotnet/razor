@@ -12,10 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 
-#pragma warning disable IDE0065 // Misplaced using directive
-using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
-#pragma warning restore IDE0065 // Misplaced using directive
-
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class RazorCompletionListProvider(
@@ -42,17 +38,17 @@ internal class RazorCompletionListProvider(
     {
         var razorCompletionContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
 
-        var (razorCompletionItems, needsHtmlDependentPhase) = _completionFactsService.GetCompletionItems(razorCompletionContext);
+        var result = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
-        _logger.LogTrace($"Resolved {razorCompletionItems.Length} completion items.");
+        _logger.LogTrace($"Resolved {result.Items.Length} completion items.");
 
-        if (razorCompletionItems.Length == 0)
+        if (result.Items.Length == 0)
         {
-            return (null, needsHtmlDependentPhase);
+            return (null, result.AnyHtmlDependentSkipped);
         }
 
-        var completionList = CreateAndCacheCompletionList(codeDocument, razorCompletionItems, clientCapabilities);
-        return (completionList, needsHtmlDependentPhase);
+        var completionList = CreateAndCacheCompletionList(codeDocument, result.Items, clientCapabilities);
+        return (completionList, result.AnyHtmlDependentSkipped);
     }
 
     // virtual for tests
@@ -64,7 +60,8 @@ internal class RazorCompletionListProvider(
         RazorCompletionOptions completionOptions,
         HashSet<string> htmlLabels)
     {
-        var razorCompletionContext = CreateHtmlDependentCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions, htmlLabels);
+        var baseContext = CreateCompletionContext(codeDocument, absoluteIndex, completionContext, completionOptions);
+        var razorCompletionContext = new RazorHtmlDependentCompletionContext(baseContext, htmlLabels);
 
         var razorCompletionItems = _completionFactsService.GetHtmlDependentCompletionItems(razorCompletionContext);
 
@@ -84,43 +81,6 @@ internal class RazorCompletionListProvider(
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions completionOptions)
     {
-        var (reason, syntaxTree, tagHelperContext, owner) = ResolveCompletionParts(codeDocument, absoluteIndex, completionContext);
-
-        return new RazorCompletionContext(
-            codeDocument,
-            absoluteIndex,
-            owner,
-            syntaxTree,
-            tagHelperContext,
-            reason,
-            completionOptions);
-    }
-
-    private static RazorHtmlDependentCompletionContext CreateHtmlDependentCompletionContext(
-        RazorCodeDocument codeDocument,
-        int absoluteIndex,
-        VSInternalCompletionContext completionContext,
-        RazorCompletionOptions completionOptions,
-        HashSet<string> htmlLabels)
-    {
-        var (reason, syntaxTree, tagHelperContext, owner) = ResolveCompletionParts(codeDocument, absoluteIndex, completionContext);
-
-        return new RazorHtmlDependentCompletionContext(
-            codeDocument,
-            absoluteIndex,
-            owner,
-            syntaxTree,
-            tagHelperContext,
-            htmlLabels,
-            reason,
-            completionOptions);
-    }
-
-    private static (CompletionReason Reason, RazorSyntaxTree SyntaxTree, TagHelperDocumentContext TagHelperContext, RazorSyntaxNode? Owner) ResolveCompletionParts(
-        RazorCodeDocument codeDocument,
-        int absoluteIndex,
-        VSInternalCompletionContext completionContext)
-    {
         var reason = completionContext.TriggerKind switch
         {
             CompletionTriggerKind.TriggerForIncompleteCompletions => CompletionReason.Invoked,
@@ -135,7 +95,14 @@ internal class RazorCompletionListProvider(
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
         owner = AbstractRazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
 
-        return (reason, syntaxTree, tagHelperContext, owner);
+        return new RazorCompletionContext(
+            codeDocument,
+            absoluteIndex,
+            owner,
+            syntaxTree,
+            tagHelperContext,
+            reason,
+            completionOptions);
     }
 
     private RazorVSInternalCompletionList CreateAndCacheCompletionList(

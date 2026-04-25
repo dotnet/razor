@@ -220,21 +220,17 @@ internal sealed class CohostDocumentCompletionEndpoint(
     /// (tag helper element completions).
     /// </summary>
     /// <remarks>
-    /// No dedup is performed here. The only label-based filtering happens inside
-    /// <see cref="TagHelperCompletionService.GetElementCompletions"/>, which uses HTML labels
-    /// as an inclusion filter (not for dedup) to decide which tag helpers to offer.
-    /// That filtering is handled by phase 2 via <see cref="RazorHtmlDependentCompletionContext.HtmlLabels"/>.
+    /// Both Razor lists are merged first, then merged once against HTML. This ensures Razor
+    /// commit characters take precedence at the list level, matching the pre-parallel behavior
+    /// where the Razor list was always the first argument to <see cref="CompletionListMerger.Merge"/>.
     /// </remarks>
     private static RazorVSInternalCompletionList? MergeCompletionLists(
         RazorVSInternalCompletionList? htmlCompletionList,
         RazorVSInternalCompletionList? razorCompletionList,
         RazorVSInternalCompletionList? razorHtmlDependentCompletionList)
     {
-        // Merge all non-null lists together. Razor lists are passed as the first argument to
-        // CompletionListMerger.Merge so their commit characters take precedence at the list
-        // level, matching the pre-parallel behavior where the Razor list was always first.
-        var result = CompletionListMerger.Merge(razorCompletionList, htmlCompletionList);
-        return CompletionListMerger.Merge(result, razorHtmlDependentCompletionList);
+        var combinedRazorList = CompletionListMerger.Merge(razorCompletionList, razorHtmlDependentCompletionList);
+        return CompletionListMerger.Merge(combinedRazorList, htmlCompletionList);
     }
 
     /// <summary>

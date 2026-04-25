@@ -456,11 +456,18 @@ public class RazorCompletionListProviderTest
     {
         // Arrange
         var documentPath = "C:/path/to/document.cshtml";
-        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
-        builder.TypeName = "TestNamespace.TestTagHelper";
-        builder.TagMatchingRule(rule => rule.TagName = "Test");
-        var tagHelper = builder.Build();
-        var codeDocument = CreateCodeDocument("<", documentPath, [tagHelper]);
+        var componentBuilder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
+        componentBuilder.TypeName = "TestNamespace.TestTagHelper";
+        componentBuilder.TagMatchingRule(rule => rule.TagName = "Test");
+        var componentTagHelper = componentBuilder.Build();
+
+        // Add an HTML-targeting tag helper so NeedsHtmlCompletions returns true
+        // (pure component-only documents skip the HTML-dependent phase entirely).
+        var htmlBuilder = TagHelperDescriptorBuilder.Create("InputTagHelper", "TestAssembly");
+        htmlBuilder.TagMatchingRule(rule => rule.TagName = "input");
+        var htmlTagHelper = htmlBuilder.Build();
+
+        var codeDocument = CreateCodeDocument("<", documentPath, [componentTagHelper, htmlTagHelper]);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
 
         // Act

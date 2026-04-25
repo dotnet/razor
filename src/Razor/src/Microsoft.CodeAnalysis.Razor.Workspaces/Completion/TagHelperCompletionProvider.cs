@@ -34,9 +34,35 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         // Only the element completion path uses HTML labels to decide which tag helpers to
         // surface. The attribute path does not depend on HTML labels at all.
         var owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(context.Owner);
-        return owner is not null
+        if (owner is not null
             && HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _)
-            && containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex);
+            && containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
+        {
+            // Phase 2 is only needed when the document contains tag helpers whose element
+            // completion visibility depends on HTML labels. This includes:
+            // 1. Tag helpers targeting HTML schema elements (e.g., InputTagHelper targeting <input>)
+            // 2. Tag helpers with a TagOutputHint (visibility depends on ExistingCompletions)
+            // Pure Blazor/component projects have neither, so all component completions can
+            // be served in phase 1.
+            // Directive attribute descriptors (e.g., @bind on input) are excluded — they target HTML
+            // element names but don't contribute element completions (same filter as
+            // TagHelperCompletionService.GetElementCompletions).
+            foreach (var descriptor in context.TagHelperDocumentContext.TagHelpers)
+            {
+                if (descriptor.BoundAttributes.Any(static ba => ba.IsDirectiveAttribute))
+                {
+                    continue;
+                }
+
+                if (descriptor.TagOutputHint is not null
+                    || descriptor.TagMatchingRules.Any(static rule => HtmlFacts.IsHtmlTagName(rule.TagName)))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)
@@ -80,14 +106,16 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             return [];
         }
 
-        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _) &&
+        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var elementAttributes, out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
-            // Element completions are handled by GetHtmlDependentCompletionItems in phase 2.
-            // This branch should not be reached because NeedsHtmlCompletions returns true
-            // for element positions, causing the caller to skip this method.
-            Debug.Fail("GetCompletionItems should not be called for element positions.");
-            return [];
+            // When NeedsHtmlCompletions returned false (pure Blazor/component scenario),
+            // element completions run here in phase 1 with no HTML labels. Component
+            // completions are always included regardless of HTML labels, so this still
+            // produces the right results.
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(elementAttributes);
+            var containingElement = owner.Parent;
+            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, []);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(

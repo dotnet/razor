@@ -12,11 +12,11 @@ internal interface IRazorCompletionFactsService
     /// <see cref="IHtmlDependentCompletionItemProvider"/>.
     /// </summary>
     /// <returns>
-    /// A tuple of the completion items and a flag indicating whether any HTML-dependent provider
+    /// The completion items and a flag indicating whether any HTML-dependent provider
     /// was skipped because it needs HTML completions.  The caller can use this to decide whether
     /// a follow-up <see cref="GetHtmlDependentCompletionItems"/> call is necessary.
     /// </returns>
-    (ImmutableArray<RazorCompletionItem> Items, bool AnyHtmlDependentSkipped) GetCompletionItems(RazorCompletionContext razorCompletionContext);
+    CompletionItemsResult GetCompletionItems(RazorCompletionContext razorCompletionContext);
 
     /// <summary>
     /// Returns completion items from <see cref="IHtmlDependentCompletionItemProvider"/>

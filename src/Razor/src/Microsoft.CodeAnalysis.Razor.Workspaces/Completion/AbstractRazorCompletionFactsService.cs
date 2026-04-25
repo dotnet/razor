@@ -20,7 +20,7 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
 {
     private readonly ImmutableArray<IRazorCompletionItemProvider> _providers = providers;
 
-    public (ImmutableArray<RazorCompletionItem> Items, bool AnyHtmlDependentSkipped) GetCompletionItems(RazorCompletionContext context)
+    public CompletionItemsResult GetCompletionItems(RazorCompletionContext context)
     {
         ArgHelper.ThrowIfNull(context);
         ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
@@ -42,7 +42,7 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
             }
         }
 
-        return (completions.ToImmutableAndClear(), anyHtmlDependentSkipped);
+        return new CompletionItemsResult(completions.ToImmutableAndClear(), anyHtmlDependentSkipped);
     }
 
     public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)
