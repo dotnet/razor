@@ -7,4 +7,4 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal readonly record struct CompletionItemsResult(
     ImmutableArray<RazorCompletionItem> Items,
-    bool AnyHtmlDependentSkipped);
+    bool NeedsHtmlDependentCompletionItems);

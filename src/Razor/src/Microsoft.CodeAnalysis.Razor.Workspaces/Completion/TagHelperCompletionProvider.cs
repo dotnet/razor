@@ -31,6 +31,13 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
 
     public bool NeedsHtmlCompletions(RazorCompletionContext context)
     {
+        // .razor files never need HTML-dependent completions — tag helpers targeting HTML
+        // schema elements and OutputElementHint are legacy (.cshtml) concepts only.
+        if (context.CodeDocument.FileKind != RazorFileKind.Legacy)
+        {
+            return false;
+        }
+
         // Only the element completion path uses HTML labels to decide which tag helpers to
         // surface. The attribute path does not depend on HTML labels at all.
         var owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(context.Owner);
@@ -42,8 +49,6 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             // completion visibility depends on HTML labels. This includes:
             // 1. Tag helpers targeting HTML schema elements (e.g., InputTagHelper targeting <input>)
             // 2. Tag helpers with a TagOutputHint (visibility depends on ExistingCompletions)
-            // Pure Blazor/component projects have neither, so all component completions can
-            // be served in phase 1.
             // Directive attribute descriptors (e.g., @bind on input) are excluded — they target HTML
             // element names but don't contribute element completions (same filter as
             // TagHelperCompletionService.GetElementCompletions).
@@ -115,7 +120,8 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             // produces the right results.
             var stringifiedAttributes = TagHelperFacts.StringifyAttributes(elementAttributes);
             var containingElement = owner.Parent;
-            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, []);
+            HashSet<string> noHtmlLabels = [];
+            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, noHtmlLabels);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(

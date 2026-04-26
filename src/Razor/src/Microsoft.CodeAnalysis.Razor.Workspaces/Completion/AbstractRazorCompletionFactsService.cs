@@ -25,7 +25,7 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
         ArgHelper.ThrowIfNull(context);
         ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
 
-        var anyHtmlDependentSkipped = false;
+        var needsHtmlDependentCompletionItems = false;
         using var completions = new PooledArrayBuilder<RazorCompletionItem>();
 
         foreach (var provider in _providers)
@@ -33,7 +33,7 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
             if (provider is IHtmlDependentCompletionItemProvider htmlDependent
                 && htmlDependent.NeedsHtmlCompletions(context))
             {
-                anyHtmlDependentSkipped = true;
+                needsHtmlDependentCompletionItems = true;
             }
             else
             {
@@ -42,7 +42,7 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
             }
         }
 
-        return new CompletionItemsResult(completions.ToImmutableAndClear(), anyHtmlDependentSkipped);
+        return new CompletionItemsResult(completions.ToImmutableAndClear(), needsHtmlDependentCompletionItems);
     }
 
     public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)

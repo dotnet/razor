@@ -44,11 +44,11 @@ internal class RazorCompletionListProvider(
 
         if (result.Items.Length == 0)
         {
-            return (null, result.AnyHtmlDependentSkipped);
+            return (null, result.NeedsHtmlDependentCompletionItems);
         }
 
         var completionList = CreateAndCacheCompletionList(codeDocument, result.Items, clientCapabilities);
-        return (completionList, result.AnyHtmlDependentSkipped);
+        return (completionList, result.NeedsHtmlDependentCompletionItems);
     }
 
     // virtual for tests
