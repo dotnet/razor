@@ -49,16 +49,8 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             // completion visibility depends on HTML labels. This includes:
             // 1. Tag helpers targeting HTML schema elements (e.g., InputTagHelper targeting <input>)
             // 2. Tag helpers with a TagOutputHint (visibility depends on ExistingCompletions)
-            // Directive attribute descriptors (e.g., @bind on input) are excluded — they target HTML
-            // element names but don't contribute element completions (same filter as
-            // TagHelperCompletionService.GetElementCompletions).
             foreach (var descriptor in context.TagHelperDocumentContext.TagHelpers)
             {
-                if (descriptor.BoundAttributes.Any(static ba => ba.IsDirectiveAttribute))
-                {
-                    continue;
-                }
-
                 if (descriptor.TagOutputHint is not null
                     || descriptor.TagMatchingRules.Any(static rule => HtmlFacts.IsHtmlTagName(rule.TagName)))
                 {
