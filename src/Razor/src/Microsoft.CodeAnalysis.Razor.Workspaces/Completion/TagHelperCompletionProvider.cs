@@ -112,8 +112,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             // produces the right results.
             var stringifiedAttributes = TagHelperFacts.StringifyAttributes(elementAttributes);
             var containingElement = owner.Parent;
-            HashSet<string> noHtmlLabels = [];
-            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, noHtmlLabels);
+            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, htmlLabels: []);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(
