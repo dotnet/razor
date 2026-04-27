@@ -50,4 +50,16 @@ public class HtmlErrorTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         ParseDocumentTest("@{<foo bar=baz");
     }
+
+    [Fact]
+    public void EmptyOuterTagProducesErrorInMarkupBlock()
+    {
+        ParseDocumentTest("@{<>foo</>}");
+    }
+
+    [Fact]
+    public void EmptyOuterTagProducesErrorInTemplateExpression()
+    {
+        ParseDocumentTest("@Html.Repeat(10, @<>Foo #@item</>)");
+    }
 }
