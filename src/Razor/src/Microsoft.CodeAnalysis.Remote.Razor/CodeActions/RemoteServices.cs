@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -30,8 +31,9 @@ internal sealed class OOPCodeActionResolveService(
     [ImportMany] IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
     [ImportMany] IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
     [ImportMany] IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
+    IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory)
-    : CodeActionResolveService(razorCodeActionResolvers, csharpCodeActionResolvers, htmlCodeActionResolvers, loggerFactory);
+    : CodeActionResolveService(razorCodeActionResolvers, csharpCodeActionResolvers, htmlCodeActionResolvers, clientSettingsManager, loggerFactory);
 
 // Code Action Providers
 
@@ -66,7 +68,13 @@ internal sealed class OOPGenerateMethodCodeActionProvider : GenerateMethodCodeAc
 internal sealed class OOPPromoteUsingDirectiveCodeActionProvider : PromoteUsingCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class OOPRemoveUnnecessaryDirectivesCodeActionProvider : RemoveUnnecessaryDirectivesCodeActionProvider;
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPWrapAttributesCodeActionProvider : WrapAttributesCodeActionProvider;
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class OOPSortAndConsolidateUsingsCodeActionProvider : SortAndConsolidateUsingsCodeActionProvider;
 
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
 internal sealed class OOPTypeAccessibilityCodeActionProvider : TypeAccessibilityCodeActionProvider;
@@ -124,11 +132,17 @@ internal sealed class OOPGenerateMethodCodeActionResolver(
 internal sealed class OOPPromoteUsingDirectiveCodeActionResolver(IFileSystem fileSystem) : PromoteUsingCodeActionResolver(fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class OOPRemoveUnnecessaryDirectivesCodeActionResolver : RemoveUnnecessaryDirectivesCodeActionResolver;
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
 internal sealed class OOPWrapAttributesCodeActionResolver : WrapAttributesCodeActionResolver;
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class OOPSortAndConsolidateUsingsCodeActionResolver : SortAndConsolidateUsingsCodeActionResolver;
 
 [Export(typeof(ICSharpCodeActionResolver)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPCSharpCodeActionResolver(IRazorFormattingService razorFormattingService) : CSharpCodeActionResolver(razorFormattingService);
+internal sealed class OOPCSharpCodeActionResolver(IRazorFormattingService razorFormattingService, IClientSettingsManager clientSettingsManager) : CSharpCodeActionResolver(razorFormattingService, clientSettingsManager);
 
 [Export(typeof(ICSharpCodeActionResolver)), Shared]
 [method: ImportingConstructor]
