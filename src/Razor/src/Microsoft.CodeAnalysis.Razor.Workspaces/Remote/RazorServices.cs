@@ -4,17 +4,19 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Serialization.MessagePack.Resolvers;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal static class RazorServices
 {
-    // Internal for testing
-    internal static readonly IEnumerable<(Type, Type?)> MessagePackServices =
+    // Generally speaking we prefer MessagePack services because the serialization is lower overhead, however
+    // given that we work with LSP types, which as Json serializable, sometimes converting is an unnecssary
+    // extra step. Judgement is needed to decide which way is better, paying particular extra attention to
+    // complex data types in LSP that are painful to represent in MessagePack.
+
+    private static readonly IEnumerable<(Type, Type?)> MessagePackServices =
         [
             (typeof(IRemoteLinkedEditingRangeService), null),
-            (typeof(IRemoteTagHelperProviderService), null),
             (typeof(IRemoteSemanticTokensService), null),
             (typeof(IRemoteHtmlDocumentService), null),
             (typeof(IRemoteUriPresentationService), null),
@@ -28,12 +30,13 @@ internal static class RazorServices
             (typeof(IRemoteWrapWithTagService), null),
             (typeof(IRemoteSpanMappingService), null),
             (typeof(IRemoteDevToolsService), null),
+            (typeof(IRemoteRemoveAndSortUsingsService), null),
         ];
 
-    // Internal for testing
-    internal static readonly IEnumerable<(Type, Type?)> JsonServices =
+    private static readonly IEnumerable<(Type, Type?)> JsonServices =
         [
             (typeof(IRemoteClientInitializationService), null),
+            (typeof(IRemoteClientSettingsService), null),
             (typeof(IRemoteGoToDefinitionService), null),
             (typeof(IRemoteHoverService), null),
             (typeof(IRemoteSignatureHelpService), null),
@@ -56,7 +59,7 @@ internal static class RazorServices
         ComponentName,
         featureDisplayNameProvider: GetFeatureDisplayName,
         additionalFormatters: [],
-        additionalResolvers: TopLevelResolvers.All,
+        additionalResolvers: [],
         interfaces: MessagePackServices);
 
     public static readonly RazorServiceDescriptorsWrapper JsonDescriptors = new(
@@ -68,5 +71,12 @@ internal static class RazorServices
     private static string GetFeatureDisplayName(string feature)
     {
         return $"Razor {feature} Feature";
+    }
+
+    internal static class TestAccessor
+    {
+        internal static IEnumerable<(Type, Type?)> MessagePackServices => RazorServices.MessagePackServices;
+
+        internal static IEnumerable<(Type, Type?)> JsonServices => RazorServices.JsonServices;
     }
 }

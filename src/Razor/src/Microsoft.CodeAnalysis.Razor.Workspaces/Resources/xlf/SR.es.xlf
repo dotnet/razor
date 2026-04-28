@@ -79,6 +79,11 @@
         <target state="translated">Se está abandonando una operación de formato porque agregaría o eliminaría contenido que no es un espacio en blanco.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Formatting_Error">
+        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
+        <target state="translated">Error de formato. Si abandona el trabajo adicional para no dañar el archivo, notifique este problema. Consulte: https://aka.ms/razor-formatting-issue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
         <source>Generate Async Event Handler '{0}'</source>
         <target state="translated">Generar controlador de eventos asincrónicos ''{0}''</target>
@@ -134,6 +139,11 @@
         <target state="translated">Promover mediante la directiva a {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_directives">
+        <source>Remove unnecessary directives</source>
+        <target state="translated">Quitar directivas innecesarias</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_Fully_Qualified_Component_Title">
         <source>Simplify fully qualified component</source>
         <target state="translated">Simplificar componente totalmente calificado</target>
@@ -142,6 +152,11 @@
       <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
         <source>Simplify tag to self-closing</source>
         <target state="translated">Simplificar la etiqueta al autocierre</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_And_Consolidate_Usings_Title">
+        <source>Sort and consolidate usings</source>
+        <target state="translated">Ordenar y consolidar directivas using</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
