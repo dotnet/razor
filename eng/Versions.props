@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <Import Project="Version.Details.props" />
 
@@ -29,8 +29,8 @@
     imported. This OK because we want to just have an obvious salt for a local build.
   -->
   <PropertyGroup>
-    <VsixVersionPrefix>18.7.1</VsixVersionPrefix>
-    <AddinMajorVersion>18.7</AddinMajorVersion>
+    <VsixVersionPrefix>18.8.1</VsixVersionPrefix>
+    <AddinMajorVersion>18.8</AddinMajorVersion>
     <AddinVersion>$(AddinMajorVersion)</AddinVersion>
     <AddinVersion Condition="'$(OfficialBuildId)' != ''">$(AddinVersion).$(OfficialBuildId)</AddinVersion>
     <AddinVersion Condition="'$(OfficialBuildId)' == ''">$(AddinVersion).42424242.42</AddinVersion>
