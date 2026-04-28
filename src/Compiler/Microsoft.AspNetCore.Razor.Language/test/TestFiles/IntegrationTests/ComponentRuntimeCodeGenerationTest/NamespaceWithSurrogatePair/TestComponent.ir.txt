@@ -10,5 +10,5 @@
                 MarkupBlock -  - <h1>Generated</h1>\n
                 Component - (20:1,0 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Component1
                 HtmlContent - (34:1,14 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (34:1,14 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (34:1,14 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 MarkupElement - (36:2,0 [21] x:\dir\subdir\Test\TestComponent.cshtml) - Shared.Component2

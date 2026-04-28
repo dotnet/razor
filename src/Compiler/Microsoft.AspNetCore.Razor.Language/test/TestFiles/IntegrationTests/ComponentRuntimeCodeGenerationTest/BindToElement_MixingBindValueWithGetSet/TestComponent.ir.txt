@@ -10,11 +10,11 @@
                 MarkupElement - (0:0,0 [77] x:\dir\subdir\Test\TestComponent.cshtml) - div
                     TagHelperDirectiveAttributeParameter - (37:0,37 [12] x:\dir\subdir\Test\TestComponent.cshtml) - bind:get - HtmlAttributeValueStyle.DoubleQuotes
                         CSharpExpression - (38:0,38 [11] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (38:0,38 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
+                            IntermediateToken - (38:0,38 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
                     HtmlAttribute - (12:0,12 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myvalue=" - "
                         CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
-                            LazyIntermediateToken - (13:0,13 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
+                            IntermediateToken - (13:0,13 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (12:0,12 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myevent=" - "
                         CSharpExpressionAttributeValue -  - 
@@ -26,4 +26,4 @@
                             IntermediateToken -  - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
             CSharpCode - (86:1,7 [124] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (86:1,7 [124] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n\n    public void UpdateValue(string value) => ParentValue = value;\n
+                IntermediateToken - (86:1,7 [124] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n\n    public void UpdateValue(string value) => ParentValue = value;\n

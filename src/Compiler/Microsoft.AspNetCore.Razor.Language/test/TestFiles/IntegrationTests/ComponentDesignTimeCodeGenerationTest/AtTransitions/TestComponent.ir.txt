@@ -15,14 +15,14 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [32] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (2:0,2 [32] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -   \n    var x = "hello";  \n    
+                    IntermediateToken - (2:0,2 [32] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -   \n    var x = "hello";  \n    
                 CSharpExpression - (35:2,5 [1] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (35:2,5 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
+                    IntermediateToken - (35:2,5 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
                 CSharpCode - (36:2,6 [14] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (36:2,6 [14] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  x = "world"; 
+                    IntermediateToken - (36:2,6 [14] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  x = "world"; 
                 CSharpExpression - (51:2,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (51:2,21 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
+                    IntermediateToken - (51:2,21 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
                 CSharpCode - (52:2,22 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (52:2,22 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -   \n
+                    IntermediateToken - (52:2,22 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -   \n
                 HtmlContent - (57:3,1 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (57:3,1 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html -   
+                    IntermediateToken - (57:3,1 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html -   

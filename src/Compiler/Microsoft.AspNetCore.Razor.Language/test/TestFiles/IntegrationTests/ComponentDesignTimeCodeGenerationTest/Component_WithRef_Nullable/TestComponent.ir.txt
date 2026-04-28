@@ -17,6 +17,6 @@
                 Component - (0:0,0 [36] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     ReferenceCapture - (21:0,21 [11] x:\dir\subdir\Test\TestComponent.cshtml) - myComponent
                 HtmlContent - (36:0,36 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (36:0,36 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (36:0,36 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (47:2,7 [111] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (47:2,7 [111] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private TestComponent myComponent = null!;\n    public void Use() { System.GC.KeepAlive(myComponent); }\n
+                IntermediateToken - (47:2,7 [111] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private TestComponent myComponent = null!;\n    public void Use() { System.GC.KeepAlive(myComponent); }\n

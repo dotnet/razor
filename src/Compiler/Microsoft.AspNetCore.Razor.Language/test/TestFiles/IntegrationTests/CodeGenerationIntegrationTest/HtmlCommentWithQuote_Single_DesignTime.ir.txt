@@ -35,16 +35,16 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (0:0,0 [12] HtmlCommentWithQuote_Single.cshtml)
-                    LazyIntermediateToken - (0:0,0 [4] HtmlCommentWithQuote_Single.cshtml) - Html - <!--
-                    LazyIntermediateToken - (4:0,4 [3] HtmlCommentWithQuote_Single.cshtml) - Html -  ' 
-                    LazyIntermediateToken - (7:0,7 [3] HtmlCommentWithQuote_Single.cshtml) - Html - -->
-                    LazyIntermediateToken - (10:0,10 [2] HtmlCommentWithQuote_Single.cshtml) - Html - \n
+                    IntermediateToken - (0:0,0 [4] HtmlCommentWithQuote_Single.cshtml) - Html - <!--
+                    IntermediateToken - (4:0,4 [3] HtmlCommentWithQuote_Single.cshtml) - Html -  ' 
+                    IntermediateToken - (7:0,7 [3] HtmlCommentWithQuote_Single.cshtml) - Html - -->
+                    IntermediateToken - (10:0,10 [2] HtmlCommentWithQuote_Single.cshtml) - Html - \n
                 TagHelper - (12:1,0 [33] HtmlCommentWithQuote_Single.cshtml) - img - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper
                     DefaultTagHelperHtmlAttribute -  - src - HtmlAttributeValueStyle.DoubleQuotes
                         HtmlContent - (22:1,10 [19] HtmlCommentWithQuote_Single.cshtml)
-                            LazyIntermediateToken - (22:1,10 [19] HtmlCommentWithQuote_Single.cshtml) - Html - ~/images/submit.png
+                            IntermediateToken - (22:1,10 [19] HtmlCommentWithQuote_Single.cshtml) - Html - ~/images/submit.png
                     DefaultTagHelperExecute - 
             Inject - 
             Inject - 

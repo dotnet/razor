@@ -18,13 +18,13 @@
                 CSharpCode - 
                     IntermediateToken -  - CSharp - BeginContext(17, 2, true);
                 HtmlContent - (17:1,0 [2] ModelExpressionTagHelper.cshtml)
-                    LazyIntermediateToken - (17:1,0 [2] ModelExpressionTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (17:1,0 [2] ModelExpressionTagHelper.cshtml) - Html - \n
                 CSharpCode - 
                     IntermediateToken -  - CSharp - EndContext();
                 CSharpCode - 
                     IntermediateToken -  - CSharp - BeginContext(64, 2, true);
                 HtmlContent - (64:3,0 [2] ModelExpressionTagHelper.cshtml)
-                    LazyIntermediateToken - (64:3,0 [2] ModelExpressionTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (64:3,0 [2] ModelExpressionTagHelper.cshtml) - Html - \n
                 CSharpCode - 
                     IntermediateToken -  - CSharp - EndContext();
                 CSharpCode - 
@@ -44,7 +44,7 @@
                 CSharpCode - 
                     IntermediateToken -  - CSharp - BeginContext(91, 2, true);
                 HtmlContent - (91:4,25 [2] ModelExpressionTagHelper.cshtml)
-                    LazyIntermediateToken - (91:4,25 [2] ModelExpressionTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (91:4,25 [2] ModelExpressionTagHelper.cshtml) - Html - \n
                 CSharpCode - 
                     IntermediateToken -  - CSharp - EndContext();
                 CSharpCode - 
@@ -63,7 +63,7 @@
                 CSharpCode - 
                     IntermediateToken -  - CSharp - BeginContext(120, 2, true);
                 HtmlContent - (120:5,27 [2] ModelExpressionTagHelper.cshtml)
-                    LazyIntermediateToken - (120:5,27 [2] ModelExpressionTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (120:5,27 [2] ModelExpressionTagHelper.cshtml) - Html - \n
                 CSharpCode - 
                     IntermediateToken -  - CSharp - EndContext();
             Inject - 

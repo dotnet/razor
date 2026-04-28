@@ -8,7 +8,7 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n
+                    IntermediateToken - (2:0,2 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n
                 MarkupBlock -  - <p></p>
                 CSharpCode - (17:2,0 [0] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (17:2,0 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 
+                    IntermediateToken - (17:2,0 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 

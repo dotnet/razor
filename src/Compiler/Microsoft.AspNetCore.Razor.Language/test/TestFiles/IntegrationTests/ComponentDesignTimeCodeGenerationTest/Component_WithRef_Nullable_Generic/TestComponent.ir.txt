@@ -19,9 +19,9 @@
                     ComponentAttribute - (45:0,45 [1] x:\dir\subdir\Test\TestComponent.cshtml) - MyParameter - MyParameter - AttributeStructure.DoubleQuotes
                         IntermediateToken - (45:0,45 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1
                 HtmlContent - (50:0,50 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (50:0,50 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (50:0,50 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (61:2,7 [114] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (61:2,7 [114] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private MyComponent<int> myComponent = null!;\n    public void Use() { System.GC.KeepAlive(myComponent); }\n
+                IntermediateToken - (61:2,7 [114] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private MyComponent<int> myComponent = null!;\n    public void Use() { System.GC.KeepAlive(myComponent); }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

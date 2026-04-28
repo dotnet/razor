@@ -11,7 +11,7 @@
                 MarkupElement - (44:1,0 [79] x:\dir\subdir\Test\TestComponent.cshtml) - form
                     HtmlAttribute -  - method=" - "
                         HtmlAttributeValue - (58:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
-                            LazyIntermediateToken - (58:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                            IntermediateToken - (58:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
                     HtmlAttribute - (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml) - onsubmit=" - "
                         CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, 
@@ -19,9 +19,9 @@
                             IntermediateToken -  - CSharp - )
                     FormName - (97:1,53 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                         CSharpExpression - (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
+                            IntermediateToken - (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x
                     HtmlAttribute -  - @formname=" - "
                         CSharpExpression - (113:1,69 [1] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (113:1,69 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - y
+                            IntermediateToken - (113:1,69 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - y
             CSharpCode - (132:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (132:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string x = "a";\n    string y = "b";\n
+                IntermediateToken - (132:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string x = "a";\n    string y = "b";\n

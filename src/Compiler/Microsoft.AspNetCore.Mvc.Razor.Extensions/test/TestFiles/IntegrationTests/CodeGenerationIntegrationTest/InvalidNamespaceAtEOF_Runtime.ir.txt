@@ -15,7 +15,7 @@
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 MalformedDirective - (0:0,0 [11] InvalidNamespaceAtEOF.cshtml) - namespace
                 HtmlContent - (11:0,11 [5] InvalidNamespaceAtEOF.cshtml)
-                    LazyIntermediateToken - (11:0,11 [5] InvalidNamespaceAtEOF.cshtml) - Html - Test.
+                    IntermediateToken - (11:0,11 [5] InvalidNamespaceAtEOF.cshtml) - Html - Test.
             Inject - 
             Inject - 
             Inject - 

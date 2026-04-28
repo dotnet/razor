@@ -9,4 +9,4 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [91] x:\dir\subdir\Test\TestComponent.cshtml) - ComponentWithEditorRequiredParameters
                     Splat - (52:0,52 [35] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (54:0,54 [32] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new Dictionary<string, object>()
+                        IntermediateToken - (54:0,54 [32] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new Dictionary<string, object>()

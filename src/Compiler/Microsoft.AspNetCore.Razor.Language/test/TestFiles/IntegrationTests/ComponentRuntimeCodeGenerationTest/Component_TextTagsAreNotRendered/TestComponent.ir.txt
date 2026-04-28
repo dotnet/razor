@@ -9,8 +9,8 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Counter
                 CSharpCode - (14:1,1 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (14:1,1 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - if (true)\n{\n    
+                    IntermediateToken - (14:1,1 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - if (true)\n{\n    
                 HtmlContent - (38:3,10 [21] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (38:3,10 [21] x:\dir\subdir\Test\TestComponent.cshtml) - Html - This text is rendered
+                    IntermediateToken - (38:3,10 [21] x:\dir\subdir\Test\TestComponent.cshtml) - Html - This text is rendered
                 CSharpCode - (66:3,38 [5] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (66:3,38 [5] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n}\n
+                    IntermediateToken - (66:3,38 [5] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n}\n

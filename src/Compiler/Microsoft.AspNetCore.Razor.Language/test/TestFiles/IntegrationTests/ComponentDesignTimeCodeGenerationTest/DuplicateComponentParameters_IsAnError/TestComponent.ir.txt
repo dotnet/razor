@@ -20,6 +20,6 @@
                             IntermediateToken - (22:0,22 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - test
                     ComponentAttribute -  - mESSAGE -  - AttributeStructure.DoubleQuotes
                         HtmlContent - (37:0,37 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (37:0,37 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - test
+                            IntermediateToken - (37:0,37 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - test
                 HtmlContent - (45:0,45 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (45:0,45 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (45:0,45 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

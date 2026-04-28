@@ -24,7 +24,7 @@
                     PreallocatedTagHelperProperty - (92:1,61 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - __tagHelperAttribute_1 - bound - BoundProp
                     DefaultTagHelperExecute - 
                 HtmlContent - (101:1,70 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml)
-                    LazyIntermediateToken - (101:1,70 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - \n
+                    IntermediateToken - (101:1,70 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - \n
             Inject - 
             Inject - 
             Inject - 

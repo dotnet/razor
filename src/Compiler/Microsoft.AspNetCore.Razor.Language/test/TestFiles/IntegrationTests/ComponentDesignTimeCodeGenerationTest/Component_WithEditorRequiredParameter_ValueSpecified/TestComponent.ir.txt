@@ -19,4 +19,4 @@
                         HtmlContent - (50:0,50 [10] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (50:0,50 [10] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Some Value
                 HtmlContent - (64:0,64 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (64:0,64 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (64:0,64 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

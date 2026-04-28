@@ -15,9 +15,9 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [22] x:\dir\subdir\Test\TestComponent.razor)
-                    LazyIntermediateToken - (2:0,2 [22] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n#if SomeSymbol\n    
+                    IntermediateToken - (2:0,2 [22] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n#if SomeSymbol\n    
                 MarkupElement - (24:2,4 [16] x:\dir\subdir\Test\TestComponent.razor) - p
                     HtmlContent - (27:2,7 [9] x:\dir\subdir\Test\TestComponent.razor)
-                        LazyIntermediateToken - (27:2,7 [9] x:\dir\subdir\Test\TestComponent.razor) - Html - Some text
+                        IntermediateToken - (27:2,7 [9] x:\dir\subdir\Test\TestComponent.razor) - Html - Some text
                 CSharpCode - (40:2,20 [10] x:\dir\subdir\Test\TestComponent.razor)
-                    LazyIntermediateToken - (40:2,20 [10] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n#endif\n
+                    IntermediateToken - (40:2,20 [10] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n#endif\n

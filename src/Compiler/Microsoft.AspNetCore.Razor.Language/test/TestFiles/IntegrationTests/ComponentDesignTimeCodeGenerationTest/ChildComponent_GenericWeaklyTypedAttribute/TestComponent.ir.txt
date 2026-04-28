@@ -18,7 +18,7 @@
                     ComponentTypeArgument - (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
                         IntermediateToken - (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - string
                     ComponentAttribute - (32:0,32 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Item - Item - AttributeStructure.DoubleQuotes
-                        LazyIntermediateToken - (34:0,34 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "hi"
+                        IntermediateToken - (34:0,34 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "hi"
                     ComponentAttribute -  - Other -  - AttributeStructure.DoubleQuotes
                         CSharpExpression - (48:0,48 [5] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (50:0,50 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 17
+                            IntermediateToken - (50:0,50 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 17

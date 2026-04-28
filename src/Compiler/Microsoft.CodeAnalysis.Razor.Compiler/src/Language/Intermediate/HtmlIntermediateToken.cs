@@ -9,9 +9,4 @@ public sealed class HtmlIntermediateToken : IntermediateToken
         : base(content, source)
     {
     }
-
-    internal HtmlIntermediateToken(LazyContent content, SourceSpan? source)
-        : base(content, source)
-    {
-    }
 }

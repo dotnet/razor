@@ -14,11 +14,11 @@
         ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_UnfinishedExpressionInCode - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 CSharpCode - (2:0,2 [2] UnfinishedExpressionInCode.cshtml)
-                    LazyIntermediateToken - (2:0,2 [2] UnfinishedExpressionInCode.cshtml) - CSharp - \n
+                    IntermediateToken - (2:0,2 [2] UnfinishedExpressionInCode.cshtml) - CSharp - \n
                 CSharpExpression - (5:1,1 [9] UnfinishedExpressionInCode.cshtml)
-                    LazyIntermediateToken - (5:1,1 [9] UnfinishedExpressionInCode.cshtml) - CSharp - DateTime.
+                    IntermediateToken - (5:1,1 [9] UnfinishedExpressionInCode.cshtml) - CSharp - DateTime.
                 CSharpCode - (14:1,10 [2] UnfinishedExpressionInCode.cshtml)
-                    LazyIntermediateToken - (14:1,10 [2] UnfinishedExpressionInCode.cshtml) - CSharp - \n
+                    IntermediateToken - (14:1,10 [2] UnfinishedExpressionInCode.cshtml) - CSharp - \n
             Inject - 
             Inject - 
             Inject - 

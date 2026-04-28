@@ -30,6 +30,6 @@
                         CSharpExpression - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
                 HtmlContent - (110:1,91 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (110:1,91 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (110:1,91 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (119:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (119:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public TParam ParentValue { get; set; } = default;\n\n    public void UpdateValue(TParam value) { ParentValue = value; }\n
+                IntermediateToken - (119:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public TParam ParentValue { get; set; } = default;\n\n    public void UpdateValue(TParam value) { ParentValue = value; }\n

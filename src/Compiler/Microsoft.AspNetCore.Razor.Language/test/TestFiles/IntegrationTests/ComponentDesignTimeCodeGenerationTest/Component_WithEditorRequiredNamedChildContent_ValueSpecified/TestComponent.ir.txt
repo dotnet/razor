@@ -18,6 +18,6 @@
                     ComponentChildContent - (47:1,4 [38] x:\dir\subdir\Test\TestComponent.cshtml) - Found - context
                         MarkupElement - (54:1,11 [23] x:\dir\subdir\Test\TestComponent.cshtml) - h1
                             HtmlContent - (58:1,15 [14] x:\dir\subdir\Test\TestComponent.cshtml)
-                                LazyIntermediateToken - (58:1,15 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Here's Johnny!
+                                IntermediateToken - (58:1,15 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Here's Johnny!
                 HtmlContent - (129:2,42 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (129:2,42 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (129:2,42 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n

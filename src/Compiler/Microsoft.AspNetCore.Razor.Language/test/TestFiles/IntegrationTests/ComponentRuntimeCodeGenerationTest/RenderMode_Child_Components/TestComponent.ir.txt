@@ -17,14 +17,14 @@
                             RenderMode - (128:1,32 [64] x:\dir\subdir\Test\TestComponent.cshtml)
                                 IntermediateToken - (128:1,32 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
                         HtmlContent - (322:3,20 [3] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (322:3,20 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n 
+                            IntermediateToken - (322:3,20 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n 
                         Component - (325:4,1 [328] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                             ComponentChildContent -  - ChildContent - context
                                 Component - (429:5,8 [96] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                                     RenderMode - (457:5,36 [64] x:\dir\subdir\Test\TestComponent.cshtml)
                                         IntermediateToken - (457:5,36 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
                                 HtmlContent - (525:5,104 [10] x:\dir\subdir\Test\TestComponent.cshtml)
-                                    LazyIntermediateToken - (525:5,104 [10] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n        
+                                    IntermediateToken - (525:5,104 [10] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n        
                                 Component - (535:6,8 [96] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                                     RenderMode - (563:6,36 [64] x:\dir\subdir\Test\TestComponent.cshtml)
                                         IntermediateToken - (563:6,36 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
@@ -33,4 +33,4 @@
                     RenderMode - (28:0,28 [64] x:\dir\subdir\Test\TestComponent.cshtml)
                         IntermediateToken - (28:0,28 [64] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
             CSharpCode - (683:11,1 [73] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (683:11,1 [73] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public RenderFragment ChildContent { get; set; }\n
+                IntermediateToken - (683:11,1 [73] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public RenderFragment ChildContent { get; set; }\n

@@ -17,4 +17,4 @@
                             IntermediateToken -  - CSharp - __value => c = __value
                             IntermediateToken -  - CSharp - , c)
             CSharpCode - (42:2,7 [34] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (42:2,7 [34] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private MyClass c = new();\n
+                IntermediateToken - (42:2,7 [34] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private MyClass c = new();\n

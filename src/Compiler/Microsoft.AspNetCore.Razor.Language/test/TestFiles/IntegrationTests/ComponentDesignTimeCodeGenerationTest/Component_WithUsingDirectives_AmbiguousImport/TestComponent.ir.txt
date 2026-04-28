@@ -17,11 +17,11 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (12:0,12 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (12:0,12 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (12:0,12 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 HtmlContent - (26:1,12 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (26:1,12 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (26:1,12 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 Component - (28:2,0 [15] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                 HtmlContent - (43:2,15 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (43:2,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (43:2,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 TagHelper - (45:3,0 [17] x:\dir\subdir\Test\TestComponent.cshtml) - SomeComponent - TagMode.SelfClosing
                     TagHelperBody - 

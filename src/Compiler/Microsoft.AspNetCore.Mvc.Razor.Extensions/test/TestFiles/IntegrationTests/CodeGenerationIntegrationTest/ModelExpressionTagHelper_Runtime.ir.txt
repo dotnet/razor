@@ -16,9 +16,9 @@
             FieldDeclaration -  - private - global::InputTestTagHelper - __InputTestTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (17:1,0 [2] ModelExpressionTagHelper.cshtml)
-                    LazyIntermediateToken - (17:1,0 [2] ModelExpressionTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (17:1,0 [2] ModelExpressionTagHelper.cshtml) - Html - \n
                 HtmlContent - (64:3,0 [2] ModelExpressionTagHelper.cshtml)
-                    LazyIntermediateToken - (64:3,0 [2] ModelExpressionTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (64:3,0 [2] ModelExpressionTagHelper.cshtml) - Html - \n
                 TagHelper - (66:4,0 [25] ModelExpressionTagHelper.cshtml) - input-test - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - InputTestTagHelper
@@ -30,7 +30,7 @@
                             IntermediateToken -  - CSharp - )
                     DefaultTagHelperExecute - 
                 HtmlContent - (91:4,25 [2] ModelExpressionTagHelper.cshtml)
-                    LazyIntermediateToken - (91:4,25 [2] ModelExpressionTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (91:4,25 [2] ModelExpressionTagHelper.cshtml) - Html - \n
                 TagHelper - (93:5,0 [27] ModelExpressionTagHelper.cshtml) - input-test - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - InputTestTagHelper
@@ -41,7 +41,7 @@
                             IntermediateToken -  - CSharp - )
                     DefaultTagHelperExecute - 
                 HtmlContent - (120:5,27 [2] ModelExpressionTagHelper.cshtml)
-                    LazyIntermediateToken - (120:5,27 [2] ModelExpressionTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (120:5,27 [2] ModelExpressionTagHelper.cshtml) - Html - \n
             Inject - 
             Inject - 
             Inject - 
