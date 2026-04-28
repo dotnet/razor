@@ -1,0 +1,15 @@
+﻿Source Location: (7:0,7 [7] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MalformedKeyedInject.cshtml)
+|MyModel|
+Generated Location: (1239:26,0 [7] )
+|MyModel|
+
+Source Location: (29:1,13 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MalformedKeyedInject.cshtml)
+|MyApp|
+Generated Location: (1506:36,0 [5] )
+|MyApp|
+
+Source Location: (35:1,19 [14] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MalformedKeyedInject.cshtml)
+|MyPropertyName|
+Generated Location: (1793:46,22 [14] )
+|MyPropertyName|
+

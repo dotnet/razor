@@ -1,0 +1,110 @@
+﻿Source Location: (7:0,7 [7] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyModel|
+Generated Location: (1221:26,0 [7] )
+|MyModel|
+
+Source Location: (29:1,13 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyApp|
+Generated Location: (1482:36,0 [5] )
+|MyApp|
+
+Source Location: (35:1,19 [14] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyPropertyName|
+Generated Location: (1763:46,22 [14] )
+|MyPropertyName|
+
+Source Location: (50:1,34 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|"KeyOne"|
+Generated Location: (2052:56,37 [8] )
+|"KeyOne"|
+
+Source Location: (68:2,8 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyApp|
+Generated Location: (2290:66,0 [5] )
+|MyApp|
+
+Source Location: (74:2,14 [14] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyPropertyName|
+Generated Location: (2571:76,22 [14] )
+|MyPropertyName|
+
+Source Location: (98:3,8 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyService<TModel>|
+Generated Location: (2823:86,0 [17] )
+|MyService<TModel>|
+
+Source Location: (116:3,26 [10] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|ServiceOne|
+Generated Location: (3116:96,22 [10] )
+|ServiceOne|
+
+Source Location: (141:4,13 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyService<TModel>|
+Generated Location: (3364:106,0 [17] )
+|MyService<TModel>|
+
+Source Location: (159:4,31 [10] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|ServiceOne|
+Generated Location: (3657:116,22 [10] )
+|ServiceOne|
+
+Source Location: (170:4,42 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|"KeyOne"|
+Generated Location: (3942:126,37 [8] )
+|"KeyOne"|
+
+Source Location: (193:5,13 [17] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyService<TModel>|
+Generated Location: (4180:136,0 [17] )
+|MyService<TModel>|
+
+Source Location: (211:5,31 [10] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|ServiceOne|
+Generated Location: (4473:146,22 [10] )
+|ServiceOne|
+
+Source Location: (222:5,42 [8] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|"KeyTwo"|
+Generated Location: (4758:156,37 [8] )
+|"KeyTwo"|
+
+Source Location: (245:6,13 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyApp|
+Generated Location: (4996:166,0 [5] )
+|MyApp|
+
+Source Location: (251:6,19 [15] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyPropertyName2|
+Generated Location: (5277:176,22 [15] )
+|MyPropertyName2|
+
+Source Location: (267:6,35 [9] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|"SomeKey"|
+Generated Location: (5567:186,37 [9] )
+|"SomeKey"|
+
+Source Location: (286:7,8 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyApp|
+Generated Location: (5806:196,0 [5] )
+|MyApp|
+
+Source Location: (292:7,14 [15] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyPropertyName2|
+Generated Location: (6087:206,22 [15] )
+|MyPropertyName2|
+
+Source Location: (322:8,13 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyApp|
+Generated Location: (6340:216,0 [5] )
+|MyApp|
+
+Source Location: (328:8,19 [15] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|MyPropertyName3|
+Generated Location: (6621:226,22 [15] )
+|MyPropertyName3|
+
+Source Location: (344:8,35 [10] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/MixKeyedInject.cshtml)
+|"KeyThree"|
+Generated Location: (6911:236,37 [10] )
+|"KeyThree"|
+

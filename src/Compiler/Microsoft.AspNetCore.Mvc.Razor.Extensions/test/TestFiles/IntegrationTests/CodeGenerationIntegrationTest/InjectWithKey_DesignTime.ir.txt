@@ -1,0 +1,55 @@
+Document - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective -  - TModel = global::System.Object
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InjectWithKey - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<MyModel> - 
+            DesignTimeDirective - 
+                DirectiveToken - (287:7,8 [62] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TModel>
+                DirectiveToken - (350:7,71 [4] ) - Html
+                DirectiveToken - (364:8,8 [54] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper
+                DirectiveToken - (419:8,63 [4] ) - Json
+                DirectiveToken - (433:9,8 [53] ) - global::Microsoft.AspNetCore.Mvc.IViewComponentHelper
+                DirectiveToken - (487:9,62 [9] ) - Component
+                DirectiveToken - (506:10,8 [43] ) - global::Microsoft.AspNetCore.Mvc.IUrlHelper
+                DirectiveToken - (550:10,52 [3] ) - Url
+                DirectiveToken - (563:11,8 [70] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider
+                DirectiveToken - (634:11,79 [23] ) - ModelExpressionProvider
+                DirectiveToken - (673:12,14 [104] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (793:13,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (904:14,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (7:0,7 [7] InjectWithKey.cshtml) - MyModel
+                DirectiveToken - (29:1,13 [5] InjectWithKey.cshtml) - MyApp
+                DirectiveToken - (35:1,19 [14] InjectWithKey.cshtml) - MyPropertyName
+                DirectiveToken - (51:1,35 [8] InjectWithKey.cshtml) - "KeyOne"
+                DirectiveToken - (74:2,13 [17] InjectWithKey.cshtml) - MyService<TModel>
+                DirectiveToken - (92:2,31 [4] InjectWithKey.cshtml) - Html
+                DirectiveToken - (97:2,36 [8] InjectWithKey.cshtml) - "KeyOne"
+                DirectiveToken - (120:3,13 [5] InjectWithKey.cshtml) - MyApp
+                DirectiveToken - (126:3,19 [15] InjectWithKey.cshtml) - MyPropertyName2
+                DirectiveToken - (142:3,35 [9] InjectWithKey.cshtml) - "SomeKey"
+                DirectiveToken - (168:4,13 [17] InjectWithKey.cshtml) - MyService<TModel>
+                DirectiveToken - (186:4,31 [5] InjectWithKey.cshtml) - Html2
+                DirectiveToken - (192:4,37 [9] InjectWithKey.cshtml) - "SomeKey"
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            KeyedInject - 
+            KeyedInject - 
+            KeyedInject - 
