@@ -30,12 +30,7 @@ public static class RazorProjectEngineBuilderExtensions
         return builder;
     }
 
-    public static RazorProjectEngineBuilder AddTagHelpers(this RazorProjectEngineBuilder builder, params TagHelperDescriptor[] tagHelpers)
-    {
-        return AddTagHelpers(builder, (IEnumerable<TagHelperDescriptor>)tagHelpers);
-    }
-
-    public static RazorProjectEngineBuilder AddTagHelpers(this RazorProjectEngineBuilder builder, IEnumerable<TagHelperDescriptor> tagHelpers)
+    public static RazorProjectEngineBuilder SetTagHelpers(this RazorProjectEngineBuilder builder, params TagHelperCollection tagHelpers)
     {
         var feature = (TestTagHelperFeature)builder.Features.OfType<ITagHelperFeature>().FirstOrDefault();
         if (feature == null)
@@ -44,7 +39,7 @@ public static class RazorProjectEngineBuilderExtensions
             builder.Features.Add(feature);
         }
 
-        feature.TagHelpers.AddRange(tagHelpers);
+        feature.SetTagHelpers(tagHelpers);
         return builder;
     }
 
@@ -63,22 +58,19 @@ public static class RazorProjectEngineBuilderExtensions
 
         feature.ConfigureNamespace.Add((RazorCodeDocument codeDocument, NamespaceDeclarationIntermediateNode node) =>
         {
-            node.Content = "Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles";
+            node.Name = "Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles";
         });
 
         feature.ConfigureClass.Add((RazorCodeDocument codeDocument, ClassDeclarationIntermediateNode node) =>
         {
-            node.ClassName = testFileName.Replace('/', '_');
-            node.Modifiers.Clear();
-            node.Modifiers.Add("public");
+            node.Name = testFileName.Replace('/', '_');
+            node.Modifiers = ["public"];
         });
 
         feature.ConfigureMethod.Add((RazorCodeDocument codeDocument, MethodDeclarationIntermediateNode node) =>
         {
-            node.Modifiers.Clear();
-            node.Modifiers.Add("public");
-            node.Modifiers.Add("async");
-            node.MethodName = "ExecuteAsync";
+            node.Modifiers = ["public", "async"];
+            node.Name = "ExecuteAsync";
             node.ReturnType = typeof(Task).FullName;
         });
 

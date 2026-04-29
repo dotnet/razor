@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -12,7 +12,8 @@ internal class HtmlVirtualDocumentSnapshot : VirtualDocumentSnapshot
     public HtmlVirtualDocumentSnapshot(
         Uri uri,
         ITextSnapshot snapshot,
-        long? hostDocumentSyncVersion)
+        long? hostDocumentSyncVersion,
+        object? state)
     {
         if (uri is null)
         {
@@ -27,6 +28,7 @@ internal class HtmlVirtualDocumentSnapshot : VirtualDocumentSnapshot
         Uri = uri;
         Snapshot = snapshot;
         HostDocumentSyncVersion = hostDocumentSyncVersion;
+        State = state;
     }
 
     public override Uri Uri { get; }
@@ -34,4 +36,6 @@ internal class HtmlVirtualDocumentSnapshot : VirtualDocumentSnapshot
     public override ITextSnapshot Snapshot { get; }
 
     public override long? HostDocumentSyncVersion { get; }
+
+    public object? State { get; }
 }

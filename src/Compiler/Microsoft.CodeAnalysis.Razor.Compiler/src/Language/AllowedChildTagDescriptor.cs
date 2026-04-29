@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 public sealed class AllowedChildTagDescriptor : TagHelperObject<AllowedChildTagDescriptor>
 {
+    private TagHelperDescriptor? _parent;
+
     public string Name { get; }
     public string DisplayName { get; }
 
@@ -20,8 +23,19 @@ public sealed class AllowedChildTagDescriptor : TagHelperObject<AllowedChildTagD
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
     {
-        builder.AppendData(Name);
-        builder.AppendData(DisplayName);
+        builder.Append(Name);
+        builder.Append(DisplayName);
+    }
+
+    public TagHelperDescriptor Parent
+        => _parent ?? ThrowHelper.ThrowInvalidOperationException<TagHelperDescriptor>(Resources.Parent_has_not_been_set);
+
+    internal void SetParent(TagHelperDescriptor parent)
+    {
+        Debug.Assert(parent != null);
+        Debug.Assert(_parent == null);
+
+        _parent = parent;
     }
 
     public override string ToString()

@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
@@ -113,7 +112,7 @@ internal class CodeActionsService(
             endLocation = startLocation;
         }
 
-        var languageKind = codeDocument.GetLanguageKind(startLocation, rightAssociative: false);
+        var languageKind = _documentMappingService.GetPositionInfo(codeDocument, startLocation).LanguageKind;
         var context = new RazorCodeActionContext(
             request,
             documentSnapshot,
@@ -133,15 +132,15 @@ internal class CodeActionsService(
     {
         // For C# we have to map the ranges to the generated document
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetCSharpDocument();
-        if (!_documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, request.Range, out var projectedRange))
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        if (!_documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, request.Range, out var projectedRange))
         {
             return null;
         }
 
         var newContext = request.Context;
         if (request.Context is VSInternalCodeActionContext { SelectionRange: not null } vsContext &&
-            _documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, vsContext.SelectionRange, out var selectionRange))
+            _documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, vsContext.SelectionRange, out var selectionRange))
         {
             vsContext.SelectionRange = selectionRange;
             newContext = vsContext;
@@ -151,7 +150,7 @@ internal class CodeActionsService(
         {
             TextDocument = new VSTextDocumentIdentifier()
             {
-                Uri = request.TextDocument.Uri,
+                DocumentUri = request.TextDocument.DocumentUri,
                 ProjectContext = request.TextDocument.ProjectContext
             },
             Context = newContext,
@@ -182,6 +181,15 @@ internal class CodeActionsService(
             }
 
             if (string.IsNullOrEmpty(codeAction.Name))
+            {
+                continue;
+            }
+
+            // In VS Code, Roslyn adds duplicate code actions for every code action, to implement Fix All functionality.
+            // Until we implement support for that in the C# Extension, we want to filter them out.
+            // https://github.com/dotnet/razor/issues/11832
+            if (jsonData.TryGetProperty("FixAllFlavors", out var fixAllFlavours) &&
+                fixAllFlavours.GetArrayLength() > 0)
             {
                 continue;
             }
@@ -249,7 +257,7 @@ internal class CodeActionsService(
             codeActions.AddRange(result);
         }
 
-        return codeActions.DrainToImmutableOrderedBy(static r => r.Order);
+        return codeActions.ToImmutableOrderedByAndClear(static r => r.Order);
     }
 
     private static ImmutableHashSet<string> GetAllAvailableCodeActionNames()

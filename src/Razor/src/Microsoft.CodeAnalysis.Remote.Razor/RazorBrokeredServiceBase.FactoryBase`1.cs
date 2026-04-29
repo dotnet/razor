@@ -1,11 +1,12 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.Logging;
@@ -21,7 +22,7 @@ internal abstract partial class RazorBrokeredServiceBase
     /// Implementors of <see cref="IServiceHubServiceFactory" /> (and thus this class) MUST provide a parameterless constructor
     /// or ServiceHub will fail to construct them.
     /// </remarks>
-    internal abstract class FactoryBase<TService> : IServiceHubServiceFactory
+    internal abstract class FactoryBase<TService> : IServiceHubServiceFactory, IInProcServiceFactory
         where TService : class
     {
         protected abstract TService CreateService(in ServiceArgs args);
@@ -36,6 +37,14 @@ internal abstract partial class RazorBrokeredServiceBase
             // Dispose the AuthorizationServiceClient since we won't be using it
             authorizationServiceClient?.Dispose();
 
+            return CreateAsync(stream, hostProvidedServices, serviceBroker);
+        }
+
+        public Task<object> CreateInProcAsync(IServiceProvider hostProvidedServices)
+            => CreateInternalAsync(stream: null, hostProvidedServices, serviceBroker: null);
+
+        private Task<object> CreateAsync(Stream stream, IServiceProvider hostProvidedServices, IServiceBroker serviceBroker)
+        {
 #if NET
             // So that we can control assembly loading, we re-load ourselves in the shared Razor ALC and perform the creation there.
             // That ensures that the service type we return is in the Razor ALC and any dependencies it needs will be handled by the
@@ -51,10 +60,10 @@ internal abstract partial class RazorBrokeredServiceBase
 #endif
         }
 
-        protected async Task<object> CreateInternalAsync(
-            Stream stream,
+        protected virtual async Task<object> CreateInternalAsync(
+            Stream? stream,
             IServiceProvider hostProvidedServices,
-            IServiceBroker serviceBroker)
+            IServiceBroker? serviceBroker)
         {
             var traceSource = (TraceSource?)hostProvidedServices.GetService(typeof(TraceSource));
 
@@ -75,27 +84,57 @@ internal abstract partial class RazorBrokeredServiceBase
                     ? new TraceSourceLoggerFactory(traceSource)
                     : EmptyLoggerFactory.Instance);
 
+            var workspaceProvider = brokeredServiceData?.WorkspaceProvider ?? RemoteWorkspaceProvider.Instance;
+
+            // Update the MEF composition's IHostServicesAccessor to the target workspace
+            var hostServicesProvider = exportProvider.GetExportedValue<RemoteHostServicesProvider>();
+            hostServicesProvider.SetWorkspaceProvider(workspaceProvider);
+
             // Update the MEF composition's ILoggerFactory to the target ILoggerFactory.
             // Note that this means that the first non-empty ILoggerFactory that we use
             // will be used for MEF component logging for the lifetime of all services.
             var remoteLoggerFactory = exportProvider.GetExportedValue<RemoteLoggerFactory>();
-            remoteLoggerFactory.SetTargetLoggerFactory(targetLoggerFactory);
+            var didSetLoggerFactory = remoteLoggerFactory.SetTargetLoggerFactory(targetLoggerFactory);
 
+            // In proc services don't use any service hub infra
+            if (stream is null)
+            {
+                var inProcArgs = new ServiceArgs(ServiceBroker: null, exportProvider, targetLoggerFactory, workspaceProvider, ServerConnection: null, brokeredServiceData.AssumeNotNull().Interceptor);
+                return CreateService(in inProcArgs);
+            }
+
+            // At this point, we know we're in a remote scenario where we're on the end of a service hub connection, so we want
+            // logged errors to be thrown, so they're bubbled up to the client.
+            if (didSetLoggerFactory)
+            {
+                remoteLoggerFactory.AddLoggerProvider(new ThrowingErrorLoggerProvider());
+            }
+
+            var serverConnection = CreateServerConnection(stream, traceSource);
+
+            var args = new ServiceArgs(serviceBroker.AssumeNotNull(), exportProvider, targetLoggerFactory, workspaceProvider, serverConnection, brokeredServiceData?.Interceptor);
+            var service = CreateService(in args);
+
+            ConnectService(serverConnection, service);
+
+            return service;
+        }
+
+        protected static ServiceRpcDescriptor.RpcConnection CreateServerConnection(Stream stream, TraceSource? traceSource)
+        {
             var pipe = stream.UsePipe();
 
             var descriptor = typeof(IRemoteJsonService).IsAssignableFrom(typeof(TService))
                 ? RazorServices.JsonDescriptors.GetDescriptorForServiceFactory(typeof(TService))
                 : RazorServices.Descriptors.GetDescriptorForServiceFactory(typeof(TService));
             var serverConnection = descriptor.WithTraceSource(traceSource).ConstructRpcConnection(pipe);
+            return serverConnection;
+        }
 
-            var args = new ServiceArgs(serviceBroker, exportProvider, targetLoggerFactory, serverConnection, brokeredServiceData?.Interceptor);
-
-            var service = CreateService(in args);
-
+        protected static void ConnectService(ServiceRpcDescriptor.RpcConnection serverConnection, TService service)
+        {
             serverConnection.AddLocalRpcTarget(service);
             serverConnection.StartListening();
-
-            return service;
         }
     }
 }

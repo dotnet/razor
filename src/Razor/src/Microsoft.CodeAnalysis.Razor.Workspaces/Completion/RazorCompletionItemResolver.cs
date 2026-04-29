@@ -1,11 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Roslyn.Text.Adornments;
 
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class RazorCompletionItemResolver : CompletionItemResolver
 {
-    public override async Task<VSInternalCompletionItem?> ResolveAsync(
+    public override Task<VSInternalCompletionItem?> ResolveAsync(
         VSInternalCompletionItem completionItem,
         VSInternalCompletionList containingCompletionList,
         ICompletionResolveContext originalRequestContext,
@@ -24,9 +24,14 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
         if (originalRequestContext is not RazorCompletionResolveContext razorCompletionResolveContext)
         {
             // Can't recognize the original request context, bail.
-            return null;
+            return SpecializedTasks.Null<VSInternalCompletionItem>();
         }
 
+        return ResolveAsync(completionItem, clientCapabilities, componentAvailabilityService, razorCompletionResolveContext, cancellationToken);
+    }
+
+    public static async Task<VSInternalCompletionItem?> ResolveAsync(VSInternalCompletionItem completionItem, VSInternalClientCapabilities? clientCapabilities, IComponentAvailabilityService componentAvailabilityService, RazorCompletionResolveContext razorCompletionResolveContext, CancellationToken cancellationToken)
+    {
         var associatedRazorCompletion = razorCompletionResolveContext.CompletionItems.FirstOrDefault(completion =>
         {
             if (completion.DisplayText != completionItem.Label)
@@ -84,6 +89,19 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
 
                     break;
                 }
+            case RazorCompletionItemKind.Attribute:
+                {
+                    if (associatedRazorCompletion.DescriptionInfo is AttributeDescriptionInfo descriptionInfo)
+                    {
+                        completionItem.Documentation = new MarkupContent
+                        {
+                            Kind = documentationKind,
+                            Value = descriptionInfo.Documentation
+                        };
+                    }
+
+                    break;
+                }
             case RazorCompletionItemKind.DirectiveAttribute:
             case RazorCompletionItemKind.DirectiveAttributeParameter:
             case RazorCompletionItemKind.TagHelperAttribute:
@@ -122,6 +140,15 @@ internal class RazorCompletionItemResolver : CompletionItemResolver
                         tagHelperMarkupTooltip = await MarkupTagHelperTooltipFactory
                             .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, componentAvailabilityService, documentationKind, cancellationToken)
                             .ConfigureAwait(false);
+                    }
+
+                    break;
+                }
+            case RazorCompletionItemKind.CSharpRazorKeyword:
+                {
+                    if (associatedRazorCompletion.DescriptionInfo is CSharpRazorKeywordCompletionDescription descriptionInfo)
+                    {
+                        completionItem.Documentation = descriptionInfo.Description;
                     }
 
                     break;

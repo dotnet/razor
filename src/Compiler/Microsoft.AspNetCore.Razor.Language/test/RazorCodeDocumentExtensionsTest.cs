@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -11,50 +12,19 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public class RazorCodeDocumentExtensionsTest
 {
     [Fact]
-    public void GetRazorSyntaxTree_ReturnsSyntaxTree()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = RazorSyntaxTree.Parse(codeDocument.Source);
-        codeDocument.Items[typeof(RazorSyntaxTree)] = expected;
-
-        // Act
-        var actual = codeDocument.GetSyntaxTree();
-
-        // Assert
-        Assert.Same(expected, actual);
-    }
-
-    [Fact]
-    public void SetRazorSyntaxTree_SetsSyntaxTree()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = RazorSyntaxTree.Parse(codeDocument.Source);
-
-        // Act
-        codeDocument.SetSyntaxTree(expected);
-
-        // Assert
-        Assert.Same(expected, codeDocument.Items[typeof(RazorSyntaxTree)]);
-    }
-
-    [Fact]
     public void GetAndSetImportSyntaxTrees_ReturnsSyntaxTrees()
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
         var importSyntaxTree = RazorSyntaxTree.Parse(codeDocument.Source);
-        codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
+        codeDocument = codeDocument.WithImportSyntaxTrees([importSyntaxTree]);
 
         // Act
         var actual = codeDocument.GetImportSyntaxTrees();
 
         // Assert
-        Assert.False(actual.IsDefault);
+        Assert.False(actual.IsEmpty);
         Assert.Equal<RazorSyntaxTree>([importSyntaxTree], actual);
     }
 
@@ -64,8 +34,12 @@ public class RazorCodeDocumentExtensionsTest
         // Arrange
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
-        var expected = new[] { TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build() };
-        codeDocument.SetTagHelpers(expected);
+        TagHelperCollection expected =
+        [
+            TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly").Build()
+        ];
+
+        codeDocument = codeDocument.WithTagHelpers(expected);
 
         // Act
         var actual = codeDocument.GetTagHelpers();
@@ -75,75 +49,13 @@ public class RazorCodeDocumentExtensionsTest
     }
 
     [Fact]
-    public void GetIRDocument_ReturnsIRDocument()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = new DocumentIntermediateNode();
-        codeDocument.Items[typeof(DocumentIntermediateNode)] = expected;
-
-        // Act
-        var actual = codeDocument.GetDocumentIntermediateNode();
-
-        // Assert
-        Assert.Same(expected, actual);
-    }
-
-    [Fact]
-    public void SetIRDocument_SetsIRDocument()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = new DocumentIntermediateNode();
-
-        // Act
-        codeDocument.SetDocumentIntermediateNode(expected);
-
-        // Assert
-        Assert.Same(expected, codeDocument.Items[typeof(DocumentIntermediateNode)]);
-    }
-
-    [Fact]
-    public void GetCSharpDocument_ReturnsCSharpDocument()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = TestRazorCSharpDocument.Create(codeDocument, "");
-        codeDocument.Items[typeof(RazorCSharpDocument)] = expected;
-
-        // Act
-        var actual = codeDocument.GetCSharpDocument();
-
-        // Assert
-        Assert.Same(expected, actual);
-    }
-
-    [Fact]
-    public void SetCSharpDocument_SetsCSharpDocument()
-    {
-        // Arrange
-        var codeDocument = TestRazorCodeDocument.CreateEmpty();
-
-        var expected = TestRazorCSharpDocument.Create(codeDocument, "");
-
-        // Act
-        codeDocument.SetCSharpDocument(expected);
-
-        // Assert
-        Assert.Same(expected, codeDocument.Items[typeof(RazorCSharpDocument)]);
-    }
-
-    [Fact]
     public void GetAndSetTagHelperContext_ReturnsTagHelperContext()
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
-        var expected = TagHelperDocumentContext.Create(prefix: null, tagHelpers: []);
-        codeDocument.SetTagHelperContext(expected);
+        var expected = TagHelperDocumentContext.GetOrCreate(tagHelpers: []);
+        codeDocument = codeDocument.WithTagHelperContext(expected);
 
         // Act
         var actual = codeDocument.GetTagHelperContext();
@@ -153,7 +65,91 @@ public class RazorCodeDocumentExtensionsTest
     }
 
     [Fact]
-    public void TryComputeNamespace_RootNamespaceNotSet_ReturnsNull()
+    public void GetAndSetDirectiveTagHelperContributions_ReturnsContributions()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.Create("@using A");
+        var usingDirective = GetUsingDirectives(codeDocument).Single();
+        var contribution = new DirectiveTagHelperContribution(usingDirective.SpanStart, TagHelperCollection.Empty);
+
+        // Act
+        codeDocument = codeDocument.WithDirectiveTagHelperContributions([contribution]);
+        var actual = codeDocument.GetDirectiveTagHelperContributions();
+
+        // Assert
+        var stored = Assert.Single(actual);
+        Assert.Equal(usingDirective.SpanStart, stored.DirectiveSpanStart);
+    }
+
+    [Fact]
+    public void IsDirectiveUsed_NoReferencedTagHelpers_ReturnsFalse()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.Create("@using A\r\n@using B");
+        var directives = GetUsingDirectives(codeDocument);
+        codeDocument = codeDocument.WithDirectiveTagHelperContributions(
+        [
+            new(directives[0].SpanStart, TagHelperCollection.Empty),
+            new(directives[1].SpanStart, TagHelperCollection.Empty),
+        ]);
+
+        // Act
+        var isFirstUsed = codeDocument.IsDirectiveUsed(directives[0]);
+        var isSecondUsed = codeDocument.IsDirectiveUsed(directives[1]);
+
+        // Assert
+        Assert.False(isFirstUsed);
+        Assert.False(isSecondUsed);
+    }
+
+    [Fact]
+    public void IsDirectiveUsed_MixOfUsedAndUnused_ReturnsExpectedValues()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.Create("@using A\r\n@using B");
+        var directives = GetUsingDirectives(codeDocument);
+        var usedTagHelper = TagHelperDescriptorBuilder.CreateTagHelper("T", "A").Build();
+
+        codeDocument = codeDocument
+            .WithDirectiveTagHelperContributions(
+            [
+                new(directives[0].SpanStart, TagHelperCollection.Create([usedTagHelper])),
+                new(directives[1].SpanStart, TagHelperCollection.Empty),
+            ])
+            .WithReferencedTagHelpers(TagHelperCollection.Create([usedTagHelper]));
+
+        // Act
+        var isFirstUsed = codeDocument.IsDirectiveUsed(directives[0]);
+        var isSecondUsed = codeDocument.IsDirectiveUsed(directives[1]);
+
+        // Assert
+        Assert.True(isFirstUsed);
+        Assert.False(isSecondUsed);
+    }
+
+    [Theory]
+    [InlineData("_Imports.razor")]
+    [InlineData("_ViewImports.cshtml")]
+    public void IsDirectiveUsed_ImportDocument_ReturnsTrue(string filePath)
+    {
+        // Arrange
+        var source = TestRazorSourceDocument.Create("@using A", filePath: filePath, relativePath: filePath);
+        var codeDocument = RazorCodeDocument.Create(
+            source,
+            parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, FileKinds.GetFileKindFromPath(filePath)));
+
+        var directive = GetUsingDirectives(codeDocument).Single();
+        codeDocument = codeDocument.WithDirectiveTagHelperContributions([new(directive.SpanStart, TagHelperCollection.Empty)]);
+
+        // Act
+        var isDirectiveUsed = codeDocument.IsDirectiveUsed(directive);
+
+        // Assert
+        Assert.True(isDirectiveUsed);
+    }
+
+    [Fact]
+    public void TryGetNamespace_RootNamespaceNotSet_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: "Test.cshtml");
@@ -162,14 +158,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RelativePathNull_ReturnsNull()
+    public void TryGetNamespace_RelativePathNull_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(filePath: "C:\\Hello\\Test.cshtml", relativePath: null);
@@ -178,14 +174,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_FilePathNull_ReturnsNull()
+    public void TryGetNamespace_FilePathNull_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(filePath: null, relativePath: "Test.cshtml");
@@ -194,14 +190,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RelativePathLongerThanFilePath_ReturnsNull()
+    public void TryGetNamespace_RelativePathLongerThanFilePath_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -213,14 +209,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_ComputesNamespace()
+    public void TryGetNamespace_ComputesNamespace()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -232,14 +228,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("Hello.Components", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_NoRootNamespaceFallback_ReturnsNull()
+    public void TryGetNamespace_NoRootNamespaceFallback_ReturnsNull()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -251,14 +247,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: false, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: false, out var @namespace);
 
         // Assert
         Assert.Null(@namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_SanitizesNamespaceName()
+    public void TryGetNamespace_SanitizesNamespaceName()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -270,14 +266,14 @@ public class RazorCodeDocumentExtensionsTest
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hel?o.World"));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("Hel_o.World.Components_with_space", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RespectsNamespaceDirective()
+    public void TryGetNamespace_RespectsNamespaceDirective()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -293,17 +289,17 @@ public class RazorCodeDocumentExtensionsTest
             }),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
-        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("My.Custom.NS", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RespectsImportsNamespaceDirective()
+    public void TryGetNamespace_RespectsImportsNamespaceDirective()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -318,7 +314,7 @@ public class RazorCodeDocumentExtensionsTest
             }),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
-        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace My.Custom.NS",
@@ -326,17 +322,49 @@ public class RazorCodeDocumentExtensionsTest
             relativePath: "\\_Imports.razor");
 
         var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
-        codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
+        codeDocument = codeDocument.WithImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("My.Custom.NS.Components", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_RespectsImportsNamespaceDirective_SameFolder()
+    public void TryGetNamespace_IgnoresImportsNamespaceDirectiveWhenAsked()
+    {
+        // Arrange
+        var source = TestRazorSourceDocument.Create(
+            filePath: "C:\\Hello\\Components\\Test.cshtml",
+            relativePath: "\\Components\\Test.cshtml");
+        var codeDocument = RazorCodeDocument.Create(
+            source,
+            parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, RazorFileKind.Component, builder =>
+            {
+                builder.Directives = [NamespaceDirective.Directive];
+            }),
+            codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
+
+        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+
+        var importSource = TestRazorSourceDocument.Create(
+            content: "@namespace My.Custom.NS",
+            filePath: "C:\\Hello\\_Imports.razor",
+            relativePath: "\\_Imports.razor");
+
+        var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
+        codeDocument = codeDocument.WithImportSyntaxTrees([importSyntaxTree]);
+
+        // Act
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, considerImports: false, out var @namespace, out _);
+
+        // Assert
+        Assert.Equal("Hello.World.Components", @namespace);
+    }
+
+    [Fact]
+    public void TryGetNamespace_RespectsImportsNamespaceDirective_SameFolder()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -351,7 +379,7 @@ public class RazorCodeDocumentExtensionsTest
             }),
             codeGenerationOptions: RazorCodeGenerationOptions.Default.WithRootNamespace("Hello.World"));
 
-        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace My.Custom.NS",
@@ -359,17 +387,17 @@ public class RazorCodeDocumentExtensionsTest
             relativePath: "\\Components\\_Imports.razor");
 
         var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
-        codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
+        codeDocument = codeDocument.WithImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("My.Custom.NS", @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_OverrideImportsNamespaceDirective()
+    public void TryGetNamespace_OverrideImportsNamespaceDirective()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -384,7 +412,7 @@ public class RazorCodeDocumentExtensionsTest
                 builder.Directives = [NamespaceDirective.Directive];
             }));
 
-        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace My.Custom.NS",
@@ -392,13 +420,53 @@ public class RazorCodeDocumentExtensionsTest
             relativePath: "\\_Imports.razor");
 
         var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
-        codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
+        codeDocument = codeDocument.WithImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("My.Custom.OverrideNS", @namespace);
+    }
+
+    [Fact]
+    public void TryGetNamespace_PicksNearestImportsNamespaceDirective()
+    {
+        // Arrange
+        var source = TestRazorSourceDocument.Create(
+            filePath: "C:\\RazorPagesWebPage\\Pages\\Namespace\\Nested\\Folder\\Index.cshtml",
+            relativePath: "\\Pages\\Namespace\\Nested\\Folder\\Index.cshtml");
+
+        var codeDocument = RazorCodeDocument.Create(
+            source,
+            parserOptions: RazorParserOptions.Create(RazorLanguageVersion.Latest, RazorFileKind.Legacy, builder =>
+            {
+                builder.Directives = [NamespaceDirective.Directive];
+            }));
+
+        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+
+        var importSource1 = TestRazorSourceDocument.Create(
+            content: "@namespace RazorPagesWebSite.Pages",
+            filePath: "C:\\RazorPagesWebPage\\Pages\\_ViewImports.cshtml",
+            relativePath: "\\Pages\\_ViewImports.cshtml");
+
+        var importSyntaxTree1 = RazorSyntaxTree.Parse(importSource1, codeDocument.ParserOptions);
+
+        var importSource2 = TestRazorSourceDocument.Create(
+            content: "@namespace CustomNamespace",
+            filePath: "C:\\RazorPagesWebPage\\Pages\\Namespace\\_ViewImports.cshtml",
+            relativePath: "\\Pages\\Namespace\\_ViewImports.cshtml");
+
+        var importSyntaxTree2 = RazorSyntaxTree.Parse(importSource2, codeDocument.ParserOptions);
+
+        codeDocument = codeDocument.WithImportSyntaxTrees([importSyntaxTree1, importSyntaxTree2]);
+
+        // Act
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
+
+        // Assert
+        Assert.Equal("CustomNamespace.Nested.Folder", @namespace);
     }
 
     [Theory]
@@ -412,7 +480,7 @@ public class RazorCodeDocumentExtensionsTest
     [InlineData("c:\\", "foo\\bar\\baz.cshtml", "Base.foo.bar")]
     [InlineData("c:\\foo\\", "bar\\baz.cshtml", "Base.bar")]
     [InlineData("c:\\Foo\\", "bar\\baz.cshtml", "Base.bar")]
-    public void TryComputeNamespace_ComputesNamespaceWithSuffix(string basePath, string relativePath, string expectedNamespace)
+    public void TryGetNamespace_ComputesNamespaceWithSuffix(string basePath, string relativePath, string expectedNamespace)
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -423,7 +491,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive));
 
-        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importRelativePath = "_ViewImports.cshtml";
         var importSource = TestRazorSourceDocument.Create(
@@ -432,17 +500,17 @@ public class RazorCodeDocumentExtensionsTest
             relativePath: importRelativePath);
 
         var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
-        codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
+        codeDocument = codeDocument.WithImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal(expectedNamespace, @namespace);
     }
 
     [Fact]
-    public void TryComputeNamespace_ForNonRelatedFiles_UsesNamespaceVerbatim()
+    public void TryGetNamespace_ForNonRelatedFiles_UsesNamespaceVerbatim()
     {
         // Arrange
         var source = TestRazorSourceDocument.Create(
@@ -453,7 +521,7 @@ public class RazorCodeDocumentExtensionsTest
             source,
             parserOptions: RazorParserOptions.Default.WithDirectives(NamespaceDirective.Directive));
 
-        codeDocument.SetSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
+        codeDocument = codeDocument.WithSyntaxTree(RazorSyntaxTree.Parse(source, codeDocument.ParserOptions));
 
         var importSource = TestRazorSourceDocument.Create(
             content: "@namespace Base",
@@ -461,12 +529,18 @@ public class RazorCodeDocumentExtensionsTest
             relativePath: "baz\\bleh.cshtml");
 
         var importSyntaxTree = RazorSyntaxTree.Parse(importSource, codeDocument.ParserOptions);
-        codeDocument.SetImportSyntaxTrees([importSyntaxTree]);
+        codeDocument = codeDocument.WithImportSyntaxTrees([importSyntaxTree]);
 
         // Act
-        codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace);
+        codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace);
 
         // Assert
         Assert.Equal("Base", @namespace);
+    }
+
+    private static RazorUsingDirectiveSyntax[] GetUsingDirectives(RazorCodeDocument codeDocument)
+    {
+        var syntaxTree = RazorSyntaxTree.Parse(codeDocument.Source);
+        return [.. syntaxTree.Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>()];
     }
 }

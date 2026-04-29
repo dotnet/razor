@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,4 +10,5 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 internal interface IRemoteRenameService : IRemoteJsonService
 {
     ValueTask<RemoteResponse<WorkspaceEdit?>> GetRenameEditAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, JsonSerializableDocumentId documentId, Position position, string newName, CancellationToken cancellationToken);
+    ValueTask<WorkspaceEdit?> GetFileRenameEditAsync(JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo, RenameFilesParams fileRenameRequest, CancellationToken cancellationToken);
 }

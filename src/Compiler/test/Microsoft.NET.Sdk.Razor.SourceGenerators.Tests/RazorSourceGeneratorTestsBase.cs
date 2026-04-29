@@ -40,9 +40,6 @@ using Xunit;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
-// RazorSourceGenerator tests cannot run in parallel if they use RazorEventListener
-// because that listens to events across all source generator instances.
-[Collection(nameof(RazorSourceGenerator))]
 public abstract class RazorSourceGeneratorTestsBase
 {
     protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
@@ -57,11 +54,11 @@ public abstract class RazorSourceGeneratorTestsBase
         return (result.Item1, result.Item2);
     }
 
-    protected static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>, TestAnalyzerConfigOptionsProvider)> GetDriverWithAdditionalTextAndProviderAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null, bool hostOutputs = false)
+    protected static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>, TestAnalyzerConfigOptionsProvider)> GetDriverWithAdditionalTextAndProviderAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null, bool hostOutputs = false, bool trackSteps = false)
     {
         var razorSourceGenerator = new RazorSourceGenerator(testUniqueIds: "test").AsSourceGenerator();
         var disabledOutputs = hostOutputs ? IncrementalGeneratorOutputKind.None : (IncrementalGeneratorOutputKind)0b100000;
-        var driver = (GeneratorDriver)CSharpGeneratorDriver.Create(new[] { razorSourceGenerator }, parseOptions: (CSharpParseOptions)project.ParseOptions!, driverOptions: new GeneratorDriverOptions(disabledOutputs, true));
+        var driver = (GeneratorDriver)CSharpGeneratorDriver.Create(new[] { razorSourceGenerator }, parseOptions: (CSharpParseOptions)project.ParseOptions!, driverOptions: new GeneratorDriverOptions(disabledOutputs, trackSteps));
 
         var optionsProvider = new TestAnalyzerConfigOptionsProvider();
         optionsProvider.TestGlobalOptions["build_property.RazorConfiguration"] = "Default";
@@ -150,9 +147,13 @@ public abstract class RazorSourceGeneratorTestsBase
             }
         });
         var app = appBuilder.Build();
+        
+        // Create a service scope to properly handle scoped services like IViewBufferScope.
+        // ASP.NET Core's DI validation prevents resolving scoped services from the root provider.
+        using var scope = app.Services.CreateScope();
         var httpContext = new DefaultHttpContext
         {
-            RequestServices = app.Services
+            RequestServices = scope.ServiceProvider
         };
         var requestFeature = new HttpRequestFeature
         {
@@ -184,7 +185,7 @@ public abstract class RazorSourceGeneratorTestsBase
             .ToImmutableArray();
 
         // Render the page.
-        var view = ActivatorUtilities.CreateInstance<RazorView>(app.Services,
+        var view = ActivatorUtilities.CreateInstance<RazorView>(scope.ServiceProvider,
             /* IReadOnlyList<IRazorPage> viewStartPages */ viewStarts,
             /* IRazorPage razorPage */ page);
         await view.RenderAsync(viewContext);
@@ -295,15 +296,46 @@ public abstract class RazorSourceGeneratorTestsBase
         }
     }
 
-    private static Project CreateBaseProject(CSharpParseOptions? cSharpParseOptions)
+    // Cache the entire base project (workspace, compilation options, parse options, and all
+    // metadata references) so it is built once and shared across all tests. Project is
+    // immutable, so every AddDocument/AddAdditionalDocument call returns a new fork.
+    private static readonly Lazy<Project> s_cachedBaseProject = new(static () =>
     {
+        var references = new Dictionary<string, MetadataReference>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var defaultCompileLibrary in DependencyContext.Load(typeof(RazorSourceGeneratorTestsBase).Assembly)!.CompileLibraries)
+        {
+            foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(AppContext.BaseDirectory)))
+            {
+                if (resolveReferencePath.Contains("Shim."))
+                {
+                    continue;
+                }
+
+                var name = Path.GetFileNameWithoutExtension(resolveReferencePath);
+                references.TryAdd(name, MetadataReference.CreateFromFile(resolveReferencePath));
+            }
+        }
+
+        // The deps file in the project is incorrect and does not contain "compile" nodes for some references.
+        // However these binaries are always present in the bin output. As a "temporary" workaround, we'll add
+        // every dll file that's present in the test's build output as a metadatareference.
+        foreach (var assembly in Directory.EnumerateFiles(AppContext.BaseDirectory, "*.dll"))
+        {
+            if (!assembly.Contains("Shim."))
+            {
+                var name = Path.GetFileNameWithoutExtension(assembly);
+                references.TryAdd(name, MetadataReference.CreateFromFile(assembly));
+            }
+        }
+
         var projectId = ProjectId.CreateNewId(debugName: "TestProject");
 
         var solution = new AdhocWorkspace()
            .CurrentSolution
            .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp);
 
-        var project = solution.Projects.Single()
+        return solution.Projects.Single()
             .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
                 nullableContextOptions: NullableContextOptions.Enable,
                 specificDiagnosticOptions: new KeyValuePair<string, ReportDiagnostic>[]
@@ -313,42 +345,21 @@ public abstract class RazorSourceGeneratorTestsBase
                     new("CS1701", ReportDiagnostic.Suppress),
                     // Ignore warnings about unused usings, we don't attempt to trim them
                     new("CS8019", ReportDiagnostic.Suppress),
-                }));
+                }))
+            .WithParseOptions(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview))
+            .AddMetadataReferences(references.Values);
+    });
 
-        project = project.WithParseOptions(cSharpParseOptions ?? ((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.Preview));
+    private static Project CreateBaseProject(CSharpParseOptions? cSharpParseOptions)
+    {
+        var project = s_cachedBaseProject.Value;
 
-        foreach (var defaultCompileLibrary in DependencyContext.Load(typeof(RazorSourceGeneratorTests).Assembly)!.CompileLibraries)
+        if (cSharpParseOptions is not null)
         {
-            foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(AppContext.BaseDirectory)))
-            {
-                if (excludeReference(resolveReferencePath))
-                {
-                    continue;
-                }
-
-                project = project.AddMetadataReference(MetadataReference.CreateFromFile(resolveReferencePath));
-            }
-        }
-
-        // The deps file in the project is incorrect and does not contain "compile" nodes for some references.
-        // However these binaries are always present in the bin output. As a "temporary" workaround, we'll add
-        // every dll file that's present in the test's build output as a metadatareference.
-        foreach (var assembly in Directory.EnumerateFiles(AppContext.BaseDirectory, "*.dll"))
-        {
-            if (!excludeReference(assembly) &&
-                !project.MetadataReferences.Any(c => string.Equals(Path.GetFileNameWithoutExtension(c.Display), Path.GetFileNameWithoutExtension(assembly), StringComparison.OrdinalIgnoreCase)))
-            {
-                project = project.AddMetadataReference(MetadataReference.CreateFromFile(assembly));
-            }
+            project = project.WithParseOptions(cSharpParseOptions);
         }
 
         return project;
-
-        // In this project, we don't need shims, we reference the full ASP.NET Core DLLs.
-        static bool excludeReference(string path)
-        {
-            return path.Contains("Shim.");
-        }
     }
 
     protected sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
@@ -479,6 +490,9 @@ internal static class Extensions
     [Conditional("GENERATE_BASELINES")]
     private static void GenerateOutputBaseline(string baselinePath, string text)
     {
+        var directory = Path.GetDirectoryName(baselinePath)!;
+        Directory.CreateDirectory(directory);
+
         text = text.Replace("\r", "").Replace("\n", "\r\n");
         File.WriteAllText(baselinePath, text, _baselineEncoding);
     }
@@ -538,18 +552,47 @@ internal static class Extensions
         return trimmed.Substring(trimmed.IndexOf('\n') + 1);
     }
 
-    public static void AssertSingleItem(this RazorEventListener.RazorEvent e, string expectedEventName, string expectedFileName)
+    public static void VerifyIncrementalSteps(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
     {
-        Assert.Equal(expectedEventName, e.EventName);
-        var file = Assert.Single(e.Payload);
-        Assert.Equal(expectedFileName, file);
+        VerifyStepExists(result, stepName);
+        
+        var steps = result.TrackedSteps[stepName];
+        Assert.Equal(expectedReasons.Length, steps.Length);
+        
+        for (int i = 0; i < expectedReasons.Length; i++)
+        {
+            var step = steps[i];
+            Assert.Collection(step.Outputs,
+                output => Assert.Equal(expectedReasons[i], output.Reason));
+        }
     }
 
-    public static void AssertPair(this RazorEventListener.RazorEvent e, string expectedEventName, string payload1, string payload2)
+    public static void VerifyIncrementalStepsMultiple(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
     {
-        Assert.Equal(expectedEventName, e.EventName);
-        Assert.Equal(2, e.Payload.Length);
-        Assert.Equal(payload1, e.Payload[0]);
-        Assert.Equal(payload2, e.Payload[1]);
+        VerifyStepExists(result, stepName);
+        
+        var steps = result.TrackedSteps[stepName];
+        
+        var actualReasons = steps.SelectMany(step => step.Outputs.Select(output => output.Reason)).ToArray();
+        Assert.Equal(expectedReasons.Length, actualReasons.Length);
+        
+        for (int i = 0; i < expectedReasons.Length; i++)
+        {
+            Assert.Equal(expectedReasons[i], actualReasons[i]);
+        }
+    }
+
+    private static void VerifyStepExists(GeneratorRunResult result, string stepName)
+    {
+        var trackedSteps = result.TrackedSteps;
+        if (!trackedSteps.ContainsKey(stepName))
+        {
+            var availableSteps = string.Join(", ", trackedSteps.Keys.OrderBy(k => k).Take(10));
+            if (trackedSteps.Count > 10)
+            {
+                availableSteps += $", ... ({trackedSteps.Count - 10} more)";
+            }
+            Assert.Fail($"Expected step '{stepName}' not found. Available steps: {availableSteps}");
+        }
     }
 }

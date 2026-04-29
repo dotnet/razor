@@ -1,12 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal enum SyntaxKind : byte
 {
+    None,
+
     #region Nodes
     // Common
     RazorDocument,
@@ -14,6 +14,7 @@ internal enum SyntaxKind : byte
     RazorComment,
     RazorMetaCode,
     RazorDirective,
+    RazorUsingDirective,
     RazorDirectiveBody,
     UnclassifiedTextLiteral,
 
@@ -58,7 +59,6 @@ internal enum SyntaxKind : byte
 
     #region Tokens
     // Common
-    None,
     Marker,
     List,
     Whitespace,
@@ -146,6 +146,7 @@ internal enum SyntaxKind : byte
 
     // New common (Consider condensing when https://github.com/dotnet/razor/issues/8400 is done and we can break the API).
     EndOfFile,
+    ConflictMarkerTrivia,
     #endregion
 
     // New nodes should go before this one

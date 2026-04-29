@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.ComponentModel.Composition;
@@ -75,7 +75,13 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
         }
         else if (supportedBefore)
         {
+            // Stash the old content type so that listeners to
+            textBuffer.Properties[DefaultLSPDocumentManager.LSPDocumentRemovalOldContentTypeKey] = oldContentType;
+
             RazorBufferDisposed(textBuffer);
+
+            // Clean up after ourselves
+            textBuffer.Properties.RemoveProperty(DefaultLSPDocumentManager.LSPDocumentRemovalOldContentTypeKey);
         }
     }
 

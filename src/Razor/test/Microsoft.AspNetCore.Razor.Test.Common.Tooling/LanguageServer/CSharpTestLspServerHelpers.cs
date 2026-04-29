@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
@@ -36,6 +36,14 @@ internal static class CSharpTestLspServerHelpers
         SourceText csharpSourceText,
         Uri csharpDocumentUri,
         VSInternalServerCapabilities serverCapabilities,
+        Action<VSInternalClientCapabilities> capabilitiesUpdater,
+        CancellationToken cancellationToken) =>
+        CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), capabilitiesUpdater, cancellationToken);
+
+    public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
+        SourceText csharpSourceText,
+        Uri csharpDocumentUri,
+        VSInternalServerCapabilities serverCapabilities,
         IRazorMappingService razorMappingService,
         Action<VSInternalClientCapabilities> capabilitiesUpdater,
         CancellationToken cancellationToken)
@@ -53,12 +61,14 @@ internal static class CSharpTestLspServerHelpers
         VSInternalServerCapabilities serverCapabilities,
         IRazorMappingService razorMappingService,
         bool multiTargetProject,
-         Action<VSInternalClientCapabilities> capabilitiesUpdater,
+        Action<VSInternalClientCapabilities> capabilitiesUpdater,
         CancellationToken cancellationToken)
     {
         var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
-        var exportProvider = TestComposition.Roslyn.ExportProviderFactory.CreateExportProvider();
+        var exportProvider = TestComposition.RoslynFeatures
+            .AddParts(typeof(RazorTestLanguageServerFactory))
+            .ExportProviderFactory.CreateExportProvider();
 
         var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken);
         metadataReferences = metadataReferences.Add(ReferenceUtil.AspNetLatestComponents);
@@ -118,18 +128,18 @@ internal static class CSharpTestLspServerHelpers
             filePath: @"C:\TestSolution\TestProject.csproj",
             metadataReferences: metadataReferences).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(@"C:\TestSolution\obj\TestProject.dll"));
 
-        var projectInfoNet80 = ProjectInfo.Create(
-            id: ProjectId.CreateNewId("TestProject (net8.0)"),
+        var projectInfoNet100 = ProjectInfo.Create(
+            id: ProjectId.CreateNewId("TestProject (net10.0)"),
             version: VersionStamp.Default,
-            name: "TestProject (net8.0)",
+            name: "TestProject (net10.0)",
             assemblyName: "TestProject.dll",
             language: LanguageNames.CSharp,
             filePath: @"C:\TestSolution\TestProject.csproj",
             metadataReferences: metadataReferences);
 
         ProjectInfo[] projectInfos = multiTargetProject
-            ? [projectInfoNet60, projectInfoNet80]
-            : [projectInfoNet80];
+            ? [projectInfoNet60, projectInfoNet100]
+            : [projectInfoNet100];
 
         foreach (var projectInfo in projectInfos)
         {

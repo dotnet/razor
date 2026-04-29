@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
@@ -16,11 +17,11 @@ internal static class TaskListDiagnosticProvider
     public static ImmutableArray<LspDiagnostic> GetTaskListDiagnostics(RazorCodeDocument codeDocument, ImmutableArray<string> taskListDescriptors)
     {
         var source = codeDocument.Source.Text;
-        var tree = codeDocument.GetSyntaxTree();
+        var root = codeDocument.GetRequiredSyntaxRoot();
 
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
-        foreach (var node in tree.Root.DescendantNodes())
+        foreach (var node in root.DescendantNodes())
         {
             if (node is RazorCommentBlockSyntax comment)
             {
@@ -42,7 +43,7 @@ internal static class TaskListDiagnosticProvider
                     {
                         Code = "TODO",
                         Message = comment.Comment.Content.Trim(),
-                        Source = "Razor",
+                        Source = LanguageServerConstants.RazorDiagnosticSource,
                         Severity = LspDiagnosticSeverity.Information,
                         Range = source.GetRange(comment.Comment.Span),
                         Tags = s_taskItemTags

@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -26,21 +27,32 @@ internal partial class EditorInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var view = await GetActiveTextViewAsync(cancellationToken);
-        var textSnapshot = view.TextSnapshot;
 
         var position = await GetCaretPositionAsync(cancellationToken);
 
         _ = view.TextBuffer.Insert(position, text);
     }
 
-    public async Task SetTextAsync(string text, CancellationToken cancellationToken)
+    public async Task<int> SetTextAsync(TestCode text, CancellationToken cancellationToken, bool placeCaretAtPosition = true)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var view = await GetActiveTextViewAsync(cancellationToken);
         var textSnapshot = view.TextSnapshot;
         var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-        _ = view.TextBuffer.Replace(replacementSpan, text);
+        _ = view.TextBuffer.Replace(replacementSpan, text.Text);
+
+        if (text is { Positions: [var position] })
+        {
+            if (placeCaretAtPosition)
+            {
+                await TestServices.Editor.PlaceCaretAsync(text.Position, cancellationToken);
+            }
+
+            return position;
+        }
+
+        return 0;
     }
 
     public async Task WaitForTextChangeAsync(Action action, CancellationToken cancellationToken)
@@ -87,6 +99,21 @@ internal partial class EditorInProcess
             cancellationToken).ConfigureAwait(false);
 
         return result!;
+    }
+
+    public async Task<bool> WaitForTextContainsAsync(string text, CancellationToken cancellationToken)
+    {
+        var result = await Helper.RetryAsync(async ct =>
+            {
+                var view = await GetActiveTextViewAsync(ct);
+                var content = view.TextBuffer.CurrentSnapshot.GetText();
+
+                return content.Contains(text);
+            },
+            TimeSpan.FromMilliseconds(50),
+            cancellationToken).ConfigureAwait(false);
+
+        return result;
     }
 
     public async Task VerifyTextContainsAsync(string text, CancellationToken cancellationToken)

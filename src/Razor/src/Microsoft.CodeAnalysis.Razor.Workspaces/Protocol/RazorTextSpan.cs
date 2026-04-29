@@ -1,13 +1,12 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
 /// <summary>
-/// A representation of a Roslyn TextSpan that can be serialized with System.Text.Json. Also needs to match
-/// https://github.com/dotnet/vscode-csharp/blob/main/src/razor/src/rpc/serverTextSpan.ts for VS Code.
+/// A representation of a Roslyn TextSpan that can be serialized with System.Text.Json
 /// </summary>
 internal sealed record RazorTextSpan
 {
@@ -16,4 +15,13 @@ internal sealed record RazorTextSpan
 
     [JsonPropertyName("length")]
     public int Length { get; set; }
+
+    public static RazorTextSpan FromBounds(int start, int end)
+    {
+        return new RazorTextSpan
+        {
+            Start = start,
+            Length = end - start,
+        };
+    }
 }

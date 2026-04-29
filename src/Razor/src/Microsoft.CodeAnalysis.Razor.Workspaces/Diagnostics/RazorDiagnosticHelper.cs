@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Immutable;
@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
@@ -18,7 +19,7 @@ internal static class RazorDiagnosticHelper
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = codeDocument.Source.Text;
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
         var diagnostics = csharpDocument.Diagnostics;
 
         if (diagnostics.Length == 0)
@@ -39,7 +40,7 @@ internal static class RazorDiagnosticHelper
         return [new VSDiagnosticProjectInformation()
                 {
                     Context = null,
-                    ProjectIdentifier = documentSnapshot.Project.Key.Id,
+                    ProjectIdentifier = documentSnapshot.Project.IntermediateOutputPath,
                     ProjectName = documentSnapshot.Project.DisplayName
                 }];
     }
@@ -89,7 +90,7 @@ internal static class RazorDiagnosticHelper
         {
             Message = razorDiagnostic.GetMessage(CultureInfo.InvariantCulture),
             Code = razorDiagnostic.Id,
-            Source = "Razor",
+            Source = LanguageServerConstants.RazorDiagnosticSource,
             Severity = ConvertSeverity(razorDiagnostic.Severity),
             // This is annotated as not null, but we have tests that validate the behaviour when
             // we pass in null here

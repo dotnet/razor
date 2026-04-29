@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -8,13 +8,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Razor.IntegrationTests;
-using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
-using NuGet.SolutionRestoreManager;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
@@ -42,42 +41,15 @@ internal partial class SolutionExplorerInProcess
         ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, args.Any() ? args.ToArray() : null, null, projectPath, projectName, null, out _));
     }
 
-    public async Task RestoreNuGetPackagesAsync(CancellationToken cancellationToken)
+    public async Task CloseSolutionAndWaitAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
-        var solution = (EnvDTE80.Solution2)dte.Solution;
-        foreach (var project in solution.Projects.OfType<EnvDTE.Project>())
-        {
-            await RestoreNuGetPackagesAsync(project.FullName, cancellationToken);
-        }
-    }
+        await CloseSolutionAsync(cancellationToken);
 
-    public async Task RestoreNuGetPackagesAsync(string projectName, CancellationToken cancellationToken)
-    {
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        await TestServices.Workspace.WaitForProjectSystemAsync(cancellationToken);
-
-        var solutionRestoreService = await GetComponentModelServiceAsync<IVsSolutionRestoreService>(cancellationToken);
-        await solutionRestoreService.CurrentRestoreOperation;
-
-        var projectFullPath = (await GetProjectAsync(projectName, cancellationToken)).FullName;
-        var solutionRestoreStatusProvider = await GetComponentModelServiceAsync<IVsSolutionRestoreStatusProvider>(cancellationToken);
-        if (await solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken))
-        {
-            return;
-        }
-
-        var solutionRestoreService2 = (IVsSolutionRestoreService2)solutionRestoreService;
-        await solutionRestoreService2.NominateProjectAsync(projectFullPath, cancellationToken);
-
-        // Check IsRestoreCompleteAsync until it returns true (this stops the retry because true != default(bool))
-        await Helper.RetryAsync(
-            cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
-            TimeSpan.FromMilliseconds(50),
-            cancellationToken);
+        // Yes, this is annoying, but it seems to mitigate the dual-activate issue that the language client has
+        // when closing and reopening solutions rapidly.
+        await Task.Delay(1000, cancellationToken);
     }
 
     public async Task OpenSolutionAsync(string solutionFileName, CancellationToken cancellationToken)
@@ -110,7 +82,7 @@ internal partial class SolutionExplorerInProcess
         var fileExtension = Path.GetExtension(filePath);
         if (fileExtension.Equals(".razor", StringComparison.OrdinalIgnoreCase) || fileExtension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase))
         {
-            await TestServices.RazorProjectSystem.WaitForCSharpVirtualDocumentAsync(filePath, cancellationToken);
+            await TestServices.RazorProjectSystem.WaitForHtmlVirtualDocumentAsync(filePath, cancellationToken);
         }
     }
 
@@ -122,7 +94,7 @@ internal partial class SolutionExplorerInProcess
     /// <param name="contents">The contents of the file to overwrite. An empty file is create if null is passed.</param>
     /// <param name="open">Whether to open the file after it has been updated.</param>
     /// <param name="cancellationToken"></param>
-    public async Task AddFileAsync(string projectName, string fileName, string? contents = null, bool open = false, CancellationToken cancellationToken = default)
+    public async Task<int> AddFileAsync(string projectName, string fileName, TestCode? contents = null, bool open = false, CancellationToken cancellationToken = default)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -132,9 +104,9 @@ internal partial class SolutionExplorerInProcess
         var directoryPath = Path.GetDirectoryName(filePath);
         Directory.CreateDirectory(directoryPath);
 
-        if (contents is not null)
+        if (contents is { Text: var text })
         {
-            File.WriteAllText(filePath, contents);
+            File.WriteAllText(filePath, text);
         }
         else if (!File.Exists(filePath))
         {
@@ -143,16 +115,17 @@ internal partial class SolutionExplorerInProcess
 
         _ = project.ProjectItems.AddFromFile(filePath);
 
-        var fileExtension = Path.GetExtension(filePath);
-        if (fileExtension.Equals(".razor", StringComparison.OrdinalIgnoreCase) || fileExtension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase))
-        {
-            await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(project.FileName, filePath, cancellationToken);
-        }
-
         if (open)
         {
             await OpenFileAsync(projectName, fileName, cancellationToken);
         }
+
+        if (contents is { Positions: [var position] })
+        {
+            return position;
+        }
+
+        return 0;
     }
 
     /// <returns>
@@ -223,7 +196,7 @@ internal partial class SolutionExplorerInProcess
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        await CloseSolutionAsync(cancellationToken);
+        await CloseSolutionAndWaitAsync(cancellationToken);
 
         var solutionFileName = Path.ChangeExtension(solutionName, ".sln");
         Directory.CreateDirectory(solutionPath);

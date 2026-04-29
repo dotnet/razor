@@ -1,19 +1,19 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal sealed partial class MarkupTagHelperElementSyntax
+internal partial class MarkupTagHelperElementSyntax
 {
-    private static readonly string TagHelperInfoKey = typeof(TagHelperInfo).Name;
+    public override BaseMarkupStartTagSyntax? StartTag
+        => TagHelperStartTag;
 
-    public TagHelperInfo? TagHelperInfo
-        => this.GetAnnotationValue(TagHelperInfoKey) as TagHelperInfo;
+    internal override BaseMarkupElementSyntax WithStartTagCore(BaseMarkupStartTagSyntax startTag)
+        => WithTagHelperStartTag((MarkupTagHelperStartTagSyntax)startTag);
 
-    public MarkupTagHelperElementSyntax WithTagHelperInfo(TagHelperInfo info)
-    {
-        var newGreen = Green.WithAnnotationsGreen([.. GetAnnotations(), new(TagHelperInfoKey, info)]);
+    public override BaseMarkupEndTagSyntax? EndTag
+        => TagHelperEndTag;
 
-        return (MarkupTagHelperElementSyntax)newGreen.CreateRed(Parent, Position);
-    }
+    internal override BaseMarkupElementSyntax WithEndTagCore(BaseMarkupEndTagSyntax endTag)
+        => WithTagHelperEndTag((MarkupTagHelperEndTagSyntax?)endTag);
 }

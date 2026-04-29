@@ -10,11 +10,6 @@ steps:
   - ${{ if eq(parameters.shallowCheckout, true) }}:
     - template: checkout-windows-task.yml
 
-  - task: NodeTool@0
-    displayName: Install Node 10.x
-    inputs:
-      versionSpec: 10.x
-
   # We explicitly pass the VS install directory in azure-pipelines-integration-dartlab.yml
   # We manually create the Hive before deployment to avoid a race condition
   - powershell: eng\scripts\CreateVSHive.ps1
@@ -139,11 +134,11 @@ steps:
     continueOnError: true
     condition: always()
 
-  - task: PublishBuildArtifacts@1
+  - task: PublishPipelineArtifact@1
     displayName: Publish Logs
     inputs:
-      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
+      targetPath: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
+      publishLocation: 'pipeline'
       ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} $(Build.BuildNumber)'
-      publishLocation: Container
     continueOnError: true
     condition: always()

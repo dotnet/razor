@@ -1,15 +1,17 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.TextDifferencing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Threading;
 
@@ -18,55 +20,49 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IHtmlDocumentPublisher))]
 [method: ImportingConstructor]
 internal sealed class HtmlDocumentPublisher(
-    IRemoteServiceInvoker remoteServiceInvoker,
     LSPDocumentManager documentManager,
     JoinableTaskContext joinableTaskContext,
     ILoggerFactory loggerFactory) : IHtmlDocumentPublisher
 {
-    private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
     private readonly TrackingLSPDocumentManager _documentManager = documentManager as TrackingLSPDocumentManager ?? throw new InvalidOperationException("Expected TrackingLSPDocumentManager");
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlDocumentPublisher>();
 
-    public Task<string?> GetHtmlSourceFromOOPAsync(TextDocument document, CancellationToken cancellationToken)
+    public async Task<bool> TryPublishAsync(TextDocument document, ChecksumWrapper checksum, string htmlText, CancellationToken cancellationToken)
     {
-        return _remoteServiceInvoker.TryInvokeAsync<IRemoteHtmlDocumentService, string?>(document.Project.Solution,
-            (service, solutionInfo, ct) => service.GetHtmlDocumentTextAsync(solutionInfo, document.Id, ct),
-            cancellationToken).AsTask();
-    }
-
-    public async Task PublishAsync(TextDocument document, string htmlText, CancellationToken cancellationToken)
-    {
-        // TODO: Eventually, for VS Code, the following piece of logic needs to make an LSP call rather than directly update the
-        // buffer, but the assembly this code currently lives in doesn't ship in VS Code, so we need to solve a few other things
-        // before we get there.
-
         var uri = document.CreateUri();
         if (!_documentManager.TryGetDocument(uri, out var documentSnapshot) ||
             !documentSnapshot.TryGetVirtualDocument<HtmlVirtualDocumentSnapshot>(out var htmlDocument))
         {
-            Debug.Fail("Got an LSP text document update before getting informed of the VS buffer. Create on demand?");
-            _logger.LogError($"Couldn't get Html text for {document.FilePath}. Html document contents will be stale");
-            return;
+            _logger.LogDebug($"No {(documentSnapshot is null ? "" : "virtual")} document snapshot for {document.FilePath}.");
+            return false;
         }
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return;
+            return false;
         }
 
-        _logger.LogDebug($"The html document for {document.FilePath} is {uri}");
+        _logger.LogDebug($"The html document for {document.FilePath} is {htmlDocument.Uri}");
 
         await _joinableTaskContext.Factory.SwitchToMainThreadAsync(cancellationToken);
 
         if (cancellationToken.IsCancellationRequested)
         {
-            return;
+            return false;
         }
 
-        VisualStudioTextChange[] changes = [new(0, htmlDocument.Snapshot.Length, htmlText)];
-        _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, documentSnapshot.Version, state: null);
+        // We have a string for the Html text here, so its tempting to just overwrite the whole buffer, but that causes issues with
+        // the editors span tracking, which is used by the Html server to map diagnostic ranges. Updating with minimal changes helps
+        // the editor understand what is actually happening to the virtual buffer.
+        var currentHtmlSourceText = htmlDocument.Snapshot.AsText();
+        var newHtmlSourceText = SourceText.From(htmlText, currentHtmlSourceText.Encoding, currentHtmlSourceText.ChecksumAlgorithm);
+        var textChanges = SourceTextDiffer.GetMinimalTextChanges(currentHtmlSourceText, newHtmlSourceText);
+        var changes = textChanges.SelectAsArray(c => new VisualStudioTextChange(c.Span.Start, c.Span.Length, c.NewText.AssumeNotNull()));
+        _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(uri, changes, documentSnapshot.Version, state: checksum);
 
-        _logger.LogDebug($"Finished Html document generation for {document.FilePath} (into {uri})");
+        _logger.LogDebug($"Finished Html document generation for {document.FilePath} (into {htmlDocument.Uri})");
+
+        return true;
     }
 }

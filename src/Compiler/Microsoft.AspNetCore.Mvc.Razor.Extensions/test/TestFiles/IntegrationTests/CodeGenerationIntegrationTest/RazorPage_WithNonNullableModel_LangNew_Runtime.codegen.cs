@@ -31,20 +31,18 @@ using TestNamespace
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral("\r\n<h1>");
-            Write(
 #nullable restore
-#line (5,6)-(5,16) "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
-Model.Name
+#line (5,6)-(5,16) 6 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
+Write(Model.Name
 
 #line default
 #line hidden
 #nullable disable
             );
             WriteLiteral("</h1>\r\n\r\n<h2>");
-            Write(
 #nullable restore
-#line (7,6)-(7,20) "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
-Model?.Address
+#line (7,6)-(7,20) 6 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
+Write(Model?.Address
 
 #line default
 #line hidden
@@ -76,9 +74,15 @@ Model?.Address
         #nullable restore
 public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestModel>)PageContext?.ViewData!;
 #nullable disable
-        #nullable restore
-public TestModel Model => ViewData.Model!;
+        public 
+#nullable restore
+#line (3,8)-(3,17) "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
+TestModel
+
+#line default
+#line hidden
 #nullable disable
+         Model => ViewData.Model;
     }
 }
 #pragma warning restore 1591

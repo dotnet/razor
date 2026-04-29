@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,34 +19,37 @@ namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
 internal sealed class FormattingContext
 {
-    private IReadOnlyList<FormattingSpan>? _formattingSpans;
+    private ImmutableArray<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
-    private readonly bool _useNewFormattingEngine;
 
     private FormattingContext(
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
+        IDocumentSnapshot currentSnapshot,
         RazorFormattingOptions options,
-        bool automaticallyAddUsings,
+        IFormattingLogger? logger,
+        bool includeCSharpLanguageFeatureEdits,
         int hostDocumentIndex,
-        char triggerCharacter,
-        bool useNewFormattingEngine)
+        char triggerCharacter)
     {
         OriginalSnapshot = originalSnapshot;
         CodeDocument = codeDocument;
+        CurrentSnapshot = currentSnapshot;
         Options = options;
-        AutomaticallyAddUsings = automaticallyAddUsings;
+        Logger = logger;
+        IncludeCSharpLanguageFeatureEdits = includeCSharpLanguageFeatureEdits;
         HostDocumentIndex = hostDocumentIndex;
         TriggerCharacter = triggerCharacter;
-        _useNewFormattingEngine = useNewFormattingEngine;
     }
 
     public static bool SkipValidateComponents { get; set; }
 
     public IDocumentSnapshot OriginalSnapshot { get; }
     public RazorCodeDocument CodeDocument { get; }
+    public IDocumentSnapshot CurrentSnapshot { get; }
     public RazorFormattingOptions Options { get; }
-    public bool AutomaticallyAddUsings { get; }
+    public IFormattingLogger? Logger { get; }
+    public bool IncludeCSharpLanguageFeatureEdits { get; }
     public int HostDocumentIndex { get; }
     public char TriggerCharacter { get; }
 
@@ -91,19 +94,18 @@ internal sealed class FormattingContext
                 // position now contains the first non-whitespace character or 0. Get the corresponding FormattingSpan.
                 if (TryGetFormattingSpan(nonWsPos.Value, out var span))
                 {
-                    indentations[i] = new IndentationContext(firstSpan: span)
-                    {
-                        Line = i,
+                    indentations[i] = new IndentationContext(
+                        FirstSpan: span,
+                        Line: i,
 #if DEBUG
-                        DebugOnly_LineText = line.ToString(),
+                        DebugOnly_LineText: line.ToString(),
 #endif
-                        RazorIndentationLevel = span.RazorIndentationLevel,
-                        HtmlIndentationLevel = span.HtmlIndentationLevel,
-                        RelativeIndentationLevel = span.IndentationLevel - previousIndentationLevel,
-                        ExistingIndentation = existingIndentation,
-                        ExistingIndentationSize = existingIndentationSize,
-                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
-                    };
+                        RazorIndentationLevel: span.RazorIndentationLevel,
+                        HtmlIndentationLevel: span.HtmlIndentationLevel,
+                        RelativeIndentationLevel: span.IndentationLevel - previousIndentationLevel,
+                        ExistingIndentation: existingIndentation,
+                        EmptyOrWhitespaceLine: emptyOrWhitespaceLine,
+                        ExistingIndentationSize: existingIndentationSize);
                     previousIndentationLevel = span.IndentationLevel;
                 }
                 else
@@ -112,28 +114,25 @@ internal sealed class FormattingContext
                     // Let's create a 0 length span to represent this and default it to HTML.
                     var placeholderSpan = new FormattingSpan(
                         new TextSpan(nonWsPos.Value, 0),
-                        new TextSpan(nonWsPos.Value, 0),
                         FormattingSpanKind.Markup,
-                        FormattingBlockKind.Markup,
-                        razorIndentationLevel: 0,
-                        htmlIndentationLevel: 0,
-                        isInGlobalNamespace: false,
-                        isInClassBody: false,
-                        componentLambdaNestingLevel: 0);
+                        RazorIndentationLevel: 0,
+                        HtmlIndentationLevel: 0,
+                        IsInGlobalNamespace: false,
+                        IsInClassBody: false,
+                        ComponentLambdaNestingLevel: 0);
 
-                    indentations[i] = new IndentationContext(firstSpan: placeholderSpan)
-                    {
-                        Line = i,
+                    indentations[i] = new IndentationContext(
+                        FirstSpan: placeholderSpan,
+                        Line: i,
 #if DEBUG
-                        DebugOnly_LineText = line.ToString(),
+                        DebugOnly_LineText: line.ToString(),
 #endif
-                        RazorIndentationLevel = 0,
-                        HtmlIndentationLevel = 0,
-                        RelativeIndentationLevel = previousIndentationLevel,
-                        ExistingIndentation = existingIndentation,
-                        ExistingIndentationSize = existingIndentation,
-                        EmptyOrWhitespaceLine = emptyOrWhitespaceLine,
-                    };
+                        RazorIndentationLevel: 0,
+                        HtmlIndentationLevel: 0,
+                        RelativeIndentationLevel: previousIndentationLevel,
+                        ExistingIndentation: existingIndentation,
+                        EmptyOrWhitespaceLine: emptyOrWhitespaceLine,
+                        ExistingIndentationSize: existingIndentation);
                 }
             }
 
@@ -143,25 +142,27 @@ internal sealed class FormattingContext
         return _indentations;
     }
 
-    private IReadOnlyList<FormattingSpan> GetFormattingSpans()
+    private ImmutableArray<FormattingSpan> GetFormattingSpans()
     {
-        if (_formattingSpans is null)
-        {
-            var syntaxTree = CodeDocument.GetSyntaxTree();
-            var inGlobalNamespace = CodeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace) &&
-                string.IsNullOrEmpty(@namespace);
-            _formattingSpans = GetFormattingSpans(syntaxTree, inGlobalNamespace: inGlobalNamespace);
-        }
+        return _formattingSpans ??= ComputeFormattingSpans(CodeDocument);
 
-        return _formattingSpans;
+        static ImmutableArray<FormattingSpan> ComputeFormattingSpans(RazorCodeDocument codeDocument)
+        {
+            var syntaxTree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
+            var inGlobalNamespace = codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var @namespace) &&
+                string.IsNullOrEmpty(@namespace);
+
+            return GetFormattingSpans(syntaxTree, inGlobalNamespace: inGlobalNamespace);
+        }
     }
 
-    private static IReadOnlyList<FormattingSpan> GetFormattingSpans(RazorSyntaxTree syntaxTree, bool inGlobalNamespace)
+    private static ImmutableArray<FormattingSpan> GetFormattingSpans(RazorSyntaxTree syntaxTree, bool inGlobalNamespace)
     {
-        var visitor = new FormattingVisitor(inGlobalNamespace: inGlobalNamespace);
-        visitor.Visit(syntaxTree.Root);
+        using var _ = ArrayBuilderPool<FormattingSpan>.GetPooledObject(out var formattingSpans);
 
-        return visitor.FormattingSpans;
+        FormattingVisitor.VisitRoot(syntaxTree, formattingSpans, inGlobalNamespace);
+
+        return formattingSpans.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -171,6 +172,11 @@ internal sealed class FormattingContext
     /// <returns>A whitespace string representing the indentation level based on the configuration.</returns>
     public string GetIndentationLevelString(int indentationLevel)
     {
+        if (indentationLevel == 0)
+        {
+            return "";
+        }
+
         var indentation = GetIndentationOffsetForLevel(indentationLevel);
         var indentationString = FormattingUtilities.GetIndentationString(indentation, Options.InsertSpaces, Options.TabSize);
         return indentationString;
@@ -202,7 +208,7 @@ internal sealed class FormattingContext
     {
         result = null;
         var formattingSpans = GetFormattingSpans();
-        foreach (var formattingSpan in formattingSpans.AsEnumerable())
+        foreach (var formattingSpan in formattingSpans)
         {
             var span = formattingSpan.Span;
 
@@ -227,20 +233,19 @@ internal sealed class FormattingContext
     {
         var changedSnapshot = OriginalSnapshot.WithText(changedText);
 
-        var codeDocument = !_useNewFormattingEngine && changedSnapshot is IDesignTimeCodeGenerator generator
-            ? await generator.GenerateDesignTimeOutputAsync(cancellationToken).ConfigureAwait(false)
-            : await changedSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         DEBUG_ValidateComponents(CodeDocument, codeDocument);
 
         var newContext = new FormattingContext(
             OriginalSnapshot,
             codeDocument,
+            currentSnapshot: changedSnapshot,
             Options,
-            AutomaticallyAddUsings,
+            Logger,
+            IncludeCSharpLanguageFeatureEdits,
             HostDocumentIndex,
-            TriggerCharacter,
-            _useNewFormattingEngine);
+            TriggerCharacter);
 
         return newContext;
     }
@@ -258,8 +263,8 @@ internal sealed class FormattingContext
             return;
         }
 
-        var oldTagHelperElements = oldCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
-        var newTagHelperElements = newCodeDocument.GetSyntaxTree().Root.DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
+        var oldTagHelperElements = oldCodeDocument.GetRequiredSyntaxRoot().DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
+        var newTagHelperElements = newCodeDocument.GetRequiredSyntaxRoot().DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
         Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
     }
 
@@ -267,33 +272,36 @@ internal sealed class FormattingContext
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
-        bool automaticallyAddUsings,
+        IFormattingLogger? logger,
+        bool includeCSharpLanguageFeatureEdits,
         int hostDocumentIndex,
         char triggerCharacter)
     {
         return new FormattingContext(
             originalSnapshot,
             codeDocument,
+            currentSnapshot: originalSnapshot,
             options,
-            automaticallyAddUsings,
+            logger,
+            includeCSharpLanguageFeatureEdits,
             hostDocumentIndex,
-            triggerCharacter,
-            useNewFormattingEngine: false);
+            triggerCharacter);
     }
 
     public static FormattingContext Create(
         IDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
         RazorFormattingOptions options,
-        bool useNewFormattingEngine)
+        IFormattingLogger? logger)
     {
         return new FormattingContext(
             originalSnapshot,
             codeDocument,
+            currentSnapshot: originalSnapshot,
             options,
-            automaticallyAddUsings: false,
+            logger,
+            includeCSharpLanguageFeatureEdits: false,
             hostDocumentIndex: 0,
-            triggerCharacter: '\0',
-            useNewFormattingEngine: useNewFormattingEngine);
+            triggerCharacter: '\0');
     }
 }

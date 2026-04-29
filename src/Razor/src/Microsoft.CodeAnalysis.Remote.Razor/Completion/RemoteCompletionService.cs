@@ -1,21 +1,29 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
+using System;
 using System.Diagnostics;
-using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.Completion;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Roslyn.LanguageServer.Protocol.RazorVSInternalCompletionList?>;
+using CompletionResponse = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Protocol.Completion.CompletionResult>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -28,8 +36,14 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     private readonly RazorCompletionListProvider _razorCompletionListProvider = args.ExportProvider.GetExportedValue<RazorCompletionListProvider>();
+    private readonly CompletionListCache _completionListCache = args.ExportProvider.GetExportedValue<CompletionListCache>();
+    private readonly CompletionListCacheWrapperProvder _cacheWrapperProvider = args.ExportProvider.GetExportedValue<CompletionListCacheWrapperProvder>();
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
     private readonly CompletionTriggerAndCommitCharacters _triggerAndCommitCharacters = args.ExportProvider.GetExportedValue<CompletionTriggerAndCommitCharacters>();
+    private readonly IRazorFormattingService _formattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
+    private readonly IDocumentMappingService _documentMappingService = args.ExportProvider.GetExportedValue<IDocumentMappingService>();
+    private readonly ITelemetryReporter _telemetryReporter = args.ExportProvider.GetExportedValue<ITelemetryReporter>();
+    private readonly IClientSettingsManager _clientSettingsManager = args.ExportProvider.GetExportedValue<IClientSettingsManager>();
 
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
@@ -72,13 +86,13 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return new CompletionPositionInfo(ProvisionalTextEdit: null, positionInfo, shouldIncludeSnippets);
     }
 
-    public ValueTask<Response> GetCompletionAsync(
+    public ValueTask<CompletionResponse> GetCompletionAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
-        HashSet<string> existingHtmlCompletions,
+        Guid correlationId,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
@@ -88,16 +102,16 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 positionInfo,
                 completionContext,
                 razorCompletionOptions,
-                existingHtmlCompletions,
+                correlationId,
                 cancellationToken),
             cancellationToken);
 
-    private async ValueTask<Response> GetCompletionAsync(
+    private async ValueTask<CompletionResponse> GetCompletionAsync(
         RemoteDocumentContext remoteDocumentContext,
         CompletionPositionInfo positionInfo,
         VSInternalCompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
-        HashSet<string> existingDelegatedCompletions,
+        Guid correlationId,
         CancellationToken cancellationToken)
     {
         var documentPositionInfo = positionInfo.DocumentPositionInfo;
@@ -110,7 +124,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         if (!isCSharpTrigger && !isRazorTrigger)
         {
             // We don't have a valid trigger, so we can't provide completions.
-            return Response.CallHtml;
+            return CompletionResults.CallHtml;
         }
 
         var documentSnapshot = remoteDocumentContext.Snapshot;
@@ -132,37 +146,85 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 mappedPosition,
                 completionContext,
                 razorCompletionOptions,
+                correlationId,
+                positionInfo.ProvisionalTextEdit,
                 cancellationToken)
                 .ConfigureAwait(false);
-
-            if (csharpCompletionList is not null)
-            {
-                Debug.Assert(existingDelegatedCompletions.Count == 0, "Delegated completion should be either C# or HTML, not both");
-                existingDelegatedCompletions.UnionWith(csharpCompletionList.Items.Select((item) => item.Label));
-            }
         }
 
         RazorVSInternalCompletionList? razorCompletionList = null;
+        var needsHtmlDependentPhase = false;
 
         if (isRazorTrigger)
         {
-            razorCompletionList = _razorCompletionListProvider.GetCompletionList(
+            (razorCompletionList, needsHtmlDependentPhase) = _razorCompletionListProvider.GetCompletionList(
                 codeDocument,
                 documentPositionInfo.HostDocumentIndex,
                 completionContext,
                 _clientCapabilitiesService.ClientCapabilities,
-                existingCompletions: existingDelegatedCompletions,
                 razorCompletionOptions);
         }
 
-        // Merge won't return anything only if both completion lists passed in are null,
-        // in which case client should just proceed with HTML completion.
-        if (CompletionListMerger.Merge(razorCompletionList, csharpCompletionList) is not { } mergedCompletionList)
+        return CompletionResults.Create(
+            CompletionListMerger.Merge(razorCompletionList, csharpCompletionList),
+            needsHtmlDependentPhase);
+    }
+
+    public ValueTask<Response> GetHtmlDependentCompletionsAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId documentId,
+        CompletionPositionInfo positionInfo,
+        VSInternalCompletionContext completionContext,
+        RazorCompletionOptions razorCompletionOptions,
+        string[] htmlLabels,
+        CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            context => GetHtmlDependentCompletionsAsync(
+                context,
+                positionInfo,
+                completionContext,
+                razorCompletionOptions,
+                htmlLabels,
+                cancellationToken),
+            cancellationToken);
+
+    private async ValueTask<Response> GetHtmlDependentCompletionsAsync(
+        RemoteDocumentContext remoteDocumentContext,
+        CompletionPositionInfo positionInfo,
+        VSInternalCompletionContext completionContext,
+        RazorCompletionOptions razorCompletionOptions,
+        string[] htmlLabels,
+        CancellationToken cancellationToken)
+    {
+        var documentPositionInfo = positionInfo.DocumentPositionInfo;
+
+        if (!_triggerAndCommitCharacters.IsValidRazorTrigger(completionContext))
         {
             return Response.CallHtml;
         }
 
-        return Response.Results(mergedCompletionList);
+        var documentSnapshot = remoteDocumentContext.Snapshot;
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+
+        using var _ = HashSetPool<string>.GetPooledObject(out var existingCompletions);
+        existingCompletions.UnionWith(htmlLabels);
+
+        var razorCompletionList = _razorCompletionListProvider.GetHtmlDependentCompletionList(
+            codeDocument,
+            documentPositionInfo.HostDocumentIndex,
+            completionContext,
+            _clientCapabilitiesService.ClientCapabilities,
+            razorCompletionOptions,
+            existingCompletions);
+
+        if (razorCompletionList is null)
+        {
+            return Response.CallHtml;
+        }
+
+        return Response.Results(razorCompletionList);
     }
 
     private async ValueTask<RazorVSInternalCompletionList?> GetCSharpCompletionAsync(
@@ -172,6 +234,8 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         Position mappedPosition,
         CompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
+        Guid correlationId,
+        TextEdit? provisionalTextEdit,
         CancellationToken cancellationToken)
     {
         var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
@@ -182,14 +246,20 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
 
         var mappedLinePosition = mappedPosition.ToLinePosition();
-        var completionList = await ExternalAccess.Razor.Cohost.Handlers.Completion.GetCompletionListAsync(
-            generatedDocument,
-            mappedLinePosition,
-            completionContext,
-            clientCapabilities.SupportsVisualStudioExtensions,
-            completionSetting,
-            cancellationToken)
-            .ConfigureAwait(false);
+
+        VSInternalCompletionList? completionList = null;
+        using (_telemetryReporter.TrackLspRequest(Methods.TextDocumentCompletionName, Constants.ExternalAccessServerName, TelemetryThresholds.CompletionSubLSPTelemetryThreshold, correlationId))
+        {
+            completionList = await ExternalAccess.Razor.Cohost.Handlers.Completion.GetCompletionListAsync(
+                generatedDocument,
+                mappedLinePosition,
+                completionContext,
+                clientCapabilities.SupportsVisualStudioExtensions,
+                completionSetting,
+                _cacheWrapperProvider.GetCache(),
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
 
         if (completionList is null)
         {
@@ -211,6 +281,10 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             mappedPosition,
             razorCompletionOptions);
 
+        var resolutionContext = new DelegatedCompletionResolutionContext(RazorLanguageKind.CSharp, rewrittenResponse.Data ?? rewrittenResponse.ItemDefaults?.Data, provisionalTextEdit);
+        var resultId = _completionListCache.Add(rewrittenResponse, resolutionContext);
+        rewrittenResponse.SetResultId(resultId, clientCapabilities);
+
         return rewrittenResponse;
     }
 
@@ -227,5 +301,105 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         }
 
         return generatedDocument;
+    }
+
+    public ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
+        JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
+        JsonSerializableDocumentId documentId,
+        VSInternalCompletionItem request,
+        CancellationToken cancellationToken)
+        => RunServiceAsync(
+            solutionInfo,
+            documentId,
+            context => ResolveCompletionItemAsync(context, request, cancellationToken),
+            cancellationToken);
+
+    private ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
+        RemoteDocumentContext context,
+        VSInternalCompletionItem request,
+        CancellationToken cancellationToken)
+    {
+        if (!_completionListCache.TryGetOriginalRequestData(request, out var containingCompletionList, out var originalRequestContext))
+        {
+            // Couldn't find an associated completion list
+            return new(request);
+        }
+
+        if (originalRequestContext is DelegatedCompletionResolutionContext resolutionContext)
+        {
+            return ResolveCSharpCompletionItemAsync(context, request, containingCompletionList, resolutionContext, cancellationToken);
+        }
+        else if (originalRequestContext is RazorCompletionResolveContext razorResolutionContext)
+        {
+            return ResolveRazorCompletionItemAsync(context, request, razorResolutionContext, cancellationToken);
+        }
+
+        // We don't know how to resolve this completion item, so just return it as-is.
+        Logger.LogWarning("Did not recognize completion item, so unable to resolve.");
+        return new(request);
+    }
+
+    private async ValueTask<VSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
+    {
+        var componentAvailabilityService = new ComponentAvailabilityService(context.Snapshot.ProjectSnapshot.SolutionSnapshot);
+
+        var result = await RazorCompletionItemResolver.ResolveAsync(
+            request,
+            _clientCapabilitiesService.ClientCapabilities,
+            componentAvailabilityService,
+            razorResolutionContext,
+            cancellationToken).ConfigureAwait(false);
+
+        // If we couldn't resolve, fall back to what we were passed in
+        return result ?? request;
+    }
+
+    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentContext context, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, CancellationToken cancellationToken)
+    {
+        var oldData = request.Data;
+        try
+        {
+            request.Data = DelegatedCompletionHelper.GetOriginalCompletionItemData(request, containingCompletionList, resolutionContext.OriginalCompletionListData);
+
+            // Roslyn expects data to be JsonElement because we're calling into their LSP handler, but we cache their data as its underlying object, so lets
+            // make sure to serialize if we need to.
+            if (request.Data is not JsonElement)
+            {
+                request.Data = JsonSerializer.SerializeToElement(request.Data, JsonHelpers.JsonSerializerOptions);
+            }
+
+            var documentSnapshot = context.Snapshot;
+            var generatedDocument = await GetCSharpGeneratedDocumentAsync(documentSnapshot, resolutionContext.ProvisionalTextEdit, cancellationToken).ConfigureAwait(false);
+
+            var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
+            var completionListSetting = clientCapabilities.TextDocument?.Completion;
+            var result = await ExternalAccess.Razor.Cohost.Handlers.Completion.ResolveCompletionItemAsync(
+                request,
+                generatedDocument,
+                clientCapabilities.SupportsVisualStudioExtensions,
+                completionListSetting ?? new(),
+                _cacheWrapperProvider.GetCache(),
+                cancellationToken).ConfigureAwait(false);
+
+            var item = JsonHelpers.Convert<CompletionItem, VSInternalCompletionItem>(result).AssumeNotNull();
+
+            var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
+
+            item = await DelegatedCompletionHelper.FormatCSharpCompletionItemAsync(
+                item,
+                context,
+                formattingOptions,
+                _formattingService,
+                _documentMappingService,
+                clientCapabilities.SupportsVisualStudioExtensions,
+                Logger,
+                cancellationToken).ConfigureAwait(false);
+
+            return item;
+        }
+        finally
+        {
+            request.Data = oldData; // Restore original data to avoid side effects, as it may have come from the cache
+        }
     }
 }

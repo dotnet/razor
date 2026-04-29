@@ -7,6 +7,11 @@
         <target state="translated">Değer null veya boş bir dize olamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
+        <source>{0} (and req'd attributes...)</source>
+        <target state="translated">{0} (ve gerekli öznitelikler...)</target>
+        <note>The term "req'd" is an abbreviation for "required"</note>
+      </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
         <target state="translated">Etiketten bileşen oluştur</target>
@@ -59,6 +64,11 @@
         <target state="translated">Öğeyi yeni bileşene ayıklayın</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="translated"> {0}.css'a ayıkla</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">Bir veya daha fazla tanılamayı ortaya çıkarabileceği veya kaldırabileceği için biçimlendirme işlemi bırakılıyor.</target>
@@ -67,6 +77,11 @@
       <trans-unit id="Format_operation_changed_nonwhitespace">
         <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
         <target state="translated">Boşluk dışı içeriği ekleyebileceği veya silebileceği için biçimlendirme işlemi bırakıl.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_Error">
+        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
+        <target state="translated">Biçimlendirme hatası. Dosyanın bozulmaması için çalışmaya devam etmeyin ve lütfen bu sorunu bildirin. Bkz.: https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
@@ -79,9 +94,24 @@
         <target state="translated">'{0}' Olay İşleyicisi Oluştur</target>
         <note />
       </trans-unit>
+      <trans-unit id="IncompatibleProject_NoAdditionalFiles">
+        <source>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has no Razor documents that are AdditionalFiles, so the editing experience will be limited. Is it using the Razor SDK? No more messages will be logged for this project.</source>
+        <target state="translated">Razor düzenleyici, *.razor ve *.cshtml dosyalarının projede AdditionalFiles olmasını gerektiren Razor Kaynak Oluşturucuyu kullanır. {0}, AdditionalFile olan herhangi bir Razor belgesine sahip olmayan '{1}' dosyasından geliyor gibi görünüyor, bu nedenle düzenleme deneyimi sınırlı olacaktır. Razor SDK'sını kullanıyor mu? Bu proje için başka mesajlar günlüğe kaydedilmeyecektir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IncompatibleProject_NotAnAdditionalFile">
+        <source>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has Razor documents but this file is not an AdditionalFile, so the editing experience will be limited. No more messages will be logged for this project.</source>
+        <target state="translated">Razor düzenleyici, *.razor ve *.cshtml dosyalarının projede AdditionalFiles olmasını gerektiren Razor Kaynak Oluşturucuyu kullanır. {0}, Razor belgelerine sahip olan '{1}' dosyasından geliyor gibi görünüyor, ancak bu dosya bir AdditionalFile değildir, bu nedenle düzenleme deneyimi sınırlı olacaktır. Bu proje için başka mesajlar günlüğe kaydedilmeyecektir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_Offset">
         <source>Invalid offset.</source>
         <target state="translated">Geçersiz uzaklık.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeywordDescription">
+        <source>{0} Keyword</source>
+        <target state="translated">{0} Anahtar Sözcüğü</target>
         <note />
       </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
@@ -107,6 +137,26 @@
       <trans-unit id="Promote_using_directive_to">
         <source>Promote using directive to {0}</source>
         <target state="translated">Yönergeyi şu sürüme yükseltmeyi destekleyin: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_directives">
+        <source>Remove unnecessary directives</source>
+        <target state="translated">Gereksiz yönergeleri kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
+        <source>Simplify fully qualified component</source>
+        <target state="translated">Tam nitelenmiş bileşeni basitleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="translated">Etiketi kendi kendine kapatacak şekilde basitleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_And_Consolidate_Usings_Title">
+        <source>Sort and consolidate usings</source>
+        <target state="translated">Using bildirimlerini sırala ve birleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">

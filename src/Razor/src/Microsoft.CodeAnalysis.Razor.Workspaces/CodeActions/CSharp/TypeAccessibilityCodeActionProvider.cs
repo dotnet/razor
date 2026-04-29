@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -111,7 +111,7 @@ internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
                     continue;
                 }
 
-                var associatedValue = context.SourceText.GetSubTextString(diagnosticSpan);
+                var associatedValue = context.SourceText.ToString(diagnosticSpan);
 
                 var fqn = string.Empty;
 
@@ -194,7 +194,7 @@ internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
             // For add using suggestions, the code action title is of the form:
             // `using System.Net;`
             else if (codeAction.Name is not null && codeAction.Name.Equals(RazorPredefinedCodeFixProviderNames.AddImport, StringComparison.Ordinal) &&
-                AddUsingsHelper.TryExtractNamespace(codeAction.Title, out var @namespace, out var prefix))
+                UsingDirectiveHelper.TryExtractNamespace(codeAction.Title, out var @namespace, out var prefix))
             {
                 codeAction.Title = $"{prefix}@using {@namespace}";
                 typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, LanguageServerConstants.CodeActions.Default));
@@ -210,14 +210,13 @@ internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
 
         static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode? owner)
         {
-            var syntaxTree = context.CodeDocument.GetSyntaxTree();
-            if (syntaxTree?.Root is null)
+            if (!context.CodeDocument.TryGetSyntaxRoot(out var root))
             {
                 owner = null;
                 return false;
             }
 
-            owner = syntaxTree.Root.FindInnermostNode(context.StartAbsoluteIndex);
+            owner = root.FindInnermostNode(context.StartAbsoluteIndex);
             if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
@@ -252,7 +251,7 @@ internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
             // `@inject |SomeType SomeName` - true
             //
             return owner.AncestorsAndSelf().Any(
-                n => n is RazorDirectiveSyntax directive && directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine);
+                static n => n is RazorDirectiveSyntax directive && directive.IsDirectiveKind(DirectiveKind.SingleLine));
         }
     }
 
@@ -262,7 +261,7 @@ internal class TypeAccessibilityCodeActionProvider : ICSharpCodeActionProvider
         RazorVSInternalCodeAction nonFQNCodeAction,
         string fullyQualifiedName)
     {
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = context.Request.TextDocument.DocumentUri };
 
         var fqnTextEdit = LspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
 

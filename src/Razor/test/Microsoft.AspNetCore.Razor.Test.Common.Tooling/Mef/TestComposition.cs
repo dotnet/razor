@@ -1,12 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
@@ -24,6 +23,16 @@ public sealed partial class TestComposition
         ImmutableHashSet<Type>.Empty,
         ImmutableHashSet<Type>.Empty);
 
+    public static readonly TestComposition RoslynFeatures = Empty
+        .AddAssemblies(MefHostServices.DefaultAssemblies)
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.CSharp.Features.dll"))
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.Features.dll"))
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll"))
+        .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"))
+        .AddParts(typeof(RazorTestWorkspaceRegistrationService));
+
+#if NETFRAMEWORK
     public static readonly TestComposition Roslyn = Empty
         .AddAssemblies(MefHostServices.DefaultAssemblies)
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.dll"))
@@ -33,7 +42,6 @@ public sealed partial class TestComposition
         .AddAssemblies(Assembly.LoadFrom("Microsoft.CodeAnalysis.LanguageServer.Protocol.dll"))
         .AddParts(typeof(RazorTestWorkspaceRegistrationService));
 
-#if NETFRAMEWORK
     public static readonly TestComposition Editor = Empty
         .AddAssemblies(Assembly.LoadFrom("Microsoft.VisualStudio.Text.Implementation.dll"))
         .AddParts(typeof(TestExportJoinableTaskContext));
@@ -223,21 +231,16 @@ public sealed partial class TestComposition
     /// Use for VS MEF composition troubleshooting.
     /// </summary>
     /// <returns>All composition error messages.</returns>
-    internal string GetCompositionErrorLog()
+    public IEnumerable<string> GetCompositionErrors()
     {
         var configuration = CompositionConfiguration.Create(GetCatalog());
-
-        using var _ = StringBuilderPool.GetPooledObject(out var sb);
 
         foreach (var errorGroup in configuration.CompositionErrors)
         {
             foreach (var error in errorGroup)
             {
-                sb.Append(error.Message);
-                sb.AppendLine();
+                yield return error.Message;
             }
         }
-
-        return sb.ToString();
     }
 }

@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -12,7 +14,10 @@ internal class DefaultDirectiveSyntaxTreePass : RazorEngineFeatureBase, IRazorSy
 {
     public int Order => 75;
 
-    public RazorSyntaxTree Execute(RazorCodeDocument codeDocument, RazorSyntaxTree syntaxTree)
+    public RazorSyntaxTree Execute(
+        RazorCodeDocument codeDocument,
+        RazorSyntaxTree syntaxTree,
+        CancellationToken cancellationToken = default)
     {
         if (codeDocument.FileKind.IsComponent())
         {
@@ -20,13 +25,14 @@ internal class DefaultDirectiveSyntaxTreePass : RazorEngineFeatureBase, IRazorSy
             return syntaxTree;
         }
 
-        var sectionVerifier = new NestedSectionVerifier(syntaxTree);
+        var sectionVerifier = new NestedSectionVerifier(syntaxTree, cancellationToken);
         return sectionVerifier.Verify();
     }
 
-    private sealed class NestedSectionVerifier(RazorSyntaxTree syntaxTree) : SyntaxRewriter
+    private sealed class NestedSectionVerifier(RazorSyntaxTree syntaxTree, CancellationToken cancellationToken) : SyntaxRewriter
     {
         private readonly RazorSyntaxTree _syntaxTree = syntaxTree;
+        private readonly CancellationToken _cancellationToken = cancellationToken;
 
         private ImmutableArray<RazorDiagnostic>.Builder? _diagnostics;
         private int _nestedLevel;
@@ -34,13 +40,16 @@ internal class DefaultDirectiveSyntaxTreePass : RazorEngineFeatureBase, IRazorSy
         public RazorSyntaxTree Verify()
         {
             var root = Visit(_syntaxTree.Root);
-            var diagnostics = _diagnostics?.DrainToImmutable() ?? _syntaxTree.Diagnostics;
+            var diagnostics = _diagnostics?.ToImmutableAndClear() ?? _syntaxTree.Diagnostics;
 
             return new RazorSyntaxTree(root, _syntaxTree.Source, diagnostics, _syntaxTree.Options);
         }
 
-        public override SyntaxNode Visit(SyntaxNode node)
+        [return: NotNullIfNotNull(nameof(node))]
+        public override SyntaxNode? Visit(SyntaxNode? node)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 return base.Visit(node);
@@ -58,7 +67,9 @@ internal class DefaultDirectiveSyntaxTreePass : RazorEngineFeatureBase, IRazorSy
 
         public override SyntaxNode VisitRazorDirective(RazorDirectiveSyntax node)
         {
-            if (node.DirectiveDescriptor?.Directive != SectionDirective.Directive.Directive)
+            _cancellationToken.ThrowIfCancellationRequested();
+
+            if (!node.IsDirective(SectionDirective.Directive))
             {
                 // We only want to track the nesting of section directives.
                 return base.VisitRazorDirective(node);

@@ -2,22 +2,20 @@
   <PropertyGroup>
     <TargetFramework>$(NetFxVS)</TargetFramework>
 
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix>$(RazorVSSDKTargetPlatformRegRootSuffix)</VSSDKTargetPlatformRegRootSuffix>
 
     <!-- Required to run the project localy -->
     <StartArguments>/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log</StartArguments>
 
     <!-- Required to place the vsix in the right location by WTE MSI -->
-    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
-    <ExtensionInstallationFolder>Microsoft\RazorLanguageServices</ExtensionInstallationFolder>
+    <ExtensionInstallationRoot>$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>$(RazorExtensionInstallationFolderBase)</ExtensionInstallationFolder>
     <IsProductComponent>true</IsProductComponent>
-    <VisualStudioInsertionComponent>Microsoft.VisualStudio.RazorExtension</VisualStudioInsertionComponent>
+    <VisualStudioInsertionComponent>$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
 
     <!-- Don't automatically include dependencies -->
     <IncludePackageReferencesInVSIXContainer>false</IncludePackageReferencesInVSIXContainer>
 
-    <!-- Update the VSToolsPath to ensure VSIX builds -->
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsPackable>true</IsPackable>
     <IsShippingAssembly>true</IsShippingAssembly>
@@ -25,7 +23,7 @@
     <GenerateResourceUsePreserializedResources Condition="'$(MSBuildRuntimeType)' == 'Core'">true</GenerateResourceUsePreserializedResources>
 
     <SetupProductArch>neutral</SetupProductArch>
-    <ServiceHubCoreSubPath>ServiceHubCore</ServiceHubCoreSubPath>
+    <ServiceHubCoreSubPath>$(RazorServiceHubCoreSubFolder)</ServiceHubCoreSubPath>
 
     <!-- for the syntax visualizer -->
     <UseWPF>true</UseWPF>
@@ -52,15 +50,9 @@
       <InstallRoot>MSBuild</InstallRoot>
       <VSIXSubPath>Microsoft\VisualStudio\Razor\Rules\</VSIXSubPath>
     </Content>
-    <VSCTCompile Include="SyntaxVisualizerMenu.vsct">
-      <ResourceName>SyntaxVisualizerMenu.ctmenu</ResourceName>
-      <SubType>Designer</SubType>
-    </VSCTCompile>
-  </ItemGroup>
-
-  <ItemGroup>
     <VSCTCompile Include="RazorContextMenu.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
 
@@ -167,37 +159,33 @@
       <AdditionalProperties>TargetFramework=$(NetFxVS)</AdditionalProperties>
       <NgenPriority>2</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor\Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.csproj" />
-
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj">
-      <AdditionalProperties>TargetFramework=$(NetFxVS)</AdditionalProperties>
-    </ProjectReference>
 
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
       <AdditionalProperties>TargetFramework=$(NetFxVS)</AdditionalProperties>
     </ProjectReference>
 
-    <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.csproj">
-      <Name>Microsoft.CodeAnalysis.Remote.Razor.CoreComponents</Name>
-      <!-- This project targets netcoreapp -->
-      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj">
+      <NgenPriority>2</NgenPriority>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
+      <Name>Microsoft.CodeAnalysis.Razor.Compiler</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <NgenPriority>2</NgenPriority>
+    </ProjectReference>
+  </ItemGroup>
+
+  <!-- We reference the core components only for developer builds. In the official build they are inserted via the corecomponents VSIX alongside this VSIX -->
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" Condition="'$(OfficialBuildId)' == ''">
+
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
       <Private>false</Private>
-      <VSIXSubPath>$(ServiceHubCoreSubPath)</VSIXSubPath>
+      <AdditionalProperties>TargetFramework=$(NetVS)</AdditionalProperties>
+      <VSIXSubPath>ServiceHubCore</VSIXSubPath>
 
-      <!-- Disable NGEN. Core assemblies are crossgened. -->
-      <Ngen>false</Ngen>
-    </ProjectReference>
-    <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj" >
-      <NgenPriority>1</NgenPriority>
-    </ProjectReference>
-    <ProjectReference Include="..\Microsoft.VisualStudio.LegacyEditor.Razor\Microsoft.VisualStudio.LegacyEditor.Razor.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
-      <Name>Microsoft.CodeAnalysis.Razor.Compiler</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
     </ProjectReference>
   </ItemGroup>
 
@@ -221,7 +209,7 @@
   <ItemGroup>
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.dll">
       <Ngen>true</Ngen>
-      <NgenPriority>1</NgenPriority>
+      <NgenPriority>2</NgenPriority>
     </VSIXSourceItem>
   </ItemGroup>
 
@@ -232,7 +220,6 @@
   <Target Name="_GenerateVSIXBindingRedirects" DependsOnTargets="PrepareForBuild;GetAssemblyVersion" BeforeTargets="CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(_GeneratedVSIXBindingRedirectFile)">
     <ItemGroup>
       <BindingRedirectAssemblies Include="@(ProjectReference)" AssemblyName="%(Filename)" />
-      <BindingRedirectAssemblies Remove="@(ProjectReference)" Condition="%(ProjectReference.Name) == 'Microsoft.CodeAnalysis.Remote.Razor.CoreComponents'" />
       <BindingRedirectAssemblies Remove="@(ProjectReference)" Condition="%(ProjectReference.ReferenceOutputAssembly) == 'false'" />
       <BindingRedirectAssemblies Include="$(AssemblyName)" AssemblyName="$(AssemblyName)" />
     </ItemGroup>

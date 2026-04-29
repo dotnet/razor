@@ -74,10 +74,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             WriteLiteral("\r\n    ");
             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("div", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "__UniqueIdSuppressedForTesting__", async() => {
                 WriteLiteral("\r\n        <label class=\"col-md-2 control-label\">");
-                Write(
 #nullable restore
-#line (25,48)-(25,52) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
-Name
+#line (25,48)-(25,52) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithoutModel.cshtml"
+Write(Name
 
 #line default
 #line hidden
@@ -187,9 +186,7 @@ Name
         #nullable restore
 public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPagesWithoutModel> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPagesWithoutModel>)PageContext?.ViewData!;
 #nullable disable
-        #nullable restore
-public TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPagesWithoutModel Model => ViewData.Model!;
-#nullable disable
+        public TestFiles_IntegrationTests_CodeGenerationIntegrationTest_RazorPagesWithoutModel Model => ViewData.Model;
     }
 }
 #pragma warning restore 1591

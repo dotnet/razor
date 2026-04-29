@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ internal static class BrokeredServiceFactory
         Assert.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
 
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        var brokeredServiceData = new RazorBrokeredServiceData(exportProvider, loggerFactory, brokeredServiceInterceptor);
+        var brokeredServiceData = new RazorBrokeredServiceData(exportProvider, loggerFactory, brokeredServiceInterceptor, WorkspaceProvider: null);
         var hostProvidedServices = VsMocks.CreateServiceProvider(b =>
         {
             b.AddService(brokeredServiceData);

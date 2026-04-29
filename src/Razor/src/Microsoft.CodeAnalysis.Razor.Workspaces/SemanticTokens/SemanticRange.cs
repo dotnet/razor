@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using Microsoft.CodeAnalysis.Text;
@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
 
 internal readonly struct SemanticRange : IComparable<SemanticRange>
 {
-    public SemanticRange(int kind, int startLine, int startCharacter, int endLine, int endCharacter, int modifier, bool fromRazor)
+    public SemanticRange(int kind, int startLine, int startCharacter, int endLine, int endCharacter, int modifier, bool fromRazor, bool isCSharpWhitespace)
     {
         Kind = kind;
         StartLine = startLine;
@@ -17,6 +17,22 @@ internal readonly struct SemanticRange : IComparable<SemanticRange>
         EndCharacter = endCharacter;
         Modifier = modifier;
         FromRazor = fromRazor;
+        IsCSharpWhitespace = isCSharpWhitespace;
+    }
+
+    public SemanticRange(int kind, LinePositionSpan range, int modifier, bool fromRazor)
+        : this(kind, range.Start, range.End, modifier, fromRazor)
+    {
+    }
+
+    public SemanticRange(int kind, LinePosition start, LinePosition end, int modifier, bool fromRazor)
+        : this(kind, start.Line, start.Character, end.Line, end.Character, modifier, fromRazor, isCSharpWhitespace: false)
+    {
+    }
+
+    public SemanticRange(int kind, int startLine, int startCharacter, int endLine, int endCharacter, int modifier, bool fromRazor)
+        : this(kind, startLine, startCharacter, endLine, endCharacter, modifier, fromRazor, isCSharpWhitespace: false)
+    {
     }
 
     public int Kind { get; }
@@ -35,6 +51,8 @@ internal readonly struct SemanticRange : IComparable<SemanticRange>
     /// </summary>
     public bool FromRazor { get; }
 
+    public bool IsCSharpWhitespace { get; }
+
     public LinePositionSpan AsLinePositionSpan()
         => new(new(StartLine, StartCharacter), new(EndLine, EndCharacter));
 
@@ -52,6 +70,18 @@ internal readonly struct SemanticRange : IComparable<SemanticRange>
             return result;
         }
 
+        // If the start positions are the same, and one is Razor and one isn't, we prefer Razor. This allows a Razor
+        // produced token to win over multiple C# tokens, for example the tag name in "<My.Cool.Component>" is one
+        // Razor classification (for component) but multiple C# classifications (2 namespaces and a type name)
+        if (FromRazor && !other.FromRazor)
+        {
+            return -1;
+        }
+        else if (other.FromRazor && !FromRazor)
+        {
+            return 1;
+        }
+
         result = EndLine.CompareTo(other.EndLine);
         if (result != 0)
         {
@@ -62,16 +92,6 @@ internal readonly struct SemanticRange : IComparable<SemanticRange>
         if (result != 0)
         {
             return result;
-        }
-
-        // If we have ranges that are the same, we want a Razor produced token to win over a non-Razor produced token
-        if (FromRazor && !other.FromRazor)
-        {
-            return -1;
-        }
-        else if (other.FromRazor && !FromRazor)
-        {
-            return 1;
         }
 
         return 0;

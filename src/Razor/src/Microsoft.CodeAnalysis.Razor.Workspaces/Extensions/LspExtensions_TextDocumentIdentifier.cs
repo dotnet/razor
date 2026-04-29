@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
@@ -18,21 +18,26 @@ internal static partial class LspExtensions
     /// </summary>
     public static TextDocumentIdentifier WithUri(this TextDocumentIdentifier textDocumentIdentifier, Uri uri)
     {
+        var documentUri = new DocumentUri(uri);
         if (textDocumentIdentifier is VSTextDocumentIdentifier vsTdi)
         {
             return new VSTextDocumentIdentifier
             {
-                Uri = uri,
+                DocumentUri = documentUri,
                 ProjectContext = vsTdi.ProjectContext
             };
         }
 
         return new TextDocumentIdentifier
         {
-            Uri = uri
+            DocumentUri = documentUri
         };
     }
 
-    public static RazorTextDocumentIdentifier ToRazorTextDocumentIdentifier(this TextDocumentIdentifier textDocumentIdentifier)
-        => new RazorTextDocumentIdentifier(textDocumentIdentifier.Uri, (textDocumentIdentifier as VSTextDocumentIdentifier)?.ProjectContext?.Id);
+    public static RazorTextDocumentIdentifier? ToRazorTextDocumentIdentifier(this TextDocumentIdentifier textDocumentIdentifier)
+    {
+        return textDocumentIdentifier.DocumentUri.ParsedUri is Uri parsedUri
+            ? new RazorTextDocumentIdentifier(parsedUri, (textDocumentIdentifier as VSTextDocumentIdentifier)?.ProjectContext?.Id)
+            : null;
+    }
 }

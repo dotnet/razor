@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
@@ -7,7 +7,6 @@ using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -216,7 +215,6 @@ public class RazorContentTypeChangeListenerTest : ToolingTestBase
 
         lspDocumentManager ??= Mock.Of<TrackingLSPDocumentManager>(MockBehavior.Strict);
         lspEditorFeatureDetector ??= Mock.Of<ILspEditorFeatureDetector>(detector =>
-            detector.IsLspEditorEnabled() == true &&
             detector.IsLspEditorSupported(It.IsAny<string>()) == true &&
             detector.IsRemoteClient() == false, MockBehavior.Strict);
         fileToContentTypeService ??= Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _razorContentType, MockBehavior.Strict);

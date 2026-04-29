@@ -1,10 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
@@ -21,12 +19,12 @@ public class DefaultTagHelperOptimizationPassTest : RazorProjectEngineTestBase
     public void DefaultTagHelperOptimizationPass_Execute_ReplacesChildren()
     {
         // Arrange
-        var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
-            .Metadata(TypeName("TestTagHelper"))
+        var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly")
+            .TypeName("TestTagHelper")
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("Foo")
                 .TypeName("System.Int32")
-                .Metadata(PropertyName("FooProp")))
+                .PropertyName("FooProp"))
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
             .Build();
 
@@ -44,13 +42,15 @@ public class DefaultTagHelperOptimizationPassTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
 
         var @class = documentNode.FindPrimaryClass();
+        Assert.NotNull(@class);
+
         Assert.IsType<DefaultTagHelperRuntimeIntermediateNode>(@class.Children[0]);
 
         var fieldDeclaration = Assert.IsType<FieldDeclarationIntermediateNode>(@class.Children[1]);
-        Assert.Equal(bool.TrueString, fieldDeclaration.Annotations[CommonAnnotations.DefaultTagHelperExtension.TagHelperField]);
-        Assert.Equal("__TestTagHelper", fieldDeclaration.FieldName);
-        Assert.Equal("global::TestTagHelper", fieldDeclaration.FieldType);
-        Assert.Equal("private", fieldDeclaration.Modifiers.First());
+        Assert.True(fieldDeclaration.IsTagHelperField);
+        Assert.Equal("__TestTagHelper", fieldDeclaration.Name);
+        Assert.Equal("global::TestTagHelper", fieldDeclaration.Type);
+        Assert.Equal("private", fieldDeclaration.Modifiers[0]);
 
         var tagHelperNode = documentNode.GetTagHelperNode();
         Assert.Equal(5, tagHelperNode.Children.Count);

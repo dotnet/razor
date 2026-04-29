@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,8 +15,10 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
     public void GetDirectiveCompletionItems_AllProvidersCompletionItems()
     {
         // Arrange
+        var sourceDocument = RazorSourceDocument.Create("", RazorSourceDocumentProperties.Default);
+        var codeDocument = RazorCodeDocument.Create(sourceDocument);
         var syntaxTree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create());
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: null, tagHelpers: []);
+        var tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers: []);
 
         var completionItem1 = RazorCompletionItem.CreateDirective(
             displayText: "displayText1",
@@ -26,7 +28,7 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
             commitCharacters: [],
             isSnippet: false);
 
-        var context = new RazorCompletionContext(AbsoluteIndex: 0, Owner: null, syntaxTree, tagHelperDocumentContext);
+        var context = new RazorCompletionContext(codeDocument, AbsoluteIndex: 0, Owner: null, SyntaxTree: syntaxTree, TagHelperDocumentContext: tagHelperDocumentContext);
         var provider1 = StrictMock.Of<IRazorCompletionItemProvider>(p =>
             p.GetCompletionItems(context) == ImmutableArray.Create(completionItem1));
 
@@ -44,10 +46,10 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
         var completionFactsService = new TestRazorCompletionFactsProvider(provider1, provider2);
 
         // Act
-        var completionItems = completionFactsService.GetCompletionItems(context);
+        var result = completionFactsService.GetCompletionItems(context);
 
         // Assert
-        Assert.Equal<RazorCompletionItem>([completionItem1, completionItem2], completionItems);
+        Assert.Equal<RazorCompletionItem>([completionItem1, completionItem2], result.Items);
     }
 
     private sealed class TestRazorCompletionFactsProvider(

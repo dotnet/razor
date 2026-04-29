@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -55,17 +55,49 @@ public class CohostDocumentSpellCheckEndpointTest(ITestOutputHelper testOutputHe
         await VerifySpellCheckableRangesAsync(input);
     }
 
-    private async Task VerifySpellCheckableRangesAsync(TestCode input)
+    [Fact]
+    public async Task ComponentAttributes()
     {
-        var document = CreateProjectAndRazorDocument(input.Text);
+        await VerifySpellCheckableRangesAsync(
+            input: """
+                <SurveyPrompt Title="[|Hello|][| there|]" />
+                <SurveyPrompt @bind-Title="InputValue" />
+            
+                <form @onsubmit="DoSubmit" required></form>
+            
+                <input type="[|checkbox|]" checked></input>
+            
+                @code
+                {
+                    private string? [|InputValue|] { get; set; }
+                }
+            """,
+            additionalFiles: [
+                (FilePath("SurveyPrompt.razor"), """
+                    @namespace SomeProject
+                    
+                    <div></div>
+                    
+                    @code
+                    {
+                        [Parameter]
+                        public string Title { get; set; }
+                    }
+                    """)]);
+    }
+
+    private async Task VerifySpellCheckableRangesAsync(TestCode input, (string file, string contents)[]? additionalFiles = null)
+    {
+        var document = CreateProjectAndRazorDocument(input.Text, additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
-        var endpoint = new CohostDocumentSpellCheckEndpoint(RemoteServiceInvoker);
+        var endpoint = new CohostDocumentSpellCheckEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
 
         var span = new LinePositionSpan(new(0, 0), new(sourceText.Lines.Count, 0));
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, DisposalToken);
 
+        Assert.NotNull(result);
         var ranges = result.First().Ranges.AssumeNotNull();
 
         // To make for easier test failure analysis, we convert the ranges back to the test input, so we can show a diff

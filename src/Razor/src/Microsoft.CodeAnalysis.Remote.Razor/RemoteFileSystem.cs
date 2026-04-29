@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -19,11 +19,17 @@ internal class RemoteFileSystem : IFileSystem
     public string ReadFile(string filePath)
         => _fileSystem.ReadFile(filePath);
 
+    public Stream OpenReadStream(string filePath)
+        => _fileSystem.OpenReadStream(filePath);
+
     public IEnumerable<string> GetDirectories(string workspaceDirectory)
         => _fileSystem.GetDirectories(workspaceDirectory);
 
     public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption)
         => _fileSystem.GetFiles(workspaceDirectory, searchPattern, searchOption);
+
+    public void Move(string sourceFilePath, string destinationFilePath)
+        => _fileSystem.Move(sourceFilePath, destinationFilePath);
 
     internal TestAccessor GetTestAccessor() => new(this);
 

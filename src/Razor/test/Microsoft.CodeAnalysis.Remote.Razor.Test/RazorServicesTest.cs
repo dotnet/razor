@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
     private const string Prefix = "IRemote";
     private const string Suffix = "Service";
 
-    private readonly static XmlDocument s_servicesFile = LoadServicesFile();
+    private static readonly XmlDocument s_servicesFile = LoadServicesFile();
 
     [Theory]
     [MemberData(nameof(MessagePackServices))]
@@ -54,7 +54,6 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
                 {
                     Assert.Fail($"Method {method.Name} in a Json service has a pinned solution info wrapper parameter that isn't Json serializable");
                 }
-
             }
         }
     }
@@ -62,8 +61,8 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
     [Fact]
     public void RazorServicesContainsAllServices()
     {
-        var services = new HashSet<string>(RazorServices.MessagePackServices.Select(s => s.Item1.Name));
-        services.UnionWith(RazorServices.JsonServices.Select(s => s.Item1.Name));
+        var services = new HashSet<string>(RazorServices.TestAccessor.MessagePackServices.Select(s => s.Item1.Name));
+        services.UnionWith(RazorServices.TestAccessor.JsonServices.Select(s => s.Item1.Name));
         var serviceNodes = s_servicesFile.SelectNodes("/Project/ItemGroup/ServiceHubService");
         Assert.NotNull(serviceNodes);
         foreach (XmlNode serviceNode in serviceNodes)
@@ -84,7 +83,7 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
 
     public static IEnumerable<object?[]> MessagePackServices()
     {
-        foreach (var service in RazorServices.MessagePackServices)
+        foreach (var service in RazorServices.TestAccessor.MessagePackServices)
         {
             yield return [service.Item1, service.Item2];
         }
@@ -92,7 +91,7 @@ public class RazorServicesTest(ITestOutputHelper testOutputHelper) : ToolingTest
 
     public static IEnumerable<object?[]> JsonServices()
     {
-        foreach (var service in RazorServices.JsonServices)
+        foreach (var service in RazorServices.TestAccessor.JsonServices)
         {
             yield return [service.Item1, service.Item2];
         }

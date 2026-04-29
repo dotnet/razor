@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Generates Razor syntax nodes from xml. For internal use only.</Description>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>dotnet-razorsyntaxgenerator</AssemblyName>
     <PackageId>RazorSyntaxGenerator</PackageId>
     <OutputType>Exe</OutputType>
@@ -10,6 +10,7 @@
     <!-- No need to track public APIs of this tool. -->
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <CheckEolTargetFramework>False</CheckEolTargetFramework>
   </PropertyGroup>
 
 </Project>

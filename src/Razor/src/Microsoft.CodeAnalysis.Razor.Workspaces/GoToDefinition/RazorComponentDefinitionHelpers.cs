@@ -1,13 +1,15 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
@@ -19,19 +21,25 @@ using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
 
 namespace Microsoft.CodeAnalysis.Razor.GoToDefinition;
 
+internal sealed record BoundTagHelperResult(TagHelperDescriptor ElementDescriptor, BoundAttributeDescriptor? AttributeDescriptor);
+
 internal static class RazorComponentDefinitionHelpers
 {
+    /// <summary>
+    /// Gets bound tag helpers that might apply to the specified index
+    /// </summary>
+    /// <remarks>
+    /// This method will not match component attribute tag helpers
+    /// </remarks>
     public static bool TryGetBoundTagHelpers(
-        RazorCodeDocument codeDocument, int absoluteIndex, bool ignoreAttributes, ILogger logger,
-        [NotNullWhen(true)] out TagHelperDescriptor? boundTagHelper,
-        [MaybeNullWhen(true)] out BoundAttributeDescriptor? boundAttribute)
+        RazorCodeDocument codeDocument, int absoluteIndex, ILogger logger,
+        out ImmutableArray<BoundTagHelperResult> descriptors)
     {
-        boundTagHelper = null;
-        boundAttribute = null;
+        descriptors = default;
 
-        var syntaxTree = codeDocument.GetSyntaxTree();
+        var root = codeDocument.GetRequiredSyntaxRoot();
 
-        var innermostNode = syntaxTree.Root.FindInnermostNode(absoluteIndex);
+        var innermostNode = root.FindInnermostNode(absoluteIndex);
         if (innermostNode is null)
         {
             logger.LogInformation($"Could not locate innermost node at index, {absoluteIndex}.");
@@ -54,36 +62,6 @@ internal static class RazorComponentDefinitionHelpers
         var nameSpan = tagName.Span;
         string? propertyName = null;
 
-        if (!ignoreAttributes && tagHelperNode is MarkupTagHelperStartTagSyntax startTag)
-        {
-            // Include attributes where the end index also matches, since GetSyntaxNodeAsync will consider that the start tag but we behave
-            // as if the user wants to go to the attribute definition.
-            // ie: <Component attribute$$></Component>
-            var selectedAttribute = startTag.Attributes.FirstOrDefault(a => a.Span.Contains(absoluteIndex) || a.Span.End == absoluteIndex);
-
-            // If we're on an attribute then just validate against the attribute name
-            switch (selectedAttribute)
-            {
-                case MarkupTagHelperAttributeSyntax attribute:
-                    // Normal attribute, ie <Component attribute=value />
-                    nameSpan = attribute.Name.Span;
-                    propertyName = attribute.TagHelperAttributeInfo.Name;
-                    break;
-
-                case MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute:
-                    // Minimized attribute, ie <Component attribute />
-                    nameSpan = minimizedAttribute.Name.Span;
-                    propertyName = minimizedAttribute.TagHelperAttributeInfo.Name;
-                    break;
-            }
-        }
-
-        if (!nameSpan.IntersectsWith(absoluteIndex))
-        {
-            logger.LogInformation($"Tag name or attributes' span does not intersect with index, {absoluteIndex}.");
-            return false;
-        }
-
         if (tagHelperNode.Parent is not MarkupTagHelperElementSyntax tagHelperElement)
         {
             logger.LogInformation($"Parent of start or end tag is not a MarkupTagHelperElement.");
@@ -96,16 +74,63 @@ internal static class RazorComponentDefinitionHelpers
             return false;
         }
 
-        boundTagHelper = binding.Descriptors.FirstOrDefault(static d => !d.IsAttributeDescriptor());
-        if (boundTagHelper is null)
+        using var descriptorsBuilder = new PooledArrayBuilder<BoundTagHelperResult>();
+
+        foreach (var boundTagHelper in binding.TagHelpers.Where(d => !d.IsAttributeDescriptor()))
         {
-            logger.LogInformation($"Could not locate bound TagHelperDescriptor.");
+            var requireAttributeMatch = false;
+            if (boundTagHelper.Kind != TagHelperKind.Component &&
+                tagHelperNode is MarkupTagHelperStartTagSyntax startTag)
+            {
+                // Include attributes where the end index also matches, since GetSyntaxNodeAsync will consider that the start tag but we behave
+                // as if the user wants to go to the attribute definition.
+                // ie: <Component attribute$$></Component>
+                var selectedAttribute = startTag.Attributes.FirstOrDefault(absoluteIndex, static (a, absoluteIndex) => a.Span.Contains(absoluteIndex) || a.Span.End == absoluteIndex);
+
+                requireAttributeMatch = selectedAttribute is not null;
+
+                // If we're on an attribute then just validate against the attribute name
+                switch (selectedAttribute)
+                {
+                    case MarkupTagHelperAttributeSyntax attribute:
+                        // Normal attribute, ie <Component attribute=value />
+                        nameSpan = attribute.Name.Span;
+                        propertyName = attribute.TagHelperAttributeInfo.Name;
+                        break;
+
+                    case MarkupMinimizedTagHelperAttributeSyntax minimizedAttribute:
+                        // Minimized attribute, ie <Component attribute />
+                        nameSpan = minimizedAttribute.Name.Span;
+                        propertyName = minimizedAttribute.TagHelperAttributeInfo.Name;
+                        break;
+                }
+            }
+
+            if (!nameSpan.IntersectsWith(absoluteIndex))
+            {
+                logger.LogInformation($"Tag name or attributes' span does not intersect with index, {absoluteIndex}.");
+                continue;
+            }
+
+            var boundAttribute = propertyName is not null
+                ? boundTagHelper.BoundAttributes.FirstOrDefault(propertyName, static (a, propertyName) => a.Name == propertyName)
+                : null;
+
+            if (requireAttributeMatch && boundAttribute is null)
+            {
+                // The user is on an attribute, but we couldn't find a matching BoundAttributeDescriptor.
+                continue;
+            }
+
+            descriptorsBuilder.Add(new BoundTagHelperResult(boundTagHelper, boundAttribute));
+        }
+
+        if (descriptorsBuilder.Count == 0)
+        {
             return false;
         }
 
-        boundAttribute = propertyName is not null
-            ? boundTagHelper.BoundAttributes.FirstOrDefault(a => a.Name?.Equals(propertyName, StringComparison.Ordinal) == true)
-            : null;
+        descriptors = descriptorsBuilder.ToImmutableAndClear();
 
         return true;
 
@@ -114,16 +139,16 @@ internal static class RazorComponentDefinitionHelpers
             return node.Kind is RazorSyntaxKind.MarkupTagHelperStartTag or RazorSyntaxKind.MarkupTagHelperEndTag;
         }
 
-        static bool TryGetTagName(RazorSyntaxNode node, [NotNullWhen(true)] out RazorSyntaxToken? tagName)
+        static bool TryGetTagName(RazorSyntaxNode node, out RazorSyntaxToken tagName)
         {
             tagName = node switch
             {
                 MarkupTagHelperStartTagSyntax tagHelperStartTag => tagHelperStartTag.Name,
                 MarkupTagHelperEndTagSyntax tagHelperEndTag => tagHelperEndTag.Name,
-                _ => null
+                _ => default
             };
 
-            return tagName is not null;
+            return tagName != default;
         }
     }
 
@@ -150,10 +175,7 @@ internal static class RazorComponentDefinitionHelpers
         var root = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
-        // Since we know how the compiler generates the C# source we can be a little specific here, and avoid
-        // long tree walks. If the compiler ever changes how they generate their code, the tests for this will break
-        // so we'll know about it.
-        if (TryGetClassDeclaration(root, out var classDeclaration))
+        if (root.TryGetClassDeclaration(out var classDeclaration))
         {
             var property = classDeclaration
                 .Members
@@ -168,9 +190,9 @@ internal static class RazorComponentDefinitionHelpers
                 return null;
             }
 
-            var csharpText = codeDocument.GetCSharpSourceText();
-            var range = csharpText.GetRange(property.Identifier.Span);
-            if (documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var originalRange))
+            var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+            var range = csharpDocument.Text.GetRange(property.Identifier.Span);
+            if (documentMappingService.TryMapToRazorDocumentRange(csharpDocument, range, out var originalRange))
             {
                 return originalRange;
             }
@@ -181,21 +203,5 @@ internal static class RazorComponentDefinitionHelpers
         logger.LogInformation($"Generated C# was not in expected shape (CompilationUnit [-> Namespace] -> Class)");
 
         return null;
-
-        static bool TryGetClassDeclaration(SyntaxNode root, [NotNullWhen(true)] out ClassDeclarationSyntax? classDeclaration)
-        {
-            classDeclaration = root switch
-            {
-                CompilationUnitSyntax unit => unit switch
-                {
-                    { Members: [NamespaceDeclarationSyntax { Members: [ClassDeclarationSyntax c, ..] }, ..] } => c,
-                    { Members: [ClassDeclarationSyntax c, ..] } => c,
-                    _ => null,
-                },
-                _ => null,
-            };
-
-            return classDeclaration is not null;
-        }
     }
 }

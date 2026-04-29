@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 
@@ -20,4 +20,6 @@ internal static class RazorConstants
     public static readonly Guid RazorLanguageServiceGuid = new(RazorLanguageServiceString);
 
     public const string VSProjectItemsIdentifier = "CF_VSSTGPROJECTITEMS";
+
+    public const int AboveManagedProjectSystemOrder = 50;
 }

@@ -22,7 +22,7 @@ public class DefaultRazorParsingPhaseTest
         var codeDocument = projectEngine.CreateEmptyCodeDocument();
 
         // Act
-        phase.Execute(codeDocument);
+        codeDocument = phase.Execute(codeDocument);
 
         // Assert
         Assert.NotNull(codeDocument.GetSyntaxTree());
@@ -43,10 +43,10 @@ public class DefaultRazorParsingPhaseTest
         var codeDocument = projectEngine.CreateEmptyCodeDocument();
 
         // Act
-        phase.Execute(codeDocument);
+        codeDocument = phase.Execute(codeDocument);
 
         // Assert
-        var syntaxTree = codeDocument.GetSyntaxTree();
+        Assert.True(codeDocument.TryGetSyntaxTree(out var syntaxTree));
         var directive = Assert.Single(syntaxTree.Options.Directives);
         Assert.Equal("test", directive.Directive);
     }
@@ -71,11 +71,10 @@ public class DefaultRazorParsingPhaseTest
         var codeDocument = projectEngine.CreateCodeDocument(source, importSources);
 
         // Act
-        phase.Execute(codeDocument);
+        codeDocument = phase.Execute(codeDocument);
 
         // Assert
-        var importSyntaxTrees = codeDocument.GetImportSyntaxTrees();
-        Assert.False(importSyntaxTrees.IsDefault);
+        Assert.True(codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees));
         Assert.Collection(
             importSyntaxTrees,
             t => { Assert.Same(t.Source, importSources[0]); Assert.Equal("test", Assert.Single(t.Options.Directives).Directive); },

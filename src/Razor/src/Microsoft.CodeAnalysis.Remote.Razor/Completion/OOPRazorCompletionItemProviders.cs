@@ -1,11 +1,14 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Completion;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
+
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class OOPCSharpRazorKeywordCompletionItemProvider : CSharpRazorKeywordCompletionItemProvider;
 
 [Export(typeof(IRazorCompletionItemProvider)), Shared]
 internal sealed class OOPDirectiveCompletionItemProvider : DirectiveCompletionItemProvider;
@@ -14,12 +17,12 @@ internal sealed class OOPDirectiveCompletionItemProvider : DirectiveCompletionIt
 internal sealed class OOPDirectiveAttributeCompletionItemProvider : DirectiveAttributeCompletionItemProvider;
 
 [Export(typeof(IRazorCompletionItemProvider)), Shared]
-internal sealed class OOPDirectiveAttributeParameterCompletionItemProvider : DirectiveAttributeParameterCompletionItemProvider;
+internal sealed class OOPDirectiveAttributeEventParameterCompletionItemProvider : DirectiveAttributeEventParameterCompletionItemProvider;
 
 [Export(typeof(IRazorCompletionItemProvider)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPDirectiveAttributeTransitionCompletionItemProvider(LanguageServerFeatureOptions languageServerFeatureOptions)
-    : DirectiveAttributeTransitionCompletionItemProvider(languageServerFeatureOptions);
+internal sealed class OOPDirectiveAttributeTransitionCompletionItemProvider(IClientCapabilitiesService clientCapabilitiesService)
+    : DirectiveAttributeTransitionCompletionItemProvider(clientCapabilitiesService);
 
 [Export(typeof(IRazorCompletionItemProvider)), Shared]
 internal sealed class OOPMarkupTransitionCompletionItemProvider : MarkupTransitionCompletionItemProvider;
@@ -28,3 +31,6 @@ internal sealed class OOPMarkupTransitionCompletionItemProvider : MarkupTransiti
 [method: ImportingConstructor]
 internal sealed class OOPTagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService)
     : TagHelperCompletionProvider(tagHelperCompletionService);
+
+[Export(typeof(IRazorCompletionItemProvider)), Shared]
+internal sealed class OOPBlazorDataAttributeCompletionItemProvider : BlazorDataAttributeCompletionItemProvider;

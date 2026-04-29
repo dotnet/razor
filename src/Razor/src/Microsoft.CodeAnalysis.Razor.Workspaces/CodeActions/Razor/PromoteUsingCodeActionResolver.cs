@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.IO;
@@ -34,20 +34,20 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
-        var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentContext.FileKind);
+        var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentContext.Snapshot.FileKind);
 
         var file = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
         var folder = Path.GetDirectoryName(file).AssumeNotNull();
         var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
-        var importFileUri = LspFactory.CreateFilePathUri(importsFile);
+        var importFileUri = new DocumentUri(LspFactory.CreateFilePathUri(importsFile));
 
         using var edits = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
 
-        var textToInsert = sourceText.GetSubTextString(TextSpan.FromBounds(actionParams.UsingStart, actionParams.UsingEnd));
+        var textToInsert = sourceText.ToString(TextSpan.FromBounds(actionParams.UsingStart, actionParams.UsingEnd));
         var insertLocation = new LinePosition(0, 0);
         if (!_fileSystem.FileExists(importsFile))
         {
-            edits.Add(new CreateFile() { Uri = importFileUri });
+            edits.Add(new CreateFile() { DocumentUri = importFileUri });
         }
         else
         {
@@ -65,7 +65,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = importFileUri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = importFileUri },
             Edits = [LspFactory.CreateTextEdit(insertLocation, textToInsert)]
         });
 
@@ -73,7 +73,7 @@ internal class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : IRazorCo
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = documentContext.Uri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = new(documentContext.Uri) },
             Edits = [LspFactory.CreateTextEdit(removeRange, string.Empty)]
         });
 

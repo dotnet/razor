@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
 
@@ -7,7 +7,10 @@ namespace Microsoft.CodeAnalysis.Razor.Diagnostics;
 internal static class CSSErrorCodes
 {
     public const string UnrecognizedBlockType = "CSS002";
+    public const string MissingClassNameAfterDot = "CSS008";
     public const string MissingOpeningBrace = "CSS023";
+    public const string MissingPropertyName = "CSS024";
+    public const string MissingPropertyValue = "CSS025";
     public const string MissingSelectorAfterCombinator = "CSS029";
     public const string MissingSelectorBeforeCombinatorCode = "CSS031";
 }

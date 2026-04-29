@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Threading;
@@ -13,18 +13,14 @@ namespace Microsoft.VisualStudio.Extensibility.Testing;
 
 internal partial class EditorInProcess
 {
-    public async Task MoveCaretAsync(int position, CancellationToken cancellationToken)
+    public async Task PlaceCaretAsync(int position, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var view = await GetActiveTextViewAsync(cancellationToken);
+        view.Caret.MoveTo(new SnapshotPoint(view.GetBufferContainingCaret()!.CurrentSnapshot, position));
 
-        var subjectBuffer = view.GetBufferContainingCaret();
-        Assumes.Present(subjectBuffer);
-
-        var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
-
-        view.Caret.MoveTo(point);
+        await ActivateAsync(cancellationToken);
     }
 
     public Task PlaceCaretAsync(string marker, int charsOffset, CancellationToken cancellationToken)

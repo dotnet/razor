@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -49,7 +49,7 @@ internal class SpellCheckService(
         // In an ideal world we wouldn't need this logic at all, as we would defer to the Html LSP server to provide spell checking
         // but it doesn't currently support it. When that support is added, we can remove all of this but the RazorCommentBlockSyntax
         // handling.
-        foreach (var node in syntaxTree.Root.DescendantNodes(static n => n is not MarkupElementSyntax { StartTag.Name.Content: "script" or "style" }))
+        foreach (var node in syntaxTree.Root.DescendantNodes(static n => n is not BaseMarkupElementSyntax element || !RazorSyntaxFacts.IsScriptOrStyleBlock(element)))
         {
             if (node is RazorCommentBlockSyntax commentBlockSyntax)
             {
@@ -83,7 +83,7 @@ internal class SpellCheckService(
 
     private void AddCSharpSpellCheckRanges(ref PooledArrayBuilder<SpellCheckRange> ranges, ImmutableArray<SpellCheckRange> csharpRanges, RazorCodeDocument codeDocument)
     {
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
         foreach (var range in csharpRanges)
         {
@@ -92,8 +92,8 @@ internal class SpellCheckService(
 
             // We need to map the start index to produce results, and we validate that we can map the end index so we don't have
             // squiggles that go from C# into Razor/Html.
-            if (_documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex, out _, out var hostDocumentIndex) &&
-                _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex + length, out _, out _))
+            if (_documentMappingService.TryMapToRazorDocumentPosition(csharpDocument, absoluteCSharpStartIndex, out _, out var hostDocumentIndex) &&
+                _documentMappingService.TryMapToRazorDocumentPosition(csharpDocument, absoluteCSharpStartIndex + length, out _, out _))
             {
                 ranges.Add(range with { AbsoluteStartIndex = hostDocumentIndex });
             }

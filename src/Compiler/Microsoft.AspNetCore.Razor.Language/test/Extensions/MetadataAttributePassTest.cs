@@ -103,21 +103,15 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var builder = IntermediateNodeBuilder.Create(documentNode);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace,
-            }
+            IsPrimaryNamespace = true,
         };
 
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
-            ClassName = "Test"
+            IsPrimaryClass = true,
+            Name = "Test"
         };
 
         builder.Add(@class);
@@ -139,7 +133,7 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         Assert.Equal("/test.cshtml", checksum.Identifier);
 
         var foundClass = Assert.IsType<ClassDeclarationIntermediateNode>(@namespace.Children[1]);
-        Assert.Equal("Test", foundClass.ClassName);
+        Assert.Equal("Test", foundClass.Name);
     }
 
     [Fact]
@@ -158,21 +152,15 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var builder = IntermediateNodeBuilder.Create(documentNode);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace,
-            },
-            Content = "Some.Namespace"
+            IsPrimaryNamespace = true,
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
+            IsPrimaryClass = true,
         };
 
         builder.Add(@class);
@@ -196,22 +184,16 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var builder = IntermediateNodeBuilder.Create(documentNode);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace,
-            },
-            Content = "Some.Namespace"
+            IsPrimaryNamespace = true,
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
-            ClassName = "Test"
+            IsPrimaryClass = true,
+            Name = "Test"
         };
 
         builder.Add(@class);
@@ -239,22 +221,16 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var builder = IntermediateNodeBuilder.Create(documentNode);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace,
-            },
-            Content = "Some.Namespace"
+            IsPrimaryNamespace = true,
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
-            ClassName = "Test"
+            IsPrimaryClass = true,
+            Name = "Test"
         };
 
         builder.Add(@class);
@@ -282,22 +258,16 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var builder = IntermediateNodeBuilder.Create(documentNode);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace,
-            },
-            Content = "Some.Namespace"
+            IsPrimaryNamespace = true,
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
-            ClassName = "Test",
+            IsPrimaryClass = true,
+            Name = "Test",
         };
 
         builder.Add(@class);
@@ -336,22 +306,16 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var builder = IntermediateNodeBuilder.Create(documentNode);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace,
-            },
-            Content = "Some.Namespace"
+            IsPrimaryNamespace = true,
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
-            ClassName = "Test",
+            IsPrimaryClass = true,
+            Name = "Test",
         };
 
         builder.Add(@class);
@@ -402,22 +366,16 @@ public class MetadataAttributePassTest : RazorProjectEngineTestBase
         var builder = IntermediateNodeBuilder.Create(documentNode);
         var @namespace = new NamespaceDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryNamespace] = CommonAnnotations.PrimaryNamespace,
-            },
-            Content = "Some.Namespace"
+            IsPrimaryNamespace = true,
+            Name = "Some.Namespace"
         };
 
         builder.Push(@namespace);
 
         var @class = new ClassDeclarationIntermediateNode
         {
-            Annotations =
-            {
-                [CommonAnnotations.PrimaryClass] = CommonAnnotations.PrimaryClass,
-            },
-            ClassName = "Test"
+            IsPrimaryClass = true,
+            Name = "Test"
         };
 
         builder.Add(@class);

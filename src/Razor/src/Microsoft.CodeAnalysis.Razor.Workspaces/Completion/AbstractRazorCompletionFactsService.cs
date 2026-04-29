@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.Editor.Razor;
 
@@ -19,27 +20,49 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
 {
     private readonly ImmutableArray<IRazorCompletionItemProvider> _providers = providers;
 
-    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public CompletionItemsResult GetCompletionItems(RazorCompletionContext context)
     {
-        if (context is null)
+        ArgHelper.ThrowIfNull(context);
+        ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
+
+        var needsHtmlDependentCompletionItems = false;
+        using var completions = new PooledArrayBuilder<RazorCompletionItem>();
+
+        foreach (var provider in _providers)
         {
-            throw new ArgumentNullException(nameof(context));
+            if (provider is IHtmlDependentCompletionItemProvider htmlDependent
+                && htmlDependent.NeedsHtmlCompletions(context))
+            {
+                needsHtmlDependentCompletionItems = true;
+            }
+            else
+            {
+                var items = provider.GetCompletionItems(context);
+                completions.AddRange(items);
+            }
         }
 
-        if (context.TagHelperDocumentContext is null)
-        {
-            throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
-        }
+        return new CompletionItemsResult(completions.ToImmutableAndClear(), needsHtmlDependentCompletionItems);
+    }
+
+    public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)
+    {
+        ArgHelper.ThrowIfNull(context);
+        ArgHelper.ThrowIfNull(context.TagHelperDocumentContext);
 
         using var completions = new PooledArrayBuilder<RazorCompletionItem>();
 
         foreach (var provider in _providers)
         {
-            var items = provider.GetCompletionItems(context);
-            completions.AddRange(items);
+            if (provider is IHtmlDependentCompletionItemProvider htmlDependent
+                && htmlDependent.NeedsHtmlCompletions(context))
+            {
+                var items = htmlDependent.GetHtmlDependentCompletionItems(context);
+                completions.AddRange(items);
+            }
         }
 
-        return completions.DrainToImmutable();
+        return completions.ToImmutableAndClear();
     }
 
     // Internal for testing
@@ -60,22 +83,33 @@ internal abstract class AbstractRazorCompletionFactsService(ImmutableArray<IRazo
         if (originalNode.SpanStart == requestIndex
             // allow zero-length tokens for cases when cursor is at EOF,
             // e.g. see https://github.com/dotnet/razor/issues/9955
-            && originalNode.GetFirstToken(includeZeroWidth: true) is { } startToken
-            && startToken.GetPreviousToken() is { } previousToken)
+            && originalNode.TryGetFirstToken(includeZeroWidth: true, out var startToken)
+            && startToken.TryGetPreviousToken(out var previousToken))
         {
             Debug.Assert(previousToken.Span.End == requestIndex);
             Debug.Assert(previousToken.Kind != SyntaxKind.Marker);
-            return previousToken.Parent;
+
+            return previousToken.Parent.AssumeNotNull();
         }
 
         // We also want to walk back for cases like <a hr|/>, which do not involve whitespace at all. For this case, we want
         // to see if we're on the closing slash or angle bracket of a start or end tag
-        if (HtmlFacts.TryGetElementInfo(originalNode, containingTagNameToken: out _, attributeNodes: out _, closingForwardSlashOrCloseAngleToken: out var closingForwardSlashOrCloseAngleToken)
+        if (HtmlFacts.TryGetElementInfo(originalNode, out _, out _, closingForwardSlashOrCloseAngleToken: out var closingForwardSlashOrCloseAngleToken)
             && closingForwardSlashOrCloseAngleToken.SpanStart == requestIndex
-            && closingForwardSlashOrCloseAngleToken.GetPreviousToken() is { } previousToken2)
+            && closingForwardSlashOrCloseAngleToken.TryGetPreviousToken(out var previousToken2))
         {
             Debug.Assert(previousToken2.Span.End == requestIndex);
-            return previousToken2.Parent;
+            return previousToken2.Parent.AssumeNotNull();
+        }
+
+        // If we have @ transition right in front of an existing equals and caret is after @, e.g.
+        // <button @|="OnClick"></button>
+        // we get entire attribute from FindInnermostNode. We always want the attribute name as the context in such cases,
+        // so we adjust it to be the attrbute name node.
+        if (originalNode is MarkupAttributeBlockSyntax markupAttribute
+            && markupAttribute.EqualsToken.SpanStart == requestIndex)
+        {
+            return markupAttribute.Name;
         }
 
         return originalNode;

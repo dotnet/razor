@@ -43,10 +43,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages
             WriteLiteral("\r\n");
             WriteLiteral("\r\n");
             WriteLiteral("\r\n<h1>New Customer ");
-            Write(
 #nullable restore
-#line (13,19)-(13,29) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
-Model.Name
+#line (13,19)-(13,29) 6 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
+Write(Model.Name
 
 #line default
 #line hidden
@@ -90,9 +89,15 @@ Model.Name
         #nullable restore
 public global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<NewModel> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<NewModel>)PageContext?.ViewData!;
 #nullable disable
-        #nullable restore
-public NewModel Model => ViewData.Model!;
+        public 
+#nullable restore
+#line (3,8)-(3,16) "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
+NewModel
+
+#line default
+#line hidden
 #nullable disable
+         Model => ViewData.Model;
     }
 }
 #pragma warning restore 1591

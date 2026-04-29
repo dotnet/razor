@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.IntegrationTests;
 
@@ -32,36 +31,36 @@ public class InstrumentationPassIntegrationTest : IntegrationTestBase
     public void BasicTest()
     {
         // Arrange
-        var descriptors = new[]
-        {
-                CreateTagHelperDescriptor(
-                    tagName: "p",
-                    typeName: "PTagHelper",
-                    assemblyName: "TestAssembly"),
-                CreateTagHelperDescriptor(
-                    tagName: "form",
-                    typeName: "FormTagHelper",
-                    assemblyName: "TestAssembly"),
-                CreateTagHelperDescriptor(
-                    tagName: "input",
-                    typeName: "InputTagHelper",
-                    assemblyName: "TestAssembly",
-                    attributes: new Action<BoundAttributeDescriptorBuilder>[]
-                    {
-                        builder => builder
-                            .Name("value")
-                            .Metadata(PropertyName("FooProp"))
-                            .TypeName("System.String"),      // Gets preallocated
-                        builder => builder
-                            .Name("date")
-                            .Metadata(PropertyName("BarProp"))
-                            .TypeName("System.DateTime"),    // Doesn't get preallocated
-                    })
-            };
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "p",
+                typeName: "PTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "form",
+                typeName: "FormTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly",
+                attributes:
+                [
+                    builder => builder
+                        .Name("value")
+                        .PropertyName("FooProp")
+                        .TypeName("System.String"),      // Gets preallocated
+                    builder => builder
+                        .Name("date")
+                        .PropertyName("BarProp")
+                        .TypeName("System.DateTime"),    // Doesn't get preallocated
+                ])
+        ];
 
         var engine = CreateProjectEngine(b =>
         {
-            b.AddTagHelpers(descriptors);
+            b.SetTagHelpers(tagHelpers);
             b.Features.Add(new InstrumentationPass());
 
                 // This test includes templates
@@ -74,7 +73,7 @@ public class InstrumentationPassIntegrationTest : IntegrationTestBase
         var document = engine.Process(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(document.GetDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(document.GetDocumentNode());
 
         var csharpDocument = document.GetCSharpDocument();
         AssertCSharpDocumentMatchesBaseline(csharpDocument);
@@ -87,8 +86,8 @@ public class InstrumentationPassIntegrationTest : IntegrationTestBase
         string assemblyName,
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null)
     {
-        var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
-        builder.Metadata(TypeName(typeName));
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
+        builder.SetTypeName(typeName, typeNamespace: null, typeNameIdentifier: null);
 
         if (attributes != null)
         {

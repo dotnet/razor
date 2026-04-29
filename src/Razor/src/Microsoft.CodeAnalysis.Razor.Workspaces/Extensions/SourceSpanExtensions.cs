@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
@@ -10,4 +10,12 @@ internal static class SourceSpanExtensions
 {
     public static TextSpan ToTextSpan(this SourceSpan span)
         => new(span.AbsoluteIndex, span.Length);
+
+    public static LinePositionSpan ToLinePositionSpan(this SourceSpan span)
+    {
+        var start = new LinePosition(span.LineIndex, span.CharacterIndex);
+        var end = new LinePosition(span.LineIndex + span.LineCount, span.EndCharacterIndex);
+
+        return new LinePositionSpan(start, end);
+    }
 }

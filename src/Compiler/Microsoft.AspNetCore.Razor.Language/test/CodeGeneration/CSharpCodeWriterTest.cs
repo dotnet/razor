@@ -1,11 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using System.Globalization;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -291,7 +290,7 @@ public class CSharpCodeWriterTest
         var expected = $"#line 5 \"{filePath}\"" + writer.NewLine;
 
         // Act
-        writer.WriteLineNumberDirective(mappingLocation);
+        writer.WriteLineNumberDirective(mappingLocation, ensurePathBackslashes: false);
         var code = writer.GetText().ToString();
 
         // Assert
@@ -305,7 +304,11 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteField(Array.Empty<string>(), new[] { "private" }, "global::System.String", "_myString");
+        writer.WriteField(
+            suppressWarnings: [],
+            modifiers: ["private"],
+            type: "global::System.String",
+            name: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -322,7 +325,11 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteField(Array.Empty<string>(), new[] { "private", "readonly", "static" }, "global::System.String", "_myString");
+        writer.WriteField(
+            suppressWarnings: [],
+            modifiers: ["private", "readonly", "static"],
+            type: "global::System.String",
+            name: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -333,17 +340,17 @@ public class CSharpCodeWriterTest
     }
 
     [Fact]
-    public void WriteField_WithModifiersAndSupressions_WritesFieldDeclaration()
+    public void WriteField_WithModifiersAndSuppressions_WritesFieldDeclaration()
     {
         // Arrange
         using var writer = new CodeWriter();
 
         // Act
         writer.WriteField(
-            new[] { "0001", "0002", },
-            new[] { "private", "readonly", "static" },
-            "global::System.String",
-            "_myString");
+            suppressWarnings: ["0001", "0002"],
+            modifiers: ["private", "readonly", "static"],
+            type: "global::System.String",
+            name: "_myString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -365,7 +372,7 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteAutoPropertyDeclaration(new[] { "public" }, "global::System.String", "MyString");
+        writer.WriteAutoPropertyDeclaration(modifiers: ["public" ], type: "global::System.String", name: "MyString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -382,7 +389,7 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteAutoPropertyDeclaration(new[] { "public", "static" }, "global::System.String", "MyString");
+        writer.WriteAutoPropertyDeclaration(modifiers: ["public", "static"], type: "global::System.String", name: "MyString");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -403,8 +410,8 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter(options);
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", null, Array.Empty<IntermediateToken>(), Array.Empty<TypeParameter>(), context: null);
-        writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
+        writer.BuildClassDeclaration(modifiers: [], name: "C", baseType: null, interfaces: [], typeParameters: [], context: null);
+        writer.WriteField(suppressWarnings: [], modifiers: [], type: "int", name: "f");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -427,8 +434,8 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter(options);
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", null, Array.Empty<IntermediateToken>(), Array.Empty<TypeParameter>(), context: null);
-        writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
+        writer.BuildClassDeclaration(modifiers: [], name: "C", baseType: null, interfaces: [], typeParameters: [], context: null);
+        writer.WriteField(suppressWarnings: [], modifiers: [], type: "int", name: "f");
 
         // Assert
         var output = writer.GetText().ToString();
@@ -438,5 +445,250 @@ public class CSharpCodeWriterTest
                 int f;
 
             """, output);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/core/issues/9885")]
+    public void AlignedPages_WritesCorrectlyWhenPageAndBufferAreAligned()
+    {
+        var pages = new LinkedList<ReadOnlyMemory<char>[]>();
+
+        const string FirstLine = "First Line";
+        pages.AddLast([(FirstLine + FirstLine).AsMemory(), "Second".AsMemory()]);
+
+        var testReader = CodeWriter.GetTestTextReader(pages);
+        var output = new char[FirstLine.Length];
+
+        testReader.Read(output, 0, output.Length);
+        Assert.Equal(FirstLine, string.Join("", output));
+        Array.Clear(output, 0, output.Length);
+
+        testReader.Read(output, 0, output.Length);
+        Assert.Equal(FirstLine, string.Join("", output));
+        Array.Clear(output, 0, output.Length);
+
+        testReader.Read(output, 0, output.Length);
+        Assert.Equal("Second\0\0\0\0", string.Join("", output));
+    }
+
+    [Fact]
+    public void ReaderOnlyReadsAsMuchAsRequested()
+    {
+        var pages = new LinkedList<ReadOnlyMemory<char>[]>();
+
+        const string FirstLine = "First Line";
+        pages.AddLast([FirstLine.AsMemory()]);
+
+        var testReader = CodeWriter.GetTestTextReader(pages);
+        var output = new char[FirstLine.Length];
+
+        testReader.Read(output, 0, 2);
+        Assert.Equal("Fi\0\0\0\0\0\0\0\0", string.Join("", output));
+        Array.Clear(output, 0, output.Length);
+
+        testReader.Read(output, 0, output.Length);
+        Assert.Equal("rst Line\0\0", string.Join("", output));
+    }
+
+    [Fact]
+    public void WriteIntegerLiteral_Zero_WritesZero()
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(0);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        Assert.Equal("0", output);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(42)]
+    [InlineData(99)]
+    [InlineData(100)]
+    [InlineData(999)]
+    public void WriteIntegerLiteral_SmallPositiveNumbers_WritesCorrectly(int value)
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(value);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        var expected = value.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(expected, output);
+    }
+
+    [Theory]
+    [InlineData(1000)]
+    [InlineData(1234)]
+    [InlineData(12345)]
+    [InlineData(123456)]
+    [InlineData(1000000)]
+    public void WriteIntegerLiteral_LargePositiveNumbers_WritesCorrectly(int value)
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(value);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        var expected = value.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(expected, output);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(-5)]
+    [InlineData(-42)]
+    [InlineData(-99)]
+    [InlineData(-100)]
+    [InlineData(-999)]
+    public void WriteIntegerLiteral_SmallNegativeNumbers_WritesCorrectly(int value)
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(value);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        var expected = value.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(expected, output);
+    }
+
+    [Theory]
+    [InlineData(-1000)]
+    [InlineData(-1234)]
+    [InlineData(-12345)]
+    [InlineData(-123456)]
+    [InlineData(-1000000)]
+    public void WriteIntegerLiteral_LargeNegativeNumbers_WritesCorrectly(int value)
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(value);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        var expected = value.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(expected, output);
+    }
+
+    [Theory]
+    [InlineData(999999)]
+    [InlineData(1000001)]
+    [InlineData(999000)]
+    [InlineData(1001000)]
+    public void WriteIntegerLiteral_BoundaryValues_WritesCorrectly(int value)
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(value);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        var expected = value.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(expected, output);
+    }
+
+    [Theory]
+    [InlineData(10000)]      // Exactly 5 digits
+    [InlineData(100000)]     // Exactly 6 digits  
+    [InlineData(1000000000)] // Close to int.MaxValue
+    [InlineData(2000000000)] // Larger value
+    [InlineData(10001)]      // Leading zeros in middle group
+    [InlineData(1000010)]    // Multiple leading zeros
+    [InlineData(1020000)]    // Trailing zeros after non-zero
+    [InlineData(102030)]     // Mixed digits
+    [InlineData(1000000001)] // Maximum digits with leading zeros
+    public void WriteIntegerLiteral_AdditionalEdgeCases_WritesCorrectly(int value)
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(value);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        var expected = value.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(expected, output);
+    }
+
+    [Theory]
+    [InlineData(int.MinValue + 1)] // Just above MinValue
+    [InlineData(-10001)]           // Negative with leading zeros
+    [InlineData(-1000010)]         // Negative with multiple groups
+    public void WriteIntegerLiteral_NegativeEdgeCases_WritesCorrectly(int value)
+    {
+        // Arrange  
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(value);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        var expected = value.ToString(CultureInfo.InvariantCulture);
+        Assert.Equal(expected, output);
+    }
+
+    [Fact]
+    public void WriteIntegerLiteral_MaxValue_WritesCorrectly()
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(int.MaxValue);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        Assert.Equal("2147483647", output);
+    }
+
+    [Fact]
+    public void WriteIntegerLiteral_MinValue_WritesCorrectly()
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(int.MinValue);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        Assert.Equal("-2147483648", output);
+    }
+
+    [Fact]
+    public void WriteIntegerLiteral_MultipleValues_WritesCorrectly()
+    {
+        // Arrange
+        using var writer = new CodeWriter();
+
+        // Act
+        writer.WriteIntegerLiteral(123);
+        writer.Write(", ");
+        writer.WriteIntegerLiteral(-456);
+        writer.Write(", ");
+        writer.WriteIntegerLiteral(0);
+
+        // Assert
+        var output = writer.GetText().ToString();
+        Assert.Equal("123, -456, 0", output);
     }
 }

@@ -1,8 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor;
@@ -52,16 +51,32 @@ internal static class SourceTextExtensions
     public static int GetPosition(this SourceText text, int line, int character)
         => text.GetPosition(new LinePosition(line, character));
 
-    public static string GetSubTextString(this SourceText text, TextSpan span)
+    public static bool NonWhitespaceContentEquals(this SourceText text, ImmutableArray<TextChange> changes)
     {
-        using var _ = ArrayPool<char>.Shared.GetPooledArray(span.Length, out var charBuffer);
+        if (changes.IsEmpty)
+        {
+            return true;
+        }
 
-        text.CopyTo(span.Start, charBuffer, 0, span.Length);
-        return new string(charBuffer, 0, span.Length);
+        // Determine the affected spans in the original and changed source texts
+        var firstChangeSpan = changes[0].Span;
+        var textStart = firstChangeSpan.Start;
+        var textEnd = firstChangeSpan.End;
+
+        for (var i = 1; i < changes.Length; i++)
+        {
+            var changeSpan = changes[i].Span;
+
+            textStart = Math.Min(textStart, changeSpan.Start);
+            textEnd = Math.Max(textEnd, changeSpan.End);
+        }
+
+        var changedText = text.WithChanges(changes);
+        var changedStart = textStart;
+        var changedEnd = textEnd + (changedText.Length - text.Length);
+
+        return text.NonWhitespaceContentEquals(changedText, textStart, textEnd, changedStart, changedEnd);
     }
-
-    public static bool NonWhitespaceContentEquals(this SourceText text, SourceText other)
-        => NonWhitespaceContentEquals(text, other, 0, text.Length, 0, other.Length);
 
     public static bool NonWhitespaceContentEquals(
         this SourceText text,
@@ -317,13 +332,12 @@ internal static class SourceTextExtensions
 
         foreach (var line in text.Lines)
         {
-            var lineBreakSpan = TextSpan.FromBounds(line.End, line.EndIncludingLineBreak);
-            var lineBreak = line.Text?.ToString(lineBreakSpan) ?? string.Empty;
-            if (lineBreak == "\r\n")
+            var lineBreakLength = line.EndIncludingLineBreak - line.End;
+            if (lineBreakLength == 2)
             {
                 crlfCount++;
             }
-            else if (lineBreak == "\n")
+            else if (lineBreakLength != 0)
             {
                 lfCount++;
             }
@@ -332,6 +346,16 @@ internal static class SourceTextExtensions
         return lfCount > crlfCount;
     }
 
+    /// <summary>
+    /// Wrapper for Roslyn's GetTextChanges method that returns an immutable array
+    /// </summary>
+    /// <remarks>
+    /// Roslyn has a ChangedText class, which doesn't realise changes to a SourceText, but instead just keeps track
+    /// of them. It also adds an optimization to the GetTextChanges method that means it will not necessarily compute changes
+    /// but rather re-use the existing tracked changes. Those things combined means the exact nature of individual changes
+    /// made to a SourceText can affect the output of this method. For consistent results across multiple systems, consider
+    /// calling our SourceTextDiffer instead.
+    /// </remarks>
     public static ImmutableArray<TextChange> GetTextChangesArray(this SourceText newText, SourceText oldText)
     {
         var list = newText.GetTextChanges(oldText);

@@ -1,8 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -14,9 +13,23 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static partial class ArrayBuilderPool<T>
+internal sealed partial class ArrayBuilderPool<T> : CustomObjectPool<ImmutableArray<T>.Builder>
 {
-    public static readonly ObjectPool<ImmutableArray<T>.Builder> Default = DefaultPool.Create(Policy.Instance);
+    public static readonly ArrayBuilderPool<T> Default = Create();
+
+    private ArrayBuilderPool(PooledObjectPolicy policy, Optional<int> poolSize)
+        : base(policy, poolSize)
+    {
+    }
+
+    public static ArrayBuilderPool<T> Create(
+        Optional<int> initialCapacity = default,
+        Optional<int> maximumObjectSize = default,
+        Optional<int> poolSize = default)
+        => new(Policy.Create(initialCapacity, maximumObjectSize), poolSize);
+
+    public static ArrayBuilderPool<T> Create(PooledObjectPolicy policy, Optional<int> poolSize = default)
+        => new(policy, poolSize);
 
     public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject()
         => Default.GetPooledObject();

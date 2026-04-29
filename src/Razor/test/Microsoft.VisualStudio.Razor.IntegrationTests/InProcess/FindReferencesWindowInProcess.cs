@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ internal partial class FindReferencesWindowInProcess
 {
     // Guid of the FindRefs window.  Defined here:
     // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
-    private static readonly Guid FindReferencesWindowGuid = new("{a80febb4-e7e0-4147-b476-21aaf2453969}");
+    internal static readonly Guid FindReferencesWindowGuid = new("{a80febb4-e7e0-4147-b476-21aaf2453969}");
 
     public async Task<ImmutableArray<ITableEntryHandle2>> WaitForContentsAsync(CancellationToken cancellationToken, int expected = 1)
     {
@@ -89,5 +89,13 @@ internal partial class FindReferencesWindowInProcess
         var tableControlField = tableControlAndCommandTargetType.GetField("TableControl");
         var tableControl = (IWpfTableControl2)tableControlField.GetValue(toolWindowControl);
         return tableControl;
+    }
+
+    public async Task CloseToolWindowAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var shell = await GetRequiredGlobalServiceAsync<SVsUIShell, IVsUIShell>(cancellationToken);
+        ErrorHandler.ThrowOnFailure(shell.FindToolWindowEx((uint)__VSFINDTOOLWIN.FTW_fFindFirst, FindReferencesWindowGuid, dwToolWinId: 0, out var windowFrame));
+        ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave));
     }
 }

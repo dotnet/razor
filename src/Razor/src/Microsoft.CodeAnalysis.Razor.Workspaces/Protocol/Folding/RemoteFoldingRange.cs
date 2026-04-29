@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Runtime.Serialization;
 
@@ -19,7 +19,7 @@ internal readonly record struct RemoteFoldingRange(
         return $"({StartLine}, {StartCharacter})-({EndLine}, {EndCharacter}), {Kind}, {CollapsedText}";
     }
 
-    public static RemoteFoldingRange FromVsFoldingRange(FoldingRange r)
+    public static RemoteFoldingRange FromLspFoldingRange(FoldingRange r)
         => new(
             r.StartLine,
             r.StartCharacter,
@@ -28,7 +28,7 @@ internal readonly record struct RemoteFoldingRange(
             r.Kind?.Value,
             r.CollapsedText);
 
-    public static FoldingRange ToVsFoldingRange(RemoteFoldingRange r)
+    public static FoldingRange ToLspFoldingRange(RemoteFoldingRange r)
         => new()
         {
             StartLine = r.StartLine,

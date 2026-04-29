@@ -1,16 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 
-public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
+public sealed class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
 {
     public static readonly string RazorPageDocumentKind = "mvc.1.0.razor-page";
     public static readonly string RouteTemplateKey = "RouteTemplate";
@@ -53,7 +52,7 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
     {
         base.OnDocumentStructureCreated(codeDocument, @namespace, @class, method);
 
-        @namespace.Content = "AspNetCore";
+        @namespace.Name = "AspNetCore";
 
         @class.BaseType = new BaseTypeWithModel("global::Microsoft.AspNetCore.Mvc.RazorPages.Page");
 
@@ -63,24 +62,20 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
             // It's possible for a Razor document to not have a file path.
             // Eg. When we try to generate code for an in memory document like default imports.
             var checksum = ChecksumUtilities.BytesToString(codeDocument.Source.Text.GetChecksum());
-            @class.ClassName = $"AspNetCore_{checksum}";
+            @class.Name = $"AspNetCore_{checksum}";
         }
         else
         {
-            @class.ClassName = CSharpIdentifier.GetClassNameFromPath(filePath);
+            @class.Name = CSharpIdentifier.GetClassNameFromPath(filePath);
         }
 
-        @class.Modifiers.Clear();
-        @class.Modifiers.Add("public");
+        @class.Modifiers = CommonModifiers.Public;
 
-        method.MethodName = "ExecuteAsync";
-        method.Modifiers.Clear();
-        method.Modifiers.Add("public");
-        method.Modifiers.Add("async");
-        method.Modifiers.Add("override");
+        method.Name = "ExecuteAsync";
+        method.Modifiers = CommonModifiers.PublicAsyncOverride;
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";
 
-        var document = codeDocument.GetDocumentIntermediateNode();
+        var document = codeDocument.GetRequiredDocumentNode();
         PageDirective.TryGetPageDirective(document, out var pageDirective);
 
         EnsureValidPageDirective(codeDocument, pageDirective);
@@ -116,10 +111,10 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
     {
         Debug.Assert(pageDirective != null);
 
-        if (pageDirective.DirectiveNode.IsImported())
+        if (pageDirective.DirectiveNode.IsImported)
         {
-            pageDirective.DirectiveNode.Diagnostics.Add(
-                RazorExtensionsDiagnosticFactory.CreatePageDirective_CannotBeImported(pageDirective.DirectiveNode.Source.Value));
+            pageDirective.DirectiveNode.AddDiagnostic(
+                RazorExtensionsDiagnosticFactory.CreatePageDirective_CannotBeImported(pageDirective.DirectiveNode.Source.AssumeNotNull()));
         }
         else
         {
@@ -128,14 +123,14 @@ public class RazorPageDocumentClassifierPass : DocumentClassifierPassBase
             // We are going to do that by re-parsing the document until the very first line that is not Razor comment
             // or whitespace. We then make sure the page directive still exists in the re-parsed IR tree.
             var leadingDirectiveCodeDocument = LeadingDirectiveParsingEngine.CreateCodeDocument(codeDocument.Source);
-            LeadingDirectiveParsingEngine.Engine.Process(leadingDirectiveCodeDocument);
+            leadingDirectiveCodeDocument = LeadingDirectiveParsingEngine.Engine.Process(leadingDirectiveCodeDocument);
 
-            var leadingDirectiveDocumentNode = leadingDirectiveCodeDocument.GetDocumentIntermediateNode();
-            if (!PageDirective.TryGetPageDirective(leadingDirectiveDocumentNode, out var _))
+            var leadingDirectiveDocumentNode = leadingDirectiveCodeDocument.GetRequiredDocumentNode();
+            if (!PageDirective.TryGetPageDirective(leadingDirectiveDocumentNode, out _))
             {
                 // The page directive is not the leading directive. Add an error.
-                pageDirective.DirectiveNode.Diagnostics.Add(
-                    RazorExtensionsDiagnosticFactory.CreatePageDirective_MustExistAtTheTopOfFile(pageDirective.DirectiveNode.Source.Value));
+                pageDirective.DirectiveNode.AddDiagnostic(
+                    RazorExtensionsDiagnosticFactory.CreatePageDirective_MustExistAtTheTopOfFile(pageDirective.DirectiveNode.Source.AssumeNotNull()));
             }
         }
     }

@@ -1,32 +1,31 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Options;
 
 internal static class SettingsNames
 {
-    public record Setting(string LegacyName, string UnifiedName);
+    public const string UnifiedCollection = "languages.razor.advanced";
 
-    public const string LegacyCollection = "Razor";
-    public const string UnifiedCollection = "textEditor.razor.advanced";
+    public const string FormatOnType = UnifiedCollection + ".formatOnType";
+    public const string AutoClosingTags = UnifiedCollection + ".autoClosingTags";
+    public const string AutoInsertAttributeQuotes = UnifiedCollection + ".autoInsertAttributeQuotes";
+    public const string ColorBackground = UnifiedCollection + ".colorBackground";
+    public const string CodeBlockBraceOnNextLine = UnifiedCollection + ".codeBlockBraceOnNextLine";
+    public const string AttributeIndentStyle = UnifiedCollection + ".attributeIndentStyle";
+    public const string CommitElementsWithSpace = UnifiedCollection + ".commitElementsWithSpace";
+    public const string Snippets = UnifiedCollection + ".snippets";
+    public const string LogLevel = UnifiedCollection + ".logLevel";
+    public const string FormatOnPaste = UnifiedCollection + ".formatOnPaste";
 
-    public static readonly Setting FormatOnType = new("FormatOnType", UnifiedCollection + ".formatOnType");
-    public static readonly Setting AutoClosingTags = new("AutoClosingTags", UnifiedCollection + ".autoClosingTags");
-    public static readonly Setting AutoInsertAttributeQuotes = new("AutoInsertAttributeQuotes", UnifiedCollection + ".autoInsertAttributeQuotes");
-    public static readonly Setting ColorBackground = new("ColorBackground", UnifiedCollection + ".colorBackground");
-    public static readonly Setting CodeBlockBraceOnNextLine = new("CodeBlockBraceOnNextLine", UnifiedCollection + ".codeBlockBraceOnNextLine");
-    public static readonly Setting CommitElementsWithSpace = new("CommitElementsWithSpace", UnifiedCollection + ".commitCharactersWithSpace");
-    public static readonly Setting Snippets = new("Snippets", UnifiedCollection + ".snippets");
-    public static readonly Setting LogLevel = new("LogLevel", UnifiedCollection + ".logLevel");
-    public static readonly Setting FormatOnPaste = new("FormatOnPaste", UnifiedCollection + ".formatOnPaste");
-
-    public static readonly Setting[] AllSettings =
+    public static readonly string[] AllSettings =
     [
         FormatOnType,
         AutoClosingTags,
         AutoInsertAttributeQuotes,
         ColorBackground,
         CodeBlockBraceOnNextLine,
+        AttributeIndentStyle,
         CommitElementsWithSpace,
         Snippets,
         LogLevel,

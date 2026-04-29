@@ -46,7 +46,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
 
         // Act
-        var result = ModelDirective.GetModelType(documentNode);
+        var result = ModelDirective.GetModelType(documentNode).Content;
 
         // Assert
         Assert.Equal("Type1", result);
@@ -61,7 +61,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var documentNode = processor.GetDocumentNode();
 
         // Act
-        var result = ModelDirective.GetModelType(documentNode);
+        var result = ModelDirective.GetModelType(documentNode).Content;
 
         // Assert
         Assert.Equal("dynamic", result);
@@ -86,6 +86,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
         var baseType = classNode.BaseType;
 
+        Assert.NotNull(baseType);
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
 
@@ -114,6 +115,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
         var baseType = classNode.BaseType;
 
+        Assert.NotNull(baseType);
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
 
@@ -141,6 +143,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
         var baseType = classNode.BaseType;
 
+        Assert.NotNull(baseType);
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
 
@@ -166,6 +169,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
         var baseType = classNode.BaseType;
 
+        Assert.NotNull(baseType);
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.NotNull(baseType.BaseType.Source);
 
@@ -193,6 +197,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
         var baseType = classNode.BaseType;
 
+        Assert.NotNull(baseType);
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.Null(baseType.BaseType.Source);
 
@@ -224,6 +229,7 @@ public class ModelDirectiveTest : RazorProjectEngineTestBase
         var classNode = documentNode.GetClassNode();
         var baseType = classNode.BaseType;
 
+        Assert.NotNull(baseType);
         Assert.Equal("BaseType", baseType.BaseType.Content);
         Assert.Null(baseType.BaseType.Source);
 

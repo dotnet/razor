@@ -1,47 +1,42 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentCssScopePass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
+internal sealed class ComponentCssScopePass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
     // Runs after components/bind, since it's preferable for the auto-generated attribute to appear later
     // in the DOM than developer-written ones
     public override int Order => 110;
 
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
+    protected override void ExecuteCore(
+        RazorCodeDocument codeDocument,
+        DocumentIntermediateNode documentNode,
+        CancellationToken cancellationToken)
     {
         if (!IsComponentDocument(documentNode))
         {
             return;
         }
 
-        var cssScope = codeDocument.GetCssScope();
+        var cssScope = codeDocument.CodeGenerationOptions.CssScope;
         if (string.IsNullOrEmpty(cssScope))
         {
             return;
         }
 
-        var nodes = documentNode.FindDescendantNodes<MarkupElementIntermediateNode>();
-        for (var i = 0; i < nodes.Count; i++)
+        foreach (var node in documentNode.FindDescendantNodes<MarkupElementIntermediateNode>())
         {
-            ProcessElement(nodes[i], cssScope);
+            // Add a minimized attribute whose name is simply the CSS scope
+            node.Children.Add(new HtmlAttributeIntermediateNode
+            {
+                AttributeName = cssScope,
+                Prefix = cssScope,
+                Suffix = string.Empty,
+            });
         }
-    }
-
-    private void ProcessElement(MarkupElementIntermediateNode node, string cssScope)
-    {
-        // Add a minimized attribute whose name is simply the CSS scope
-        node.Children.Add(new HtmlAttributeIntermediateNode
-        {
-            AttributeName = cssScope,
-            Prefix = cssScope,
-            Suffix = string.Empty,
-        });
     }
 }

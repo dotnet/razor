@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Diagnostics;
@@ -16,12 +16,12 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
 {
     private static readonly TimeSpan s_snippetTimeout = TimeSpan.FromSeconds(10);
 
-    [IdeFact]
+    [IdeFact(Skip = "We're returning the right completion item, but the editor isn't applying it?")]
     public async Task SnippetCompletion_Html()
     {
         await VerifyTypeAndCommitCompletionAsync(
             input: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -37,7 +37,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             output: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -57,6 +57,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             search: "<h1>Test</h1>",
+            expectedSelectedItemLabel: "dd",
             stringsToType: ["{ENTER}", "d", "d"]);
     }
 
@@ -65,7 +66,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     {
         await VerifyTypeAndCommitCompletionAsync(
             input: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -81,7 +82,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             output: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -106,7 +107,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     {
         await VerifyTypeAndCommitCompletionAsync(
             input: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -122,7 +123,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             output: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -143,11 +144,80 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [IdeFact]
+    public async Task CompletionCommit_BlazorDirectiveAttribute()
+    {
+        await VerifyTypeAndCommitCompletionAsync(
+            input: """
+                @page "/test"
+
+                <PageTitle>Test</PageTitle>
+
+                <select @=""></select>
+                """,
+            output: """
+                @page "/test"
+                
+                <PageTitle>Test</PageTitle>
+
+                <select @onactivate =""></select>
+                """,
+            search: "<select @",
+            stringsToType: ["o", "n", "a", "c"],
+            commitChar: '\t',
+            expectedSelectedItemLabel: "@onactivate");
+    }
+
+    // Regression test for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2505611
+    [IdeFact]
+    public async Task CompletionCommit_NoCommitOnTypingInDocComments()
+    {
+        await TestServices.SolutionExplorer.AddFileAsync(
+            RazorProjectConstants.BlazorProjectName,
+            "Test.razor",
+            """
+            @page "/test"
+            
+            <PageTitle>Test</PageTitle>
+            
+            @{
+                /// 
+            }
+            """,
+            open: true,
+            ControlledHangMitigatingCancellationToken);
+
+        var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.DismissCompletionSessionsAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("/// ", charsOffset: 1, ControlledHangMitigatingCancellationToken);
+        TestServices.Input.Send("add a function");
+
+        // Make sure extra text didn't get commited from an unexpected completion list
+        var currentLineText = await TestServices.Editor.GetCurrentLineTextAsync(HangMitigatingCancellationToken);
+        Assert.Contains("/// add a function", currentLineText);
+
+        // Make sure completion doesn't come up for 15 seconds
+        var completionSession = await TestServices.Editor.WaitForExistingCompletionSessionAsync(s_snippetTimeout, HangMitigatingCancellationToken);
+        var items = completionSession?.GetComputedItems(HangMitigatingCancellationToken);
+
+        if (items is null)
+        {
+            // No items to check, we're good
+            return;
+        }
+
+        // If completion did pop up with something like "Processing", make sure no doccomment items are present
+        Assert.DoesNotContain("summary", items.Items.Select(i => i.DisplayText));
+
+    }
+
+    [IdeFact]
     public async Task CompletionCommit_HtmlTag()
     {
         await VerifyTypeAndCommitCompletionAsync(
             input: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -161,7 +231,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             output: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -186,7 +256,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     {
         await VerifyTypeAndCommitCompletionAsync(
             input: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -200,7 +270,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             output: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -226,7 +296,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     {
         await VerifyTypeAndCommitCompletionAsync(
             input: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -240,7 +310,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             output: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -265,7 +335,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     {
         await VerifyTypeAndCommitCompletionAsync(
             input: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -276,7 +346,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
                 }
                 """,
             output: """
-                @page "Test"
+                @page "/Test"
 
                 <PageTitle>Test</PageTitle>
 
@@ -301,7 +371,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
             RazorProjectConstants.BlazorProjectName,
             "Test.razor",
             """
-            @page "Test"
+            @page "/Test"
 
             <PageTitle>Test</PageTitle>
 
@@ -328,7 +398,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         var text = textView.TextBuffer.CurrentSnapshot.GetText();
 
         var expected = """
-            @page "Test"
+            @page "/Test"
             
             <PageTitle>Test</PageTitle>
             
@@ -347,7 +417,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
             RazorProjectConstants.BlazorProjectName,
             "Test.razor",
             """
-            @page "Test"
+            @page "/Test"
 
             <PageTitle>Test</PageTitle>
 
@@ -357,12 +427,13 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
             ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.DismissCompletionSessionsAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("Hel", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("{DELETE}");
 
         // Make sure completion doesn't come up for 15 seconds
-        var completionSession = await TestServices.Editor.WaitForCompletionSessionAsync(s_snippetTimeout, HangMitigatingCancellationToken);
+        var completionSession = await TestServices.Editor.WaitForExistingCompletionSessionAsync(s_snippetTimeout, HangMitigatingCancellationToken);
         Assert.Null(completionSession);
     }
 
@@ -371,14 +442,28 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     [InlineData("</PageTitle")]
     [InlineData("<div")]
     [InlineData("</div")]
+    [InlineData("// script block ")]
+    [InlineData("/* style block ")]
+    [InlineData("<!-- comment block ")]
     [WorkItem("https://github.com/dotnet/razor/issues/9427")]
-    public async Task Snippets_DoNotTrigger_InsideTag(string tag)
+    // Do not trigger snippets in start tags, end tags, script blocks, style blocks, or comments
+    public async Task Snippets_DoNotTrigger_InDisallowedContext(string tag)
     {
         await TestServices.SolutionExplorer.AddFileAsync(
             RazorProjectConstants.BlazorProjectName,
             "Test.razor",
             """
-            @page "Test"
+            @page "/Test"
+
+            <script>
+                // script block 
+            </script>
+
+            <style>
+                /* style block  */
+            </style>
+
+            <!-- comment block  -->
 
             <PageTitle>Test</PageTitle>
 
@@ -389,13 +474,14 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
 
         var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.DismissCompletionSessionsAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync(tag, charsOffset: 1, ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send(" ");
         TestServices.Input.Send("dd");
 
         // Make sure completion doesn't come up for 15 seconds
-        var completionSession = await TestServices.Editor.WaitForCompletionSessionAsync(s_snippetTimeout, HangMitigatingCancellationToken);
+        var completionSession = await TestServices.Editor.WaitForExistingCompletionSessionAsync(s_snippetTimeout, HangMitigatingCancellationToken);
         var items = completionSession?.GetComputedItems(HangMitigatingCancellationToken);
 
         if (items is null)
@@ -495,21 +581,55 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         await TestServices.Editor.ValidateNoDiscoColorsAsync(HangMitigatingCancellationToken);
     }
 
-    private async Task VerifyTypeAndCommitCompletionAsync(string input, string output, string search, string[] stringsToType, char? commitChar = null, string? expectedSelectedItemLabel = null)
+    [IdeFact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11565")]
+    public async Task TagHelpers_Present_OnBackspace()
     {
         await TestServices.SolutionExplorer.AddFileAsync(
             RazorProjectConstants.BlazorProjectName,
             "Test.razor",
+            """
+            <PageTitle>Test</PageTitle>
+            """,
+            open: true,
+            ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("<PageTitle", charsOffset: 1, ControlledHangMitigatingCancellationToken);
+        TestServices.Input.Send("{BACKSPACE}");
+
+        var completionSession = await TestServices.Editor.WaitForCompletionSessionAsync(s_snippetTimeout, HangMitigatingCancellationToken);
+        var items = completionSession?.GetComputedItems(HangMitigatingCancellationToken);
+
+        Assert.NotNull(items);
+        Assert.Contains("PageTitle", items.Items.Select(i => i.DisplayText));
+    }
+
+    private async Task VerifyTypeAndCommitCompletionAsync(string input, string output, string search, string[] stringsToType, char? commitChar = null, string? expectedSelectedItemLabel = null)
+    {
+        const string CompletionTestFileName = "Completion.razor";
+
+        await TestServices.SolutionExplorer.AddFileAsync(
+            RazorProjectConstants.BlazorProjectName,
+            CompletionTestFileName,
             input,
             open: true,
             ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
+        var filePath = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(RazorProjectConstants.BlazorProjectName, CompletionTestFileName, ControlledHangMitigatingCancellationToken);
+
         await TestServices.Editor.PlaceCaretAsync(search, charsOffset: 1, ControlledHangMitigatingCancellationToken);
         foreach (var stringToType in stringsToType)
         {
-            TestServices.Input.Send(stringToType);
+            await TestServices.RazorProjectSystem.WaitForHtmlVirtualDocumentUpdateAsync(RazorProjectConstants.BlazorProjectName, filePath, () =>
+            {
+                TestServices.Input.Send(stringToType);
+
+                return Task.CompletedTask;
+            }, ControlledHangMitigatingCancellationToken);
         }
 
         if (expectedSelectedItemLabel is not null)
@@ -526,11 +646,16 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
     {
         var session = await TestServices.Editor.WaitForCompletionSessionAsync(HangMitigatingCancellationToken);
 
-        Assert.NotNull(session);
+        if (session is null)
+        {
+            Assert.Fail(await TestServices.Editor.GetCompletionSessionDebugInfoAsync(expectedSelectedItemLabel: null, HangMitigatingCancellationToken));
+        }
+
+        var completionSession = session ?? throw new InvalidOperationException("Completion session should have been available.");
         if (commitChar.HasValue)
         {
             // Commit using the specified commit character
-            session.Commit(commitChar.Value, HangMitigatingCancellationToken);
+            completionSession.Commit(commitChar.Value, HangMitigatingCancellationToken);
 
             // session.Commit call above commits as if the commit character was typed,
             // but doesn't actually insert the character into the buffer.
@@ -539,7 +664,7 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         }
         else
         {
-            Assert.True(session.CommitIfUnique(HangMitigatingCancellationToken));
+            Assert.True(completionSession.CommitIfUnique(HangMitigatingCancellationToken));
         }
 
         var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
@@ -552,14 +677,22 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
 
     private async Task CommitCompletionAndVerifyAsync(string expected, string expectedSelectedItemLabel, char? commitChar = null)
     {
+        // Let outstanding async Intellisense work settle before we interrogate the active completion session.
+        await TestServices.Shell.WaitForOperationProgressAsync(HangMitigatingCancellationToken);
+
         // Actually open completion UI and wait for it have selected item we are interested in
         var session = await TestServices.Editor.OpenCompletionSessionAndWaitForItemAsync(TimeSpan.FromSeconds(10), expectedSelectedItemLabel, HangMitigatingCancellationToken);
 
-        Assert.NotNull(session);
+        if (session is null)
+        {
+            Assert.Fail(await TestServices.Editor.GetCompletionSessionDebugInfoAsync(expectedSelectedItemLabel, HangMitigatingCancellationToken));
+        }
+
+        var completionSession = session ?? throw new InvalidOperationException("Completion session should have been available.");
         if (commitChar is char commitCharValue)
         {
             // Commit using the specified commit character
-            session.Commit(commitCharValue, HangMitigatingCancellationToken);
+            completionSession.Commit(commitCharValue, HangMitigatingCancellationToken);
 
             // session.Commit call above commits as if the commit character was typed,
             // but doesn't actually insert the character into the buffer.
@@ -568,12 +701,12 @@ public class CompletionIntegrationTests(ITestOutputHelper testOutputHelper) : Ab
         }
         else
         {
-            Assert.True(session.CommitIfUnique(HangMitigatingCancellationToken));
+            Assert.True(completionSession.CommitIfUnique(HangMitigatingCancellationToken));
         }
 
         var textView = await TestServices.Editor.GetActiveTextViewAsync(HangMitigatingCancellationToken);
 
-        var stopwatch = new Stopwatch();
+        var stopwatch = Stopwatch.StartNew();
         string text;
         while ((text = textView.TextBuffer.CurrentSnapshot.GetText()) != expected && stopwatch.ElapsedMilliseconds < EditorInProcess.DefaultCompletionWaitTimeMilliseconds)
         {

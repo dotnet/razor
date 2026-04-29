@@ -1,14 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hosting;
 using Microsoft.CodeAnalysis.Razor.Completion;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
@@ -67,11 +64,12 @@ public class CompletionListSerializationBenchmark
     private CompletionList GenerateCompletionList(string documentContent, int queryIndex, TagHelperCompletionProvider componentCompletionProvider)
     {
         var sourceDocument = RazorSourceDocument.Create(documentContent, RazorSourceDocumentProperties.Default);
+        var codeDocument = RazorCodeDocument.Create(sourceDocument);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, CommonResources.LegacyTagHelpers);
+        var tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate([]);
 
         var owner = syntaxTree.Root.FindInnermostNode(queryIndex, includeWhitespace: true, walkMarkersBack: true);
-        var context = new RazorCompletionContext(queryIndex, owner, syntaxTree, tagHelperDocumentContext);
+        var context = new RazorCompletionContext(codeDocument, queryIndex, owner, syntaxTree, tagHelperDocumentContext);
 
         var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context);
         var completionList = RazorCompletionListProvider.CreateLSPCompletionList(

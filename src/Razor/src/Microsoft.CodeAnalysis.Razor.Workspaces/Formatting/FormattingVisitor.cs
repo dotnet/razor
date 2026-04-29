@@ -1,65 +1,64 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
-
-using RazorSyntaxTokenList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken>;
-using RazorSyntaxWalker = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxWalker;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-// There is already RazorSyntaxNode so not following that pattern for this alias
-using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 
-internal class FormattingVisitor : RazorSyntaxWalker
+internal sealed class FormattingVisitor : SyntaxWalker
 {
     private const string HtmlTag = "html";
 
+    private readonly ImmutableArray<FormattingSpan>.Builder _spans;
     private readonly bool _inGlobalNamespace;
-    private readonly List<FormattingSpan> _spans;
     private FormattingBlockKind _currentBlockKind;
-    private SyntaxNode? _currentBlock;
     private int _currentHtmlIndentationLevel = 0;
     private int _currentRazorIndentationLevel = 0;
     private int _currentComponentIndentationLevel = 0;
     private bool _isInClassBody = false;
 
-    public FormattingVisitor(bool inGlobalNamespace)
+    private FormattingVisitor(ImmutableArray<FormattingSpan>.Builder spans, bool inGlobalNamespace)
     {
         _inGlobalNamespace = inGlobalNamespace;
-        _spans = new List<FormattingSpan>();
+        _spans = spans;
         _currentBlockKind = FormattingBlockKind.Markup;
     }
 
-    public IReadOnlyList<FormattingSpan> FormattingSpans => _spans;
+    public static void VisitRoot(
+        RazorSyntaxTree syntaxTree, ImmutableArray<FormattingSpan>.Builder spans, bool inGlobalNamespace)
+    {
+        var visitor = new FormattingVisitor(spans, inGlobalNamespace);
+        visitor.Visit(syntaxTree.Root);
+    }
 
     public override void VisitRazorCommentBlock(RazorCommentBlockSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Comment, razorCommentSyntax =>
+        using (CommentBlock())
         {
             // We only want to move the start of the comment into the right spot, so we only
             // create spans for the start.
             // The body of the comment, including whitespace before the "*@" is left exactly
             // as the user has it in the file.
-            WriteSpan(razorCommentSyntax.StartCommentTransition, FormattingSpanKind.Transition);
-            WriteSpan(razorCommentSyntax.StartCommentStar, FormattingSpanKind.MetaCode);
-        });
+            AddSpan(node.StartCommentTransition, FormattingSpanKind.Transition);
+            AddSpan(node.StartCommentStar, FormattingSpanKind.MetaCode);
+        }
     }
 
     public override void VisitCSharpCodeBlock(CSharpCodeBlockSyntax node)
     {
-        if (node.Parent is CSharpStatementBodySyntax ||
-            node.Parent is CSharpImplicitExpressionBodySyntax ||
-            node.Parent is RazorDirectiveBodySyntax ||
-            (_currentBlockKind == FormattingBlockKind.Directive &&
-            node.Parent?.Parent is RazorDirectiveBodySyntax))
+        if (node.Parent is CSharpStatementBodySyntax or
+                           CSharpImplicitExpressionBodySyntax or
+                           RazorDirectiveBodySyntax ||
+            (_currentBlockKind == FormattingBlockKind.Directive && node.Parent?.Parent is RazorDirectiveBodySyntax))
         {
             // If we get here, it means we don't want this code block to be considered significant.
             // Without this, we would have double indentation in places where
@@ -72,7 +71,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
 
             var isInCodeBlockDirective =
                 node.Parent?.Parent?.Parent is RazorDirectiveSyntax directive &&
-                directive.DirectiveDescriptor.Kind == DirectiveKind.CodeBlock;
+                directive.IsDirectiveKind(DirectiveKind.CodeBlock);
 
             if (isInCodeBlockDirective)
             {
@@ -96,37 +95,66 @@ internal class FormattingVisitor : RazorSyntaxWalker
             return;
         }
 
-        WriteBlock(node, FormattingBlockKind.Statement, base.VisitCSharpCodeBlock);
+        using (StatementBlock())
+        {
+            base.VisitCSharpCodeBlock(node);
+        }
     }
 
     public override void VisitCSharpStatement(CSharpStatementSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Statement, base.VisitCSharpStatement);
+        using (StatementBlock())
+        {
+            base.VisitCSharpStatement(node);
+        }
     }
 
     public override void VisitCSharpExplicitExpression(CSharpExplicitExpressionSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Expression, base.VisitCSharpExplicitExpression);
+        using (ExpressionBlock())
+        {
+            base.VisitCSharpExplicitExpression(node);
+        }
     }
 
     public override void VisitCSharpImplicitExpression(CSharpImplicitExpressionSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Expression, base.VisitCSharpImplicitExpression);
+        using (ExpressionBlock())
+        {
+            base.VisitCSharpImplicitExpression(node);
+        }
+    }
+
+    public override void VisitRazorUsingDirective(RazorUsingDirectiveSyntax node)
+    {
+        using (DirectiveBlock())
+        {
+            base.VisitRazorUsingDirective(node);
+        }
     }
 
     public override void VisitRazorDirective(RazorDirectiveSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Directive, base.VisitRazorDirective);
+        using (DirectiveBlock())
+        {
+            base.VisitRazorDirective(node);
+        }
     }
 
     public override void VisitCSharpTemplateBlock(CSharpTemplateBlockSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Template, base.VisitCSharpTemplateBlock);
+        using (TemplateBlock())
+        {
+            base.VisitCSharpTemplateBlock(node);
+        }
     }
 
     public override void VisitMarkupBlock(MarkupBlockSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Markup, base.VisitMarkupBlock);
+        using (MarkupBlock())
+        {
+            base.VisitMarkupBlock(node);
+        }
     }
 
     public override void VisitMarkupElement(MarkupElementSyntax node)
@@ -159,19 +187,20 @@ internal class FormattingVisitor : RazorSyntaxWalker
 
     public override void VisitMarkupStartTag(MarkupStartTagSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Tag, n =>
+        using (TagBlock())
         {
             var children = SyntaxUtilities.GetRewrittenMarkupStartTagChildren(node);
+
             foreach (var child in children)
             {
                 Visit(child);
             }
-        });
+        }
     }
 
     public override void VisitMarkupEndTag(MarkupEndTagSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Tag, n =>
+        using (TagBlock())
         {
             var children = SyntaxUtilities.GetRewrittenMarkupEndTagChildren(node);
 
@@ -179,7 +208,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
             {
                 Visit(child);
             }
-        });
+        }
     }
 
     public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
@@ -221,8 +250,8 @@ internal class FormattingVisitor : RazorSyntaxWalker
 
         static bool IsComponentTagHelperNode(MarkupTagHelperElementSyntax node)
         {
-            return node.TagHelperInfo?.BindingResult?.Descriptors is { Length: > 0 } descriptors &&
-                   descriptors.Any(static d => d.IsComponentOrChildContentTagHelper);
+            return node.TagHelperInfo.BindingResult.TagHelpers is { Count: > 0 } descriptors &&
+                   descriptors.Any(static d => d.IsComponentOrChildContentTagHelper());
         }
 
         static bool ParentHasProperty(MarkupTagHelperElementSyntax parentComponent, string? propertyName)
@@ -250,7 +279,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
             //
             // This code will not count "ChildContent" as causing indentation because its parent
             // has a property called "ChildContent".
-            if (parentComponent.TagHelperInfo?.BindingResult.Descriptors.Any(d => d.BoundAttributes.Any(a => a.Name == propertyName)) ?? false)
+            if (parentComponent.TagHelperInfo.BindingResult.TagHelpers.Any(d => d.BoundAttributes.Any(a => a.Name == propertyName)))
             {
                 return true;
             }
@@ -260,7 +289,12 @@ internal class FormattingVisitor : RazorSyntaxWalker
 
         static bool HasUnspecifiedCascadingTypeParameter(MarkupTagHelperElementSyntax node)
         {
-            if (node.TagHelperInfo?.BindingResult?.Descriptors is not { Length: > 0 } descriptors)
+            if (node.TagHelperStartTag is not { } startTag)
+            {
+                return false;
+            }
+
+            if (node.TagHelperInfo.BindingResult.TagHelpers is not { Count: > 0 } descriptors)
             {
                 return false;
             }
@@ -279,7 +313,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
             // Get all type parameters for later use. Array is fine to use as the list should be tiny (I hope!!)
             var typeParameterNames = descriptors.SelectMany(d => d.GetTypeParameters().Select(p => p.Name)).ToArray();
 
-            var attributes = node.StartTag.Attributes.OfType<MarkupTagHelperAttributeSyntax>();
+            var attributes = startTag.Attributes.OfType<MarkupTagHelperAttributeSyntax>();
             foreach (var attribute in attributes)
             {
                 if (attribute.TagHelperAttributeInfo.Bound)
@@ -298,48 +332,68 @@ internal class FormattingVisitor : RazorSyntaxWalker
 
     public override void VisitMarkupTagHelperStartTag(MarkupTagHelperStartTagSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Tag, n =>
+        using (TagBlock())
         {
-            foreach (var child in n.LegacyChildren)
+            foreach (var child in node.LegacyChildren)
             {
                 Visit(child);
             }
-        });
+        }
     }
 
     public override void VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Tag, n =>
+        using (TagBlock())
         {
-            foreach (var child in n.LegacyChildren)
+            foreach (var child in node.LegacyChildren)
             {
                 Visit(child);
             }
-        });
+        }
     }
 
     public override void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Markup, n =>
+        using (MarkupBlock())
         {
-            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new RazorSyntaxTokenList(node.EqualsToken), chunkGenerator: null);
-            var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name, node.NameSuffix, equalsSyntax, node.ValuePrefix);
-            Visit(mergedAttributePrefix);
+            // For attributes, we add a single span from the start of the name prefix to the end of the value prefix.
+            var spanComputer = new SpanComputer();
+            spanComputer.Add(node.NamePrefix);
+            spanComputer.Add(node.Name);
+            spanComputer.Add(node.NameSuffix);
+            spanComputer.Add(node.EqualsToken);
+            spanComputer.Add(node.ValuePrefix);
+
+            var textSpan = spanComputer.ToTextSpan();
+
+            AddSpan(textSpan, FormattingSpanKind.Markup);
+
+            // Visit the value and value suffix separately.
             Visit(node.Value);
             Visit(node.ValueSuffix);
-        });
+        }
     }
 
     public override void VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Tag, n =>
+        using (TagBlock())
         {
-            var equalsSyntax = SyntaxFactory.MarkupTextLiteral(new RazorSyntaxTokenList(node.EqualsToken), chunkGenerator: null);
-            var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name, node.NameSuffix, equalsSyntax, node.ValuePrefix);
-            Visit(mergedAttributePrefix);
+            // For attributes, we add a single span from the start of the name prefix to the end of the value prefix.
+            var spanComputer = new SpanComputer();
+            spanComputer.Add(node.NamePrefix);
+            spanComputer.Add(node.Name);
+            spanComputer.Add(node.NameSuffix);
+            spanComputer.Add(node.EqualsToken);
+            spanComputer.Add(node.ValuePrefix);
+
+            var textSpan = spanComputer.ToTextSpan();
+
+            AddSpan(textSpan, FormattingSpanKind.Markup);
+
+            // Visit the value and value suffix separately.
             Visit(node.Value);
             Visit(node.ValueSuffix);
-        });
+        }
     }
 
     public override void VisitMarkupTagHelperDirectiveAttribute(MarkupTagHelperDirectiveAttributeSyntax node)
@@ -357,26 +411,41 @@ internal class FormattingVisitor : RazorSyntaxWalker
 
     public override void VisitMarkupMinimizedAttributeBlock(MarkupMinimizedAttributeBlockSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Markup, n =>
+        using (MarkupBlock())
         {
-            var mergedAttributePrefix = SyntaxUtilities.MergeTextLiterals(node.NamePrefix, node.Name);
-            Visit(mergedAttributePrefix);
-        });
+            // For minimized attributes, we add a single span for the attribute name along with the name prefix.
+            var spanComputer = new SpanComputer();
+            spanComputer.Add(node.NamePrefix);
+            spanComputer.Add(node.Name);
+
+            var textSpan = spanComputer.ToTextSpan();
+
+            AddSpan(textSpan, FormattingSpanKind.Markup);
+        }
     }
 
     public override void VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.HtmlComment, base.VisitMarkupCommentBlock);
+        using (HtmlCommentBlock())
+        {
+            base.VisitMarkupCommentBlock(node);
+        }
     }
 
     public override void VisitMarkupDynamicAttributeValue(MarkupDynamicAttributeValueSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Markup, base.VisitMarkupDynamicAttributeValue);
+        using (MarkupBlock())
+        {
+            base.VisitMarkupDynamicAttributeValue(node);
+        }
     }
 
     public override void VisitMarkupTagHelperAttributeValue(MarkupTagHelperAttributeValueSyntax node)
     {
-        WriteBlock(node, FormattingBlockKind.Markup, base.VisitMarkupTagHelperAttributeValue);
+        using (MarkupBlock())
+        {
+            base.VisitMarkupTagHelperAttributeValue(node);
+        }
     }
 
     public override void VisitRazorMetaCode(RazorMetaCodeSyntax node)
@@ -384,11 +453,11 @@ internal class FormattingVisitor : RazorSyntaxWalker
         if (node.Parent is MarkupTagHelperDirectiveAttributeSyntax { TagHelperAttributeInfo.Bound: true })
         {
             // For @bind attributes we want to pretend that we're in a Html context, so write this span as markup
-            WriteSpan(node, FormattingSpanKind.Markup);
+            AddSpan(node, FormattingSpanKind.Markup);
         }
         else
         {
-            WriteSpan(node, FormattingSpanKind.MetaCode);
+            AddSpan(node, FormattingSpanKind.MetaCode);
         }
 
         base.VisitRazorMetaCode(node);
@@ -396,13 +465,13 @@ internal class FormattingVisitor : RazorSyntaxWalker
 
     public override void VisitCSharpTransition(CSharpTransitionSyntax node)
     {
-        WriteSpan(node, FormattingSpanKind.Transition);
+        AddSpan(node, FormattingSpanKind.Transition);
         base.VisitCSharpTransition(node);
     }
 
     public override void VisitMarkupTransition(MarkupTransitionSyntax node)
     {
-        WriteSpan(node, FormattingSpanKind.Transition);
+        AddSpan(node, FormattingSpanKind.Transition);
         base.VisitMarkupTransition(node);
     }
 
@@ -419,7 +488,7 @@ internal class FormattingVisitor : RazorSyntaxWalker
         // being "inside" the block.
         if (node.LiteralTokens is not [{ Kind: SyntaxKind.Marker }])
         {
-            WriteSpan(node, FormattingSpanKind.Code);
+            AddSpan(node, FormattingSpanKind.Code);
         }
 
         base.VisitCSharpStatementLiteral(node);
@@ -427,25 +496,25 @@ internal class FormattingVisitor : RazorSyntaxWalker
 
     public override void VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
     {
-        WriteSpan(node, FormattingSpanKind.Code);
+        AddSpan(node, FormattingSpanKind.Code);
         base.VisitCSharpExpressionLiteral(node);
     }
 
     public override void VisitCSharpEphemeralTextLiteral(CSharpEphemeralTextLiteralSyntax node)
     {
-        WriteSpan(node, FormattingSpanKind.Code);
+        AddSpan(node, FormattingSpanKind.Code);
         base.VisitCSharpEphemeralTextLiteral(node);
     }
 
     public override void VisitUnclassifiedTextLiteral(UnclassifiedTextLiteralSyntax node)
     {
-        WriteSpan(node, FormattingSpanKind.None);
+        AddSpan(node, FormattingSpanKind.None);
         base.VisitUnclassifiedTextLiteral(node);
     }
 
     public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
     {
-        WriteSpan(node, FormattingSpanKind.Markup);
+        AddSpan(node, FormattingSpanKind.Markup);
         base.VisitMarkupLiteralAttributeValue(node);
     }
 
@@ -457,51 +526,93 @@ internal class FormattingVisitor : RazorSyntaxWalker
             return;
         }
 
-        WriteSpan(node, FormattingSpanKind.Markup);
+        AddSpan(node, FormattingSpanKind.Markup);
         base.VisitMarkupTextLiteral(node);
     }
 
     public override void VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
-        WriteSpan(node, FormattingSpanKind.Markup);
+        AddSpan(node, FormattingSpanKind.Markup);
         base.VisitMarkupEphemeralTextLiteral(node);
     }
 
-    private void WriteBlock<TNode>(TNode node, FormattingBlockKind kind, Action<TNode> handler) where TNode : SyntaxNode
-    {
-        var previousBlock = _currentBlock;
-        var previousKind = _currentBlockKind;
+    private BlockSaver CommentBlock()
+        => Block(FormattingBlockKind.Comment);
 
-        _currentBlock = node;
+    private BlockSaver DirectiveBlock()
+        => Block(FormattingBlockKind.Directive);
+
+    private BlockSaver ExpressionBlock()
+        => Block(FormattingBlockKind.Expression);
+
+    private BlockSaver HtmlCommentBlock()
+        => Block(FormattingBlockKind.HtmlComment);
+
+    private BlockSaver MarkupBlock()
+        => Block(FormattingBlockKind.Markup);
+
+    private BlockSaver StatementBlock()
+        => Block(FormattingBlockKind.Statement);
+
+    private BlockSaver TagBlock()
+        => Block(FormattingBlockKind.Tag);
+
+    private BlockSaver TemplateBlock()
+        => Block(FormattingBlockKind.Template);
+
+    private BlockSaver Block(FormattingBlockKind kind)
+    {
+        var saver = new BlockSaver(this);
+
         _currentBlockKind = kind;
 
-        handler(node);
-
-        _currentBlock = previousBlock;
-        _currentBlockKind = previousKind;
+        return saver;
     }
 
-    private void WriteSpan(SyntaxNode node, FormattingSpanKind kind)
+    private readonly ref struct BlockSaver(FormattingVisitor visitor)
+    {
+        private readonly FormattingBlockKind _previousKind = visitor._currentBlockKind;
+
+        public void Dispose()
+        {
+            visitor._currentBlockKind = _previousKind;
+        }
+    }
+
+    private void AddSpan(SyntaxNode node, FormattingSpanKind kind)
     {
         if (node.IsMissing)
         {
             return;
         }
 
-        Assumes.NotNull(_currentBlock);
+        AddSpan(node.Span, kind);
+    }
 
-        var spanSource = new TextSpan(node.Position, node.Width);
-        var blockSource = new TextSpan(_currentBlock.Position, _currentBlock.Width);
+    private void AddSpan(SyntaxToken token, FormattingSpanKind kind)
+    {
+        if (token.IsMissing)
+        {
+            return;
+        }
+
+        AddSpan(token.Span, kind);
+    }
+
+    private void AddSpan(TextSpan textSpan, FormattingSpanKind kind)
+    {
+        if (textSpan.IsEmpty)
+        {
+            return;
+        }
 
         var span = new FormattingSpan(
-            spanSource,
-            blockSource,
+            textSpan,
             kind,
-            _currentBlockKind,
             _currentRazorIndentationLevel,
             _currentHtmlIndentationLevel,
-            isInGlobalNamespace: _inGlobalNamespace,
-            isInClassBody: _isInClassBody,
+            IsInGlobalNamespace: _inGlobalNamespace,
+            IsInClassBody: _isInClassBody,
             _currentComponentIndentationLevel);
 
         _spans.Add(span);

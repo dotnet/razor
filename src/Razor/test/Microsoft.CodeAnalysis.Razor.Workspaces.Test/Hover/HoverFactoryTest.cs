@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Linq;
@@ -534,8 +534,8 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
 
         // Assert
         Assert.NotNull(hover);
-        Assert.False(hover.Contents.TryGetFourth(out var _));
-        Assert.True(hover.Contents.TryGetThird(out var _) && !hover.Contents.Third.Any());
+        Assert.False(hover.Contents.TryGetFourth(out _));
+        Assert.True(hover.Contents.TryGetThird(out _) && !hover.Contents.Third.Any());
         var expectedRange = LspFactory.CreateSingleLineRange(line: 1, character: 1, length: 5);
         Assert.Equal(expectedRange, hover.Range);
 

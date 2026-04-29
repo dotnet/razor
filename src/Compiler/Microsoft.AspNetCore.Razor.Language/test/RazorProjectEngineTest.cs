@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -36,8 +37,9 @@ public class RazorProjectEngineTest
             phase => Assert.IsType<DefaultRazorParsingPhase>(phase),
             phase => Assert.IsType<DefaultRazorSyntaxTreePhase>(phase),
             phase => Assert.IsType<DefaultRazorTagHelperContextDiscoveryPhase>(phase),
-            phase => Assert.IsType<DefaultRazorTagHelperRewritePhase>(phase),
             phase => Assert.IsType<DefaultRazorIntermediateNodeLoweringPhase>(phase),
+            phase => Assert.IsType<DefaultTagHelperResolutionPhase>(phase),
+            phase => Assert.IsType<DefaultRazorTagHelperRewritePhase>(phase),
             phase => Assert.IsType<DefaultRazorDocumentClassifierPhase>(phase),
             phase => Assert.IsType<DefaultRazorDirectiveClassifierPhase>(phase),
             phase => Assert.IsType<DefaultRazorOptimizationPhase>(phase),
@@ -88,6 +90,7 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<InheritsDirectivePass>(feature),
             feature => Assert.IsType<MetadataAttributePass>(feature),
             feature => Assert.IsType<PreallocatedTagHelperAttributeOptimizationPass>(feature),
+            feature => Assert.IsType<TagHelperDiscoveryService>(feature),
             feature => Assert.IsType<ViewCssScopePass>(feature));
     }
 
@@ -109,7 +112,7 @@ public class RazorProjectEngineTest
         var feature = engine.Engine.GetFeatures<IRazorTargetExtensionFeature>().FirstOrDefault();
         Assert.NotNull(feature);
 
-        var extensions = feature.TargetExtensions.OrderBy(f => f.GetType().Name).ToArray();
+        var extensions = feature.TargetExtensions.OrderByAsArray(static f => f.GetType().Name);
         Assert.Collection(
             extensions,
             extension => Assert.IsType<DefaultTagHelperTargetExtension>(extension),

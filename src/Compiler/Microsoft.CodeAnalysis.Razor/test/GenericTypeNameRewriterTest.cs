@@ -1,10 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor;
@@ -69,17 +67,22 @@ public class GenericTypeNameRewriterTest
     public void GenericTypeNameRewriter_CanReplaceTypeParametersWithTypeArguments(string original, string expected)
     {
         // Arrange
-        var visitor = new GenericTypeNameRewriter(new Dictionary<string, string>()
-            {
-                { "TItem1", "Type1" },
-                { "TItem2", "Type2" },
-                { "TItem3", null },
-            });
+        var visitor = new GenericTypeNameRewriter(new Dictionary<string, ComponentTypeArgumentIntermediateNode>()
+        {
+            { "TItem1", Create("Type1") },
+            { "TItem2", Create("Type2") },
+            { "TItem3", Create(null) },
+        });
 
         // Act
         var actual = visitor.Rewrite(original);
 
         // Assert
         Assert.Equal(expected, actual.ToString());
+
+        static ComponentTypeArgumentIntermediateNode Create(string? typeName)
+        {
+            return new(boundAttribute: null!, IntermediateNodeFactory.CSharpToken(typeName!));
+        }
     }
 }

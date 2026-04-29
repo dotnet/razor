@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Text;
@@ -56,6 +54,8 @@ public class ComponentWhitespacePassTest
 
         // Assert
         var method = documentNode.FindPrimaryMethod();
+        Assert.NotNull(method);
+
         var child = Assert.IsType<MarkupElementIntermediateNode>(Assert.Single(method.Children));
         Assert.Equal("span", child.TagName);
     }
@@ -76,7 +76,10 @@ public class ComponentWhitespacePassTest
         Pass.Execute(document, documentNode);
 
         // Assert
-        var parentElement = Assert.IsType<MarkupElementIntermediateNode>(Assert.Single(documentNode.FindPrimaryMethod().Children));
+        var method = documentNode.FindPrimaryMethod();
+        Assert.NotNull(method);
+
+        var parentElement = Assert.IsType<MarkupElementIntermediateNode>(Assert.Single(method.Children));
         var childElement = Assert.IsType<MarkupElementIntermediateNode>(Assert.Single(parentElement.Children));
         Assert.Equal("child", childElement.TagName);
         Assert.Collection(childElement.Children,
@@ -104,7 +107,10 @@ public class ComponentWhitespacePassTest
         Pass.Execute(document, documentNode);
 
         // Assert
-        Assert.Collection(documentNode.FindPrimaryMethod().Children,
+        var method = documentNode.FindPrimaryMethod();
+        Assert.NotNull(method);
+
+        Assert.Collection(method.Children,
             node => Assert.IsType<MarkupElementIntermediateNode>(node),
             node => Assert.IsType<HtmlContentIntermediateNode>(node),
             node => Assert.IsType<MarkupElementIntermediateNode>(node));
@@ -130,7 +136,10 @@ public class ComponentWhitespacePassTest
         Pass.Execute(document, documentNode);
 
         // Assert
-        var parentElement = Assert.IsType<MarkupElementIntermediateNode>(Assert.Single(documentNode.FindPrimaryMethod().Children));
+        var method = documentNode.FindPrimaryMethod();
+        Assert.NotNull(method);
+
+        var parentElement = Assert.IsType<MarkupElementIntermediateNode>(Assert.Single(method.Children));
         Assert.Collection(parentElement.Children,
             node =>
             {
@@ -166,10 +175,10 @@ public class ComponentWhitespacePassTest
                 break;
             }
 
-            phase.Execute(codeDocument);
+            codeDocument = phase.Execute(codeDocument);
         }
 
-        return codeDocument.GetDocumentIntermediateNode();
+        return codeDocument.GetRequiredDocumentNode();
     }
 
     private static string GetContent(IntermediateNode node)

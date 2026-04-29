@@ -1,43 +1,32 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Buffers;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis;
 
 internal static class ProjectExtensions
 {
-    private const string GetTagHelpersEventName = "taghelperresolver/gettaghelpers";
-    private const string PropertySuffix = ".elapsedtimems";
-
     /// <summary>
     ///  Gets the available <see cref="TagHelperDescriptor">tag helpers</see> from the specified
     ///  <see cref="Project"/> using the given <see cref="RazorProjectEngine"/>.
     /// </summary>
-    /// <remarks>
-    ///  A telemetry event will be reported to <paramref name="telemetryReporter"/>.
-    /// </remarks>
-    public static async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
+    public static async ValueTask<TagHelperCollection> GetTagHelpersAsync(
         this Project project,
         RazorProjectEngine projectEngine,
-        ITelemetryReporter telemetryReporter,
         CancellationToken cancellationToken)
     {
-        var providers = GetTagHelperDescriptorProviders(projectEngine);
-
-        if (providers is [])
+        if (!projectEngine.Engine.TryGetFeature(out ITagHelperDiscoveryService? discoveryService))
         {
             return [];
         }
@@ -48,59 +37,18 @@ internal static class ProjectExtensions
             return [];
         }
 
-        using var pooledHashSet = HashSetPool<TagHelperDescriptor>.GetPooledObject(out var results);
-        using var pooledWatch = StopwatchPool.GetPooledObject(out var watch);
-        using var pooledSpan = ArrayPool<Property>.Shared.GetPooledArraySpan(minimumLength: providers.Length, out var properties);
+        const TagHelperDiscoveryOptions Options = TagHelperDiscoveryOptions.ExcludeHidden |
+                                                  TagHelperDiscoveryOptions.IncludeDocumentation;
 
-        var context = new TagHelperDescriptorProviderContext(compilation, results)
-        {
-            ExcludeHidden = true,
-            IncludeDocumentation = true
-        };
-
-        var writeProperties = properties;
-
-        foreach (var provider in providers)
-        {
-            watch.Restart();
-            provider.Execute(context);
-            watch.Stop();
-
-            writeProperties[0] = new(provider.GetType().Name + PropertySuffix, watch.ElapsedMilliseconds);
-            writeProperties = writeProperties[1..];
-        }
-
-        telemetryReporter.ReportEvent(GetTagHelpersEventName, Severity.Normal, properties);
-
-        return [.. results];
+        return discoveryService.GetTagHelpers(compilation, Options, cancellationToken);
     }
 
-    private static ImmutableArray<ITagHelperDescriptorProvider> GetTagHelperDescriptorProviders(RazorProjectEngine projectEngine)
-        => projectEngine.Engine.GetFeatures<ITagHelperDescriptorProvider>().OrderByAsArray(static x => x.Order);
-
-    internal static Document GetRequiredDocument(this Project project, DocumentId documentId)
+    public static Task<SourceGeneratedDocument?> TryGetCSharpDocumentForGeneratedDocumentAsync(this Project project, RazorGeneratedDocumentIdentity identity, CancellationToken cancellationToken)
     {
-        return project.GetDocument(documentId)
-            ?? ThrowHelper.ThrowInvalidOperationException<Document>($"The document {documentId} did not exist in {project.Name}");
-    }
+        Debug.Assert(identity.DocumentId.ProjectId == project.Id, "Generated document URI does not belong to this project.");
+        var hintName = identity.HintName;
 
-    public static bool TryGetCSharpDocument(this Project project, Uri csharpDocumentUri, [NotNullWhen(true)] out Document? document)
-    {
-        document = null;
-
-        var generatedDocumentIds = project.Solution.GetDocumentIdsWithUri(csharpDocumentUri);
-        var generatedDocumentId = generatedDocumentIds.FirstOrDefault(d => d.ProjectId == project.Id);
-        if (generatedDocumentId is null)
-        {
-            return false;
-        }
-
-        if (project.GetDocument(generatedDocumentId) is { } generatedDocument)
-        {
-            document = generatedDocument;
-        }
-
-        return document is not null;
+        return TryGetSourceGeneratedDocumentFromHintNameAsync(project, hintName, cancellationToken);
     }
 
     /// <summary>
@@ -121,15 +69,70 @@ internal static class ProjectExtensions
     /// <summary>
     /// Finds source generated documents by iterating through all of them. In OOP there are better options!
     /// </summary>
-    public static bool TryGetHintNameFromGeneratedDocumentUri(this Project project, Uri generatedDocumentUri, [NotNullWhen(true)] out string? hintName)
+    public static async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentForRazorDocumentAsync(this Project project, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        if (!RazorUri.IsGeneratedDocumentUri(generatedDocumentUri))
+        if (razorDocument.FilePath is null)
         {
-            hintName = null;
-            return false;
+            return null;
         }
 
-        hintName = RazorUri.GetHintNameFromGeneratedDocumentUri(project.Solution, generatedDocumentUri);
-        return true;
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+
+        // For misc files, and projects that don't have a globalconfig file (eg, non Razor SDK projects), the hint name will be based
+        // on the full path of the file.
+        var fullPathHintName = RazorSourceGenerator.GetIdentifierFromPath(razorDocument.FilePath);
+        // For normal Razor SDK projects, the hint name will be based on the project-relative path of the file.
+        var projectRelativeHintName = GetProjectRelativeHintName(razorDocument);
+
+        SourceGeneratedDocument? candidateDoc = null;
+        foreach (var doc in generatedDocuments)
+        {
+            if (!doc.IsRazorSourceGeneratedDocument())
+            {
+                continue;
+            }
+
+            if (doc.HintName == fullPathHintName)
+            {
+                // If the full path matches, we've found it for sure
+                return doc;
+            }
+            else if (doc.HintName == projectRelativeHintName)
+            {
+                if (candidateDoc is not null)
+                {
+                    // Multiple documents with the same hint name found, can't be sure which one to return
+                    // This can happen as a result of a bug in the source generator: https://github.com/dotnet/razor/issues/11578
+                    candidateDoc = null;
+                    break;
+                }
+
+                candidateDoc = doc;
+            }
+        }
+
+        return candidateDoc;
+
+        static string? GetProjectRelativeHintName(TextDocument razorDocument)
+        {
+            var filePath = razorDocument.FilePath.AsSpanOrDefault();
+            if (string.IsNullOrEmpty(razorDocument.Project.FilePath))
+            {
+                // Misc file - no project info to get a relative path
+                return null;
+            }
+
+            var projectFilePath = razorDocument.Project.FilePath.AsSpanOrDefault();
+            var projectBasePath = PathUtilities.GetDirectoryName(projectFilePath);
+            if (filePath.Length <= projectBasePath.Length)
+            {
+                // File must be from outside the project directory
+                return null;
+            }
+
+            var relativeDocumentPath = filePath[projectBasePath.Length..].TrimStart(['/', '\\']);
+
+            return RazorSourceGenerator.GetIdentifierFromPath(relativeDocumentPath);
+        }
     }
 }

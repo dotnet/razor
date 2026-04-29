@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.ComponentModel.Composition;
@@ -16,6 +16,10 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Settings;
 
 namespace Microsoft.VisualStudio.Razor.Remote;
 
@@ -24,14 +28,18 @@ namespace Microsoft.VisualStudio.Razor.Remote;
 internal sealed class RemoteServiceInvoker(
     IWorkspaceProvider workspaceProvider,
     LanguageServerFeatureOptions languageServerFeatureOptions,
+    IClientSettingsManager clientSettingsManager,
     IClientCapabilitiesService clientCapabilitiesService,
     ISemanticTokensLegendService semanticTokensLegendService,
+    SVsServiceProvider serviceProvider,
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory) : IRemoteServiceInvoker, IDisposable
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RemoteServiceInvoker>();
 
@@ -50,6 +58,8 @@ internal sealed class RemoteServiceInvoker(
         {
             return;
         }
+
+        _clientSettingsManager.ClientSettingsChanged -= ClientSettingsManager_ClientSettingsChanged;
 
         _disposeTokenSource.Cancel();
         _disposeTokenSource.Dispose();
@@ -93,7 +103,7 @@ internal sealed class RemoteServiceInvoker(
             ? _lazyJsonClient.GetValueAsync(cancellationToken)
             : _lazyMessagePackClient.GetValueAsync(cancellationToken);
 
-    private async static Task<RazorRemoteHostClient> GetMessagePackClientAsync(IWorkspaceProvider workspaceProvider, CancellationToken cancellationToken)
+    private static async Task<RazorRemoteHostClient> GetMessagePackClientAsync(IWorkspaceProvider workspaceProvider, CancellationToken cancellationToken)
     {
         var workspace = workspaceProvider.GetWorkspace();
 
@@ -109,7 +119,7 @@ internal sealed class RemoteServiceInvoker(
             ?? throw new InvalidOperationException($"Couldn't retrieve {nameof(RazorRemoteHostClient)} for MessagePack serialization.");
     }
 
-    private async static Task<RazorRemoteHostClient> GetJsonClientAsync(IWorkspaceProvider workspaceProvider, CancellationToken cancellationToken)
+    private static async Task<RazorRemoteHostClient> GetJsonClientAsync(IWorkspaceProvider workspaceProvider, CancellationToken cancellationToken)
     {
         var workspace = workspaceProvider.GetWorkspace();
 
@@ -163,27 +173,32 @@ internal sealed class RemoteServiceInvoker(
                 await _initializeLspTask.ConfigureAwait(false);
             }
 
-            Task InitializeOOPAsync(RazorRemoteHostClient remoteClient)
+            async Task InitializeOOPAsync(RazorRemoteHostClient remoteClient)
             {
+                // The first call to OOP must be to initialize the MEF services, because everything after that relies on MEF.
+                var localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
+                var cacheDirectory = Path.Combine(localSettingsDirectory, "Razor", "RemoteMEFCache");
+                await remoteClient.TryInvokeAsync<IRemoteMEFInitializationService>(
+                    (s, ct) => s.InitializeAsync(cacheDirectory, ct),
+                    _disposeTokenSource.Token).ConfigureAwait(false);
+
                 var initParams = new RemoteClientInitializationOptions
                 {
-                    UseRazorCohostServer = _languageServerFeatureOptions.UseRazorCohostServer,
-                    UsePreciseSemanticTokenRanges = _languageServerFeatureOptions.UsePreciseSemanticTokenRanges,
-                    HtmlVirtualDocumentSuffix = _languageServerFeatureOptions.HtmlVirtualDocumentSuffix,
                     ReturnCodeActionAndRenamePathsWithPrefixedSlash = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash,
                     SupportsFileManipulation = _languageServerFeatureOptions.SupportsFileManipulation,
                     ShowAllCSharpCodeActions = _languageServerFeatureOptions.ShowAllCSharpCodeActions,
-                    SupportsSoftSelectionInCompletion = _languageServerFeatureOptions.SupportsSoftSelectionInCompletion,
-                    UseVsCodeCompletionTriggerCharacters = _languageServerFeatureOptions.UseVsCodeCompletionTriggerCharacters,
                 };
 
                 _logger.LogDebug($"First OOP call, so initializing OOP service.");
 
-                return remoteClient
+                await remoteClient
                     .TryInvokeAsync<IRemoteClientInitializationService>(
                         (s, ct) => s.InitializeAsync(initParams, ct),
-                        _disposeTokenSource.Token)
-                    .AsTask();
+                        _disposeTokenSource.Token).ConfigureAwait(false);
+
+                // Now that we're initialized, send over the current client settings, and subscribe to changes
+                await UpdateClientSettingsAsync(remoteClient, _disposeTokenSource.Token).ConfigureAwait(false);
+                _clientSettingsManager.ClientSettingsChanged += ClientSettingsManager_ClientSettingsChanged;
             }
 
             Task InitializeLspAsync(RazorRemoteHostClient remoteClient)
@@ -199,10 +214,41 @@ internal sealed class RemoteServiceInvoker(
 
                 return remoteClient
                     .TryInvokeAsync<IRemoteClientInitializationService>(
-                        (s, ct) => s.InitializeLSPAsync(initParams, ct),
+                        (s, ct) => s.InitializeLspAsync(initParams, ct),
                         _disposeTokenSource.Token)
                     .AsTask();
             }
         }
+    }
+
+    private void ClientSettingsManager_ClientSettingsChanged(object? sender, EventArgs e)
+    {
+        if (_initializeOOPTask is null || _disposeTokenSource.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _ = UpdateClientSettingsAsync(_disposeTokenSource.Token);
+    }
+
+    private async Task UpdateClientSettingsAsync(CancellationToken cancellationToken)
+    {
+        await InitializeAsync().ConfigureAwait(false);
+
+        var remoteClient = await _lazyJsonClient.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        await UpdateClientSettingsAsync(remoteClient, cancellationToken).ConfigureAwait(false);
+    }
+
+    private Task UpdateClientSettingsAsync(RazorRemoteHostClient remoteClient, CancellationToken cancellationToken)
+    {
+        var clientSettings = _clientSettingsManager.GetClientSettings();
+
+        _logger.LogDebug("Syncing client settings to OOP.");
+
+        return remoteClient
+            .TryInvokeAsync<IRemoteClientSettingsService>(
+                (s, ct) => s.UpdateAsync(clientSettings, ct),
+                cancellationToken)
+            .AsTask();
     }
 }

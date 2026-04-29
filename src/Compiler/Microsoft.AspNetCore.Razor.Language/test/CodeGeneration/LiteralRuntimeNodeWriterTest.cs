@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
@@ -14,17 +12,12 @@ public class LiteralRuntimeNodeWriterTest
     public void WriteCSharpExpression_UsesWriteLiteral_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new LiteralRuntimeNodeWriter();
+        var writer = LiteralRuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
-        builder.Add(new IntermediateToken()
-        {
-            Content = "i++",
-            Kind = TokenKind.CSharp,
-            Source = new SourceSpan("test.cshtml", 0, 0, 0, 3, 0, 3),
-        });
+        builder.Add(IntermediateNodeFactory.CSharpToken("i++", new SourceSpan("test.cshtml", 0, 0, 0, 3, 0, 3)));
 
         // Act
         writer.WriteCSharpExpression(context, node);
@@ -32,10 +25,10 @@ public class LiteralRuntimeNodeWriterTest
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"WriteLiteral(
+@"
 #nullable restore
-#line (1,1)-(1,4) ""test.cshtml""
-i++
+#line (1,1)-(1,4) 13 ""test.cshtml""
+WriteLiteral(i++
 
 #line default
 #line hidden
@@ -50,29 +43,14 @@ i++
     public void WriteCSharpExpression_WithMultipleChildren()
     {
         // Arrange
-        var writer = new LiteralRuntimeNodeWriter();
+        var writer = LiteralRuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
-        builder.Add(new IntermediateToken()
-        {
-            Content = "i++;",
-            Kind = TokenKind.CSharp,
-            Source = new SourceSpan("test.cshtml", 0, 0, 0, 4, 0, 4),
-        });
-        builder.Add(new IntermediateToken()
-        {
-            Content = "j++;",
-            Kind = TokenKind.CSharp,
-            Source = new SourceSpan("test.cshtml", 5, 0, 5, 4, 0, 9),
-        });
-        builder.Add(new IntermediateToken()
-        {
-            Content = "k++;",
-            Kind = TokenKind.CSharp,
-            Source = new SourceSpan("test.cshtml", 10, 0, 10, 4, 0, 14),
-        });
+        builder.Add(IntermediateNodeFactory.CSharpToken("i++;", new SourceSpan("test.cshtml", 0, 0, 0, 4, 0, 4)));
+        builder.Add(IntermediateNodeFactory.CSharpToken("j++;", new SourceSpan("test.cshtml", 5, 0, 5, 4, 0, 9)));
+        builder.Add(IntermediateNodeFactory.CSharpToken("k++;", new SourceSpan("test.cshtml", 10, 0, 10, 4, 0, 14)));
 
         // Act
         writer.WriteCSharpExpression(context, node);
@@ -80,10 +58,10 @@ i++
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"WriteLiteral(
+@"
 #nullable restore
-#line (1,1)-(1,5) ""test.cshtml""
-i++;
+#line (1,1)-(1,5) 13 ""test.cshtml""
+WriteLiteral(i++;
 
 #line default
 #line hidden

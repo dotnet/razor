@@ -92,18 +92,33 @@ public sealed class CodeRenderingContext : IDisposable
     }
 
     public ImmutableArray<RazorDiagnostic> GetDiagnostics()
-        => _diagnostics.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex);
+    {
+        var warningLevel = Options.RazorWarningLevel;
+
+        // Filter out diagnostics whose warning level exceeds the configured level.
+        // Diagnostics with level 0 are always reported regardless of the configured level.
+        using var filtered = new PooledArrayBuilder<RazorDiagnostic>(capacity: _diagnostics.Count);
+        foreach (var diagnostic in _diagnostics)
+        {
+            if (diagnostic.WarningLevel <= warningLevel)
+            {
+                filtered.Add(diagnostic);
+            }
+        }
+
+        return filtered.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex);
+    }
 
     public void AddSourceMappingFor(IntermediateNode node)
     {
         ArgHelper.ThrowIfNull(node);
 
-        if (node.Source == null)
+        if (node.Source is not SourceSpan nodeSource)
         {
             return;
         }
 
-        AddSourceMappingFor(node.Source.Value);
+        AddSourceMappingFor(nodeSource);
     }
 
     public void AddSourceMappingFor(SourceSpan source, int offset = 0)
@@ -121,14 +136,23 @@ public sealed class CodeRenderingContext : IDisposable
             CharacterIndex = CodeWriter.Location.CharacterIndex + offset
         };
 
-        var generatedLocation = new SourceSpan(currentLocation, source.Length);
+        var endCharacterIndex = (source.LineCount == 0) ? currentLocation.CharacterIndex + source.Length : source.EndCharacterIndex;
+
+        var generatedLocation = new SourceSpan(
+            currentLocation.FilePath,
+            currentLocation.AbsoluteIndex,
+            currentLocation.LineIndex,
+            currentLocation.CharacterIndex,
+            source.Length,
+            lineCount: source.LineCount,
+            endCharacterIndex: endCharacterIndex);
         var sourceMapping = new SourceMapping(source, generatedLocation);
 
         _sourceMappings.Add(sourceMapping);
     }
 
     public ImmutableArray<SourceMapping> GetSourceMappings()
-        => _sourceMappings.DrainToImmutable();
+        => _sourceMappings.ToImmutableAndClear();
 
     public void RenderChildren(IntermediateNode node)
     {
@@ -186,7 +210,7 @@ public sealed class CodeRenderingContext : IDisposable
     }
 
     public ImmutableArray<LinePragma> GetLinePragmas()
-        => _linePragmas.DrainToImmutable();
+        => _linePragmas.ToImmutableAndClear();
 
     public void PushAncestor(IntermediateNode node)
     {

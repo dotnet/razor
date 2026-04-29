@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Immutable;
@@ -48,10 +48,11 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
     {
         autoInsertEdit = null;
 
-        if (!(enableAutoClosingTags
-            && codeDocument.Source.Text is { } sourceText
-            && sourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex)
-            && TryResolveAutoClosingBehavior(codeDocument, afterCloseAngleIndex) is { } tagNameWithClosingBehavior))
+        var sourceText = codeDocument.Source.Text;
+
+        if (!enableAutoClosingTags ||
+            !sourceText.TryGetAbsoluteIndex(position, out var afterCloseAngleIndex) ||
+            TryResolveAutoClosingBehavior(codeDocument, afterCloseAngleIndex) is not { } tagNameWithClosingBehavior)
         {
             return false;
         }
@@ -89,12 +90,12 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
     private static TagNameWithClosingBehavior? TryResolveAutoClosingBehavior(RazorCodeDocument codeDocument, int afterCloseAngleIndex)
     {
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        var closeAngle = syntaxTree.Root.FindToken(afterCloseAngleIndex - 1);
+        var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
+        var closeAngle = syntaxRoot.FindToken(afterCloseAngleIndex - 1);
 
         if (closeAngle.Parent is MarkupStartTagSyntax
             {
-                ForwardSlash: null,
+                ForwardSlash: not { Kind: SyntaxKind.ForwardSlash, IsMissing: false },
                 Parent: MarkupElementSyntax htmlElement
             } startTag)
         {
@@ -114,7 +115,7 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         if (closeAngle.Parent is MarkupTagHelperStartTagSyntax
             {
-                ForwardSlash: null,
+                ForwardSlash: not { Kind: SyntaxKind.ForwardSlash, IsMissing: false },
                 Parent: MarkupTagHelperElementSyntax { TagHelperInfo.BindingResult: var binding } tagHelperElement
             } startTagHelper)
         {
@@ -195,15 +196,10 @@ internal class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
         {
             string? potentialStartTagName = null;
             RazorSyntaxNode? endTag = null;
-            if (node is MarkupTagHelperElementSyntax parentTagHelper)
+            if (node is BaseMarkupElementSyntax element)
             {
-                potentialStartTagName = parentTagHelper.StartTag?.Name.Content ?? parentTagHelper.EndTag?.Name.Content;
-                endTag = parentTagHelper.EndTag;
-            }
-            else if (node is MarkupElementSyntax parentElement)
-            {
-                potentialStartTagName = parentElement.StartTag?.Name.Content ?? parentElement.EndTag?.Name.Content;
-                endTag = parentElement.EndTag;
+                potentialStartTagName = element.StartTag?.Name.Content ?? element.EndTag?.Name.Content;
+                endTag = element.EndTag;
             }
 
             // Note - potentialStartTagName can be null for cases when markup element is contained in markup

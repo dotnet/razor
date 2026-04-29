@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -22,8 +23,8 @@ internal static class RazorSyntaxFacts
     {
         attributeNameAbsoluteIndex = 0;
 
-        var tree = codeDocument.GetSyntaxTree();
-        var owner = tree.Root.FindInnermostNode(absoluteIndex);
+        var root = codeDocument.GetRequiredSyntaxRoot();
+        var owner = root.FindInnermostNode(absoluteIndex);
 
         var attributeName = owner?.Parent switch
         {
@@ -75,18 +76,20 @@ internal static class RazorSyntaxFacts
     /// </summary>
     public static bool TryGetFullAttributeNameSpan(RazorCodeDocument codeDocument, int absoluteIndex, out TextSpan attributeNameSpan)
     {
-        var tree = codeDocument.GetSyntaxTree();
-        var owner = tree.Root.FindInnermostNode(absoluteIndex);
+        var root = codeDocument.GetRequiredSyntaxRoot();
+        var owner = root.FindInnermostNode(absoluteIndex);
 
         attributeNameSpan = GetFullAttributeNameSpan(owner?.Parent);
 
         return attributeNameSpan != default;
     }
 
-    private static TextSpan GetFullAttributeNameSpan(RazorSyntaxNode? node)
+    public static TextSpan GetFullAttributeNameSpan(RazorSyntaxNode? node)
     {
         return node switch
         {
+            MarkupAttributeBlockSyntax att => att.Name.Span,
+            MarkupMinimizedAttributeBlockSyntax att => att.Name.Span,
             MarkupTagHelperAttributeSyntax att => att.Name.Span,
             MarkupMinimizedTagHelperAttributeSyntax att => att.Name.Span,
             MarkupTagHelperDirectiveAttributeSyntax att => CalculateFullSpan(att.Name, att.ParameterName, att.Transition),
@@ -116,14 +119,51 @@ internal static class RazorSyntaxFacts
         }
     }
 
+    /// <summary>
+    /// For example given "&lt;Goo @bi$$nd-Value:after="val" /&gt;", it would return the span from "V" to "e".
+    /// </summary>
+    public static bool TryGetComponentParameterNameFromFullAttributeName(string fullAttributeName, out ReadOnlySpan<char> componentParameterName, out ReadOnlySpan<char> directiveAttributeParameter)
+    {
+        componentParameterName = fullAttributeName.AsSpan();
+        directiveAttributeParameter = default;
+        if (componentParameterName.IsEmpty)
+        {
+            return false;
+        }
+
+        // Parse @bind directive
+        if (componentParameterName[0] == '@')
+        {
+            // Trim `@` transition
+            componentParameterName = componentParameterName[1..];
+
+            // Check for and trim `bind-` directive prefix
+            if (!componentParameterName.StartsWith("bind-", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            componentParameterName = componentParameterName["bind-".Length..];
+
+            // Trim directive parameter name, if any
+            if (componentParameterName.LastIndexOf(':') is int colonIndex and > 0)
+            {
+                directiveAttributeParameter = componentParameterName[(colonIndex + 1)..];
+                componentParameterName = componentParameterName[..colonIndex];
+            }
+        }
+
+        return true;
+    }
+
     public static CSharpCodeBlockSyntax? TryGetCSharpCodeFromCodeBlock(RazorSyntaxNode node)
     {
         if (node is CSharpCodeBlockSyntax block &&
-            block.Children.FirstOrDefault() is RazorDirectiveSyntax directive &&
-            directive.Body is RazorDirectiveBodySyntax directiveBody &&
-            directiveBody.Keyword.GetContent() == "code")
+            block.Children.FirstOrDefault(n => n is RazorDirectiveSyntax) is RazorDirectiveSyntax directive &&
+            directive.DirectiveBody is { } body &&
+            body.Keyword.GetContent() == "code")
         {
-            return directiveBody.CSharpCode;
+            return body.CSharpCode;
         }
 
         return null;
@@ -136,9 +176,9 @@ internal static class RazorSyntaxFacts
         => n.Kind is SyntaxKind.MarkupEndTag or SyntaxKind.MarkupTagHelperEndTag;
 
     public static bool IsInCodeBlock(RazorSyntaxNode n)
-        => n.FirstAncestorOrSelf<RazorSyntaxNode>(n => n is RazorDirectiveSyntax { DirectiveDescriptor.Directive: "code" }) is not null;
+        => n.FirstAncestorOrSelf<RazorSyntaxNode>(static n => n is RazorDirectiveSyntax { DirectiveDescriptor.Directive: "code" }) is not null;
 
-    internal static bool TryGetNamespaceFromDirective(RazorDirectiveSyntax directiveNode, [NotNullWhen(true)] out string? @namespace)
+    internal static bool TryGetNamespaceFromDirective(RazorUsingDirectiveSyntax directiveNode, [NotNullWhen(true)] out string? @namespace)
     {
         foreach (var child in directiveNode.DescendantNodes())
         {
@@ -155,18 +195,32 @@ internal static class RazorSyntaxFacts
 
     internal static bool IsInUsingDirective(RazorSyntaxNode node)
     {
-        var directives = node
-            .AncestorsAndSelf()
-            .OfType<RazorDirectiveSyntax>();
+        return node.AncestorsAndSelf().OfType<RazorUsingDirectiveSyntax>().Any();
+    }
 
-        foreach (var directive in directives)
+    internal static bool IsScriptOrStyleBlock(BaseMarkupElementSyntax? element)
+    {
+        // StartTag is annotated as not nullable, but on invalid documents it can be. The 'Format_DocumentWithDiagnostics' test
+        // illustrates this.
+        if (element?.StartTag?.Name.Content is not { } tagName)
         {
-            if (directive.IsUsingDirective(out var _))
-            {
-                return true;
-            }
+            return false;
         }
 
-        return false;
+        return string.Equals(tagName, "script", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(tagName, "style", StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static bool IsAttributeName(RazorSyntaxNode node, [NotNullWhen(true)] out BaseMarkupStartTagSyntax? startTag)
+    {
+        startTag = null;
+
+        if (node.Parent.IsAnyAttributeSyntax() &&
+            GetFullAttributeNameSpan(node.Parent).Start == node.SpanStart)
+        {
+            startTag = node.Parent.Parent as BaseMarkupStartTagSyntax;
+        }
+
+        return startTag is not null;
     }
 }

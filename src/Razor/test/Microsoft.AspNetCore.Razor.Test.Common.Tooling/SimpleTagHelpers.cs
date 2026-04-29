@@ -1,107 +1,106 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 internal static class SimpleTagHelpers
 {
-    public static ImmutableArray<TagHelperDescriptor> Default { get; }
+    public static TagHelperCollection Default { get; }
 
     static SimpleTagHelpers()
     {
-        var builder1 = TagHelperDescriptorBuilder.Create("Test1TagHelper", "TestAssembly");
+        var builder1 = TagHelperDescriptorBuilder.CreateTagHelper("Test1TagHelper", "TestAssembly");
+        builder1.TypeName = "Test1TagHelper";
         builder1.TagMatchingRule(rule => rule.TagName = "test1");
-        builder1.SetMetadata(TypeName("Test1TagHelper"));
         builder1.BindAttribute(attribute =>
         {
             attribute.Name = "bool-val";
-            attribute.SetMetadata(PropertyName("BoolVal"));
+            attribute.PropertyName = "BoolVal";
             attribute.TypeName = typeof(bool).FullName;
         });
         builder1.BindAttribute(attribute =>
         {
             attribute.Name = "int-val";
-            attribute.SetMetadata(PropertyName("IntVal"));
+            attribute.PropertyName = "IntVal";
             attribute.TypeName = typeof(int).FullName;
         });
 
-        var builder1WithRequiredParent = TagHelperDescriptorBuilder.Create("Test1TagHelper.SomeChild", "TestAssembly");
+        var builder1WithRequiredParent = TagHelperDescriptorBuilder.CreateTagHelper("Test1TagHelper.SomeChild", "TestAssembly");
+        builder1WithRequiredParent.TypeName = "Test1TagHelper.SomeChild";
         builder1WithRequiredParent.TagMatchingRule(rule =>
         {
             rule.TagName = "SomeChild";
             rule.ParentTag = "test1";
         });
-        builder1WithRequiredParent.SetMetadata(TypeName("Test1TagHelper.SomeChild"));
         builder1WithRequiredParent.BindAttribute(attribute =>
         {
             attribute.Name = "attribute";
-            attribute.SetMetadata(PropertyName("Attribute"));
+            attribute.PropertyName = "Attribute";
             attribute.TypeName = typeof(string).FullName;
         });
 
-        var builder2 = TagHelperDescriptorBuilder.Create("Test2TagHelper", "TestAssembly");
+        var builder2 = TagHelperDescriptorBuilder.CreateTagHelper("Test2TagHelper", "TestAssembly");
+        builder2.TypeName = "Test2TagHelper";
         builder2.TagMatchingRule(rule => rule.TagName = "test2");
-        builder2.SetMetadata(TypeName("Test2TagHelper"));
         builder2.BindAttribute(attribute =>
         {
             attribute.Name = "bool-val";
-            attribute.SetMetadata(PropertyName("BoolVal"));
+            attribute.PropertyName = "BoolVal";
             attribute.TypeName = typeof(bool).FullName;
         });
         builder2.BindAttribute(attribute =>
         {
             attribute.Name = "int-val";
-            attribute.SetMetadata(PropertyName("IntVal"));
+            attribute.PropertyName = "IntVal";
             attribute.TypeName = typeof(int).FullName;
         });
 
-        var builder3 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Component1TagHelper", "TestAssembly");
+        var builder3 = TagHelperDescriptorBuilder.CreateComponent("Component1TagHelper", "TestAssembly");
+        builder3.SetTypeName(
+            fullName: "System.Component1",
+            typeNamespace: "System",
+            typeNameIdentifier: "Component1");
         builder3.TagMatchingRule(rule => rule.TagName = "Component1");
-        builder3.SetMetadata(
-            TypeName("Component1"),
-            TypeNamespace("System"), // Just so we can reasonably assume a using directive is in place
-            TypeNameIdentifier("Component1"),
-            new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch));
+        builder3.IsFullyQualifiedNameMatch = true;
         builder3.BindAttribute(attribute =>
         {
             attribute.Name = "bool-val";
-            attribute.SetMetadata(PropertyName("BoolVal"));
+            attribute.PropertyName = "BoolVal";
             attribute.TypeName = typeof(bool).FullName;
         });
         builder3.BindAttribute(attribute =>
         {
             attribute.Name = "int-val";
-            attribute.SetMetadata(PropertyName("IntVal"));
+            attribute.PropertyName = "IntVal";
             attribute.TypeName = typeof(int).FullName;
         });
         builder3.BindAttribute(attribute =>
         {
             attribute.Name = "Title";
-            attribute.SetMetadata(PropertyName("Title"));
+            attribute.PropertyName = "Title";
             attribute.TypeName = typeof(string).FullName;
         });
 
-        var textComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TextTagHelper", "TestAssembly");
+        var textComponent = TagHelperDescriptorBuilder.CreateComponent("TextTagHelper", "TestAssembly");
+        textComponent.SetTypeName(
+            fullName: "System.Text",
+            typeNamespace: "System",
+            typeNameIdentifier: "Text");
         textComponent.TagMatchingRule(rule => rule.TagName = "Text");
-        textComponent.SetMetadata(
-            TypeName("Text"),
-            TypeNamespace("System"),
-            TypeNameIdentifier("Text"),
-            new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch));
+        textComponent.IsFullyQualifiedNameMatch = true;
 
-        var directiveAttribute1 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestDirectiveAttribute", "TestAssembly");
+        var directiveAttribute1 = TagHelperDescriptorBuilder.CreateComponent("TestDirectiveAttribute", "TestAssembly");
+        directiveAttribute1.TypeName = "TestDirectiveAttribute";
         directiveAttribute1.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
             rule.RequireAttributeDescriptor(b =>
             {
                 b.Name = "@test";
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                b.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
             });
         });
         directiveAttribute1.TagMatchingRule(rule =>
@@ -110,36 +109,35 @@ internal static class SimpleTagHelpers
             rule.RequireAttributeDescriptor(b =>
             {
                 b.Name = "@test";
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                b.NameComparison = RequiredAttributeNameComparison.FullMatch;
             });
         });
         directiveAttribute1.BindAttribute(attribute =>
         {
             attribute.Name = "@test";
-            attribute.SetMetadata(PropertyName("Test"), IsDirectiveAttribute);
+            attribute.PropertyName = "Test";
+            attribute.IsDirectiveAttribute = true;
             attribute.TypeName = typeof(string).FullName;
 
             attribute.BindAttributeParameter(parameter =>
             {
                 parameter.Name = "something";
+                parameter.PropertyName = "Something";
                 parameter.TypeName = typeof(string).FullName;
-
-                parameter.SetMetadata(PropertyName("Something"));
             });
         });
-        directiveAttribute1.SetMetadata(
-            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
-            new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch),
-            TypeName("TestDirectiveAttribute"));
+        directiveAttribute1.IsFullyQualifiedNameMatch = true;
+        directiveAttribute1.ClassifyAttributesOnly = true;
 
-        var directiveAttribute2 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "MinimizedDirectiveAttribute", "TestAssembly");
+        var directiveAttribute2 = TagHelperDescriptorBuilder.CreateComponent("MinimizedDirectiveAttribute", "TestAssembly");
+        directiveAttribute2.TypeName = "TestDirectiveAttribute";
         directiveAttribute2.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
             rule.RequireAttributeDescriptor(b =>
             {
                 b.Name = "@minimized";
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                b.NameComparison = RequiredAttributeNameComparison.PrefixMatch;
             });
         });
         directiveAttribute2.TagMatchingRule(rule =>
@@ -148,66 +146,61 @@ internal static class SimpleTagHelpers
             rule.RequireAttributeDescriptor(b =>
             {
                 b.Name = "@minimized";
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                b.NameComparison = RequiredAttributeNameComparison.FullMatch;
             });
         });
         directiveAttribute2.BindAttribute(attribute =>
         {
             attribute.Name = "@minimized";
-            attribute.SetMetadata(PropertyName("Minimized"), IsDirectiveAttribute);
+            attribute.IsDirectiveAttribute = true;
+            attribute.PropertyName = "Minimized";
             attribute.TypeName = typeof(bool).FullName;
 
             attribute.BindAttributeParameter(parameter =>
             {
                 parameter.Name = "something";
+                parameter.PropertyName = "Something";
                 parameter.TypeName = typeof(string).FullName;
-
-                parameter.SetMetadata(PropertyName("Something"));
             });
         });
-        directiveAttribute2.SetMetadata(
-            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
-            new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch),
-            TypeName("TestDirectiveAttribute"));
+        directiveAttribute2.IsFullyQualifiedNameMatch = true;
+        directiveAttribute2.ClassifyAttributesOnly = true;
 
-        var directiveAttribute3 = TagHelperDescriptorBuilder.Create(ComponentMetadata.EventHandler.TagHelperKind, "OnClickDirectiveAttribute", "TestAssembly");
+        var directiveAttribute3 = TagHelperDescriptorBuilder.CreateEventHandler("OnClickDirectiveAttribute", "TestAssembly");
+        directiveAttribute3.SetTypeName(
+            fullName: "Microsoft.AspNetCore.Components.Web.EventHandlers",
+            typeNamespace: "Microsoft.AspNetCore.Components.Web",
+            typeNameIdentifier: "EventHandlers");
         directiveAttribute3.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
-            rule.RequireAttributeDescriptor(b =>
-            {
-                b.Name = "@onclick";
-                b.SetMetadata(MetadataCollection.Create(IsDirectiveAttribute));
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-            });
+            rule.RequireAttributeDescriptor(attribute => attribute
+                .Name("@onclick", RequiredAttributeNameComparison.FullMatch)
+                .IsDirectiveAttribute());
         });
         directiveAttribute3.TagMatchingRule(rule =>
         {
             rule.TagName = "*";
-            rule.RequireAttributeDescriptor(b =>
-            {
-                b.Name = "@onclick";
-                b.SetMetadata(MetadataCollection.Create(IsDirectiveAttribute));
-                b.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
-            });
+            rule.RequireAttributeDescriptor(attribute => attribute
+                .Name("@onclick", RequiredAttributeNameComparison.PrefixMatch)
+                .IsDirectiveAttribute());
         });
         directiveAttribute3.BindAttribute(attribute =>
         {
             attribute.Name = "@onclick";
-            attribute.SetMetadata(PropertyName("onclick"), IsDirectiveAttribute, IsWeaklyTyped);
+            attribute.PropertyName = "onclick";
+            attribute.IsWeaklyTyped = true;
+            attribute.IsDirectiveAttribute = true;
             attribute.TypeName = "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Web.MouseEventArgs>";
         });
-        directiveAttribute3.SetMetadata(
-            RuntimeName(ComponentMetadata.EventHandler.RuntimeName),
-            SpecialKind(ComponentMetadata.EventHandler.TagHelperKind),
-            new(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
-            new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch),
-            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
-            TypeName("OnClickDirectiveAttribute"),
-            TypeNamespace("Microsoft.AspNetCore.Components.Web"),
-            TypeNameIdentifier("EventHandlers"));
+        directiveAttribute3.IsFullyQualifiedNameMatch = true;
+        directiveAttribute3.ClassifyAttributesOnly = true;
+        directiveAttribute3.SetMetadata(new EventHandlerMetadata()
+        {
+            EventArgsType = "Microsoft.AspNetCore.Components.Web.MouseEventArgs"
+        });
 
-        var htmlTagMutator = TagHelperDescriptorBuilder.Create("HtmlMutator", "TestAssembly");
+        var htmlTagMutator = TagHelperDescriptorBuilder.CreateTagHelper("HtmlMutator", "TestAssembly");
         htmlTagMutator.TagMatchingRule(rule =>
         {
             rule.TagName = "title";
@@ -216,11 +209,11 @@ internal static class SimpleTagHelpers
                 attributeRule.Name = "mutator";
             });
         });
-        htmlTagMutator.SetMetadata(TypeName("HtmlMutator"));
+        htmlTagMutator.TypeName = "HtmlMutator";
         htmlTagMutator.BindAttribute(attribute =>
         {
             attribute.Name = "Extra";
-            attribute.SetMetadata(PropertyName("Extra"));
+            attribute.PropertyName = "Extra";
             attribute.TypeName = typeof(bool).FullName;
         });
 

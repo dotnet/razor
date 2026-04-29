@@ -1,9 +1,13 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Composition;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -12,11 +16,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 [Shared]
 [Export(typeof(RemoteSnapshotManager))]
 [method: ImportingConstructor]
-internal sealed class RemoteSnapshotManager(LanguageServerFeatureOptions languageServerFeatureOptions, IFilePathService filePathService, ITelemetryReporter telemetryReporter)
+internal sealed class RemoteSnapshotManager(IFilePathService filePathService, ITelemetryReporter telemetryReporter)
 {
     private static readonly ConditionalWeakTable<Solution, RemoteSolutionSnapshot> s_solutionToSnapshotMap = new();
 
-    public RazorCompilerOptions CompilerOptions { get; } = languageServerFeatureOptions.ToCompilerOptions();
     public IFilePathService FilePathService { get; } = filePathService;
     public ITelemetryReporter TelemetryReporter { get; } = telemetryReporter;
 
@@ -33,5 +36,17 @@ internal sealed class RemoteSnapshotManager(LanguageServerFeatureOptions languag
     public RemoteDocumentSnapshot GetSnapshot(TextDocument document)
     {
         return GetSnapshot(document.Project).GetDocument(document);
+    }
+
+    public Task<RazorCodeDocument?> TryGetRazorCodeDocumentAsync(Solution solution, Uri generatedDocumentUri, CancellationToken cancellationToken)
+    {
+        if (!solution.TryGetSourceGeneratedDocumentIdentity(generatedDocumentUri, out var identity) ||
+            !solution.TryGetProject(identity.DocumentId.ProjectId, out var project))
+        {
+            return SpecializedTasks.Null<RazorCodeDocument>();
+        }
+
+        var snapshot = GetSnapshot(project);
+        return snapshot.TryGetCodeDocumentForGeneratedDocumentAsync(identity, cancellationToken);
     }
 }

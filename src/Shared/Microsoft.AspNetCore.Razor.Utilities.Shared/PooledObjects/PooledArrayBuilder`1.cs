@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -7,9 +7,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Razor;
+using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -34,7 +33,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     /// </summary>
     private const int InlineCapacity = 4;
 
-    private ObjectPool<ImmutableArray<T>.Builder>? _builderPool;
+    private ArrayBuilderPool<T>? _builderPool;
 
     /// <summary>
     ///  A builder to be used as storage after the first time that the number
@@ -59,7 +58,7 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     /// </summary>
     private int _inlineCount;
 
-    public PooledArrayBuilder(int? capacity = null, ObjectPool<ImmutableArray<T>.Builder>? builderPool = null)
+    public PooledArrayBuilder(int? capacity = null, ArrayBuilderPool<T>? builderPool = null)
     {
         _capacity = capacity is > InlineCapacity ? capacity : null;
         _builderPool = builderPool;
@@ -88,6 +87,20 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
             _builderPool?.Return(innerBuilder);
             _builder = null;
         }
+    }
+
+    /// <summary>
+    ///  Retrieves the inner <see cref="_builder"/>, moving any inline elements to it if necessary.
+    /// </summary>
+    private ImmutableArray<T>.Builder GetBuilder()
+    {
+        if (!TryGetBuilder(out var builder))
+        {
+            MoveInlineItemsToBuilder();
+            builder = _builder;
+        }
+
+        return builder;
     }
 
     /// <summary>
@@ -233,38 +246,22 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     public readonly int Count
         => _builder?.Count ?? _inlineCount;
 
+    public readonly int Capacity
+        => _builder?.Capacity ?? _capacity ?? InlineCapacity;
+
     public void Add(T item)
-    {
-        if (TryGetBuilderAndEnsureCapacity(out var builder))
-        {
-            builder.Add(item);
-        }
-        else if (_inlineCount < InlineCapacity)
-        {
-            SetInlineElement(_inlineCount, item);
-            _inlineCount++;
-        }
-        else
-        {
-            Debug.Assert(_inlineCount == InlineCapacity);
-            MoveInlineItemsToBuilder();
-            _builder.Add(item);
-        }
-    }
+        => Insert(Count, item);
 
     public void AddRange(ImmutableArray<T> items)
-    {
-        AddRange(items.AsSpan());
-    }
-
-    // Necessary to avoid conflict with AddRange(IEnumerable<T>) and AddRange(ReadOnlySpan<T>).
-    public void AddRange(T[] items)
-    {
-        AddRange(items.AsSpan());
-    }
+        => InsertRange(Count, items);
 
     public void AddRange(ReadOnlySpan<T> items)
     {
+        // Note: We don't delegate this overload to InsertRange(ReadOnlySpan<T>) because
+        // ImmutableArray<T>.Builder supports an AddRange overload that takes a ReadOnlySpan<T>.
+        // Delegating to InsertRange(ReadOnlySpan<T>) could unnecessarily introduce an
+        // array allocation and copy.
+
         if (items.IsEmpty)
         {
             return;
@@ -289,47 +286,54 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
     }
 
-    public void AddRange(IEnumerable<T> items)
+    public void AddRange<TList>(TList list)
+        where TList : struct, IReadOnlyList<T>
+        => AddRange(list, startIndex: 0, list.Count);
+
+    public void AddRange<TList>(TList list, int startIndex, int count)
+        where TList : struct, IReadOnlyList<T>
     {
-        if (TryGetBuilderAndEnsureCapacity(out var builder))
-        {
-            builder.AddRange(items);
-            return;
-        }
-
-        if (!items.TryGetCount(out var count))
-        {
-            // We couldn't retrieve a count, so we have to enumerate the elements.
-            foreach (var item in items)
-            {
-                Add(item);
-            }
-
-            return;
-        }
+        // Note: We don't delegate this overload to InsertRange<TList>(TList, int, int) because
+        // it requires extra allocations that aren't necessary for AddRange(...).
 
         if (count == 0)
         {
-            // No items, so there's nothing to do.
+            return;
+        }
+
+        var (start, end) = (startIndex, startIndex + count - 1);
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            for (var i = start; i <= end; i++)
+            {
+                builder.Add(list[i]);
+            }
+
             return;
         }
 
         if (_inlineCount + count <= InlineCapacity)
         {
-            // The items can fit into our inline elements.
-            foreach (var item in items)
+            for (var i = start; i <= end; i++)
             {
-                SetInlineElement(_inlineCount, item);
+                SetInlineElement(_inlineCount, list[i]);
                 _inlineCount++;
             }
         }
         else
         {
-            // The items can't fit into our inline elements, so we switch to a builder.
             MoveInlineItemsToBuilder();
-            _builder.AddRange(items);
+
+            for (var i = start; i <= end; i++)
+            {
+                _builder.Add(list[i]);
+            }
         }
     }
+
+    public void AddRange(IEnumerable<T> items)
+        => InsertRange(Count, items);
 
     public void Clear()
     {
@@ -348,6 +352,211 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
     public readonly Enumerator GetEnumerator()
         => new(in this);
+
+    public void Insert(int index, T item)
+    {
+        Debug.Assert(index >= 0 && index <= Count);
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            builder.Insert(index, item);
+        }
+        else if (_inlineCount < InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: 1);
+            }
+
+            SetInlineElement(index, item);
+            _inlineCount++;
+        }
+        else
+        {
+            MoveInlineItemsToBuilder();
+            _builder.Insert(index, item);
+        }
+    }
+
+    public void InsertRange(int index, ImmutableArray<T> items)
+    {
+        Debug.Assert(index >= 0 && index <= Count);
+
+        if (items.IsEmpty)
+        {
+            return;
+        }
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            builder.InsertRange(index, items);
+        }
+        else if (_inlineCount + items.Length <= InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: items.Length);
+            }
+
+            foreach (var item in items)
+            {
+                SetInlineElement(index++, item);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            MoveInlineItemsToBuilder();
+            _builder.InsertRange(index, items);
+        }
+    }
+
+    public void InsertRange(int index, ReadOnlySpan<T> items)
+    {
+        Debug.Assert(index >= 0 && index <= Count);
+
+        if (items.IsEmpty)
+        {
+            return;
+        }
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            builder.InsertRange(index, items);
+        }
+        else if (_inlineCount + items.Length <= InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: items.Length);
+            }
+
+            foreach (var item in items)
+            {
+                SetInlineElement(index++, item);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            MoveInlineItemsToBuilder();
+            _builder.InsertRange(index, items);
+        }
+    }
+
+    public void InsertRange<TList>(int index, TList list)
+        where TList : struct, IReadOnlyList<T>
+        => InsertRange(index, list, startIndex: 0, list.Count);
+
+    public void InsertRange<TList>(int index, TList list, int startIndex, int count)
+        where TList : struct, IReadOnlyList<T>
+    {
+        if (index == Count)
+        {
+            // AddRange doesn't delegate to this method. Instead, this delegates to AddRange for
+            // insertions at the end.
+            AddRange(list, startIndex, count);
+            return;
+        }
+
+        if (count == 0)
+        {
+            return;
+        }
+
+        var (start, end) = (startIndex, startIndex + count - 1);
+
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            var spacer = ImmutableCollectionsMarshal.AsImmutableArray(new T[count]);
+            builder.InsertRange(index, spacer);
+
+            for (var i = start; i <= end; i++)
+            {
+                builder[index++] = list[i];
+            }
+
+            return;
+        }
+
+        if (_inlineCount + count <= InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: count);
+            }
+
+            for (var i = start; i <= end; i++)
+            {
+                SetInlineElement(index++, list[i]);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            MoveInlineItemsToBuilder();
+
+            var spacer = ImmutableCollectionsMarshal.AsImmutableArray(new T[count]);
+            _builder.InsertRange(index, spacer);
+
+            for (var i = start; i <= end; i++)
+            {
+                _builder[index++] = list[i];
+            }
+        }
+    }
+
+    public void InsertRange(int index, IEnumerable<T> items)
+    {
+        if (TryGetBuilderAndEnsureCapacity(out var builder))
+        {
+            builder.InsertRange(index, items);
+            return;
+        }
+
+        if (!items.TryGetCount(out var itemCount))
+        {
+            // We couldn't retrieve a count, so we have to enumerate the elements.
+            foreach (var item in items)
+            {
+                Insert(index++, item);
+            }
+
+            return;
+        }
+
+        if (itemCount == 0)
+        {
+            // No items, so there's nothing to do.
+            return;
+        }
+
+        if (_inlineCount + itemCount <= InlineCapacity)
+        {
+            // Shift elements if not inserting at the end.
+            if (index < _inlineCount)
+            {
+                ShiftInlineItemsByOffset(index, offset: itemCount);
+            }
+
+            // The items can fit into our inline elements.
+            foreach (var item in items)
+            {
+                SetInlineElement(index++, item);
+                _inlineCount++;
+            }
+        }
+        else
+        {
+            // The items can't fit into our inline elements, so we switch to a builder.
+            MoveInlineItemsToBuilder();
+            _builder.InsertRange(index, items);
+        }
+    }
 
     public void RemoveAt(int index)
     {
@@ -419,11 +628,11 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     ///  will then be set to a zero-length array.
     /// </remarks>
     /// <returns>An immutable array.</returns>
-    public ImmutableArray<T> DrainToImmutable()
+    public ImmutableArray<T> ToImmutableAndClear()
     {
         if (TryGetBuilder(out var builder))
         {
-            return builder.DrainToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         var inlineArray = InlineItemsToImmutableArray();
@@ -460,21 +669,10 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     }
 
     public readonly T[] ToArray()
-    {
-        if (TryGetBuilder(out var builder))
-        {
-            return builder.ToArray();
-        }
+        => ImmutableCollectionsMarshal.AsArray(ToImmutable()).AssumeNotNull();
 
-        return _inlineCount switch
-        {
-            0 => [],
-            1 => [_element0],
-            2 => [_element0, _element1],
-            3 => [_element0, _element1, _element2],
-            _ => [_element0, _element1, _element2, _element3]
-        };
-    }
+    public T[] ToArrayAndClear()
+        => ImmutableCollectionsMarshal.AsArray(ToImmutableAndClear()).AssumeNotNull();
 
     public void Push(T item)
     {
@@ -613,6 +811,51 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         return true;
     }
+
+    /// <summary>
+    /// Searches for the specified item.
+    /// </summary>
+    /// <param name="item">The item to search for.</param>
+    /// <returns>The 0-based index where the item was found; or -1 if it could not be found.</returns>
+    public readonly int IndexOf(T item)
+        => IndexOf(item, EqualityComparer<T>.Default);
+
+    /// <summary>
+    /// Searches for the specified item.
+    /// </summary>
+    /// <param name="item">The item to search for.</param>
+    /// <param name="comparer">The equality comparer to use in the search.</param>
+    /// <returns>The 0-based index where the item was found; or -1 if it could not be found.</returns>
+    public readonly int IndexOf(T item, IEqualityComparer<T> comparer)
+    {
+        var n = Count;
+        for (var i = 0; i < n; i++)
+        {
+            if (comparer.Equals(this[i], item))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Determines whether the specified item exists in this collection.
+    /// </summary>
+    /// <param name="item">The item to search for.</param>
+    /// <returns><c>true</c> if an equal value was found in this collection; <c>false</c> otherwise.</returns>
+    public readonly bool Contains(T item)
+        => Contains(item, EqualityComparer<T>.Default);
+
+    /// <summary>
+    /// Determines whether the specified item exists in this collection.
+    /// </summary>
+    /// <param name="item">The item to search for.</param>
+    /// <param name="comparer">The equality comparer to use in the search.</param>
+    /// <returns><c>true</c> if an equal value was found in this collection; <c>false</c> otherwise.</returns>
+    public readonly bool Contains(T item, IEqualityComparer<T> comparer)
+        => IndexOf(item, comparer) >= 0;
 
     /// <summary>
     ///  Returns the first element in this builder.
@@ -1360,7 +1603,11 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         if (_capacity is int capacity)
         {
-            builder.SetCapacityIfLarger(capacity);
+            builder.Capacity = capacity;
+        }
+        else if (builder.Capacity < InlineCapacity)
+        {
+            builder.Capacity = InlineCapacity;
         }
 
         _builder = builder;
@@ -1374,6 +1621,46 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
 
         // Since _inlineCount tracks the number of inline items used, we zero it out here.
         _inlineCount = 0;
+    }
+
+    private void ShiftInlineItemsByOffset(int index, int offset)
+    {
+        Debug.Assert(_builder is null);
+        Debug.Assert(index >= 0 && index < _inlineCount);
+        Debug.Assert(offset > 0);
+        Debug.Assert(offset + _inlineCount <= InlineCapacity);
+
+        for (var i = _inlineCount - 1; i >= index; i--)
+        {
+            SetInlineElement(i + offset, GetInlineElement(i));
+        }
+    }
+
+    /// <summary>
+    ///  Sorts the contents of this builder.
+    /// </summary>
+    public void Sort()
+    {
+        var builder = GetBuilder();
+        builder.Sort();
+    }
+
+    /// <summary>
+    ///  Sorts the contents of this builder using the provided <see cref="IComparer{T}"/>.
+    /// </summary>
+    public void Sort(IComparer<T> comparer)
+    {
+        var builder = GetBuilder();
+        builder.Sort(comparer);
+    }
+
+    /// <summary>
+    ///  Sorts the contents of this builder using the provided <see cref="Comparison{T}"/>.
+    /// </summary>
+    public void Sort(Comparison<T> comparison)
+    {
+        var builder = GetBuilder();
+        builder.Sort(comparison);
     }
 
     public readonly ImmutableArray<T> ToImmutableOrdered()
@@ -1480,105 +1767,105 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrdered()
+    public ImmutableArray<T> ToImmutableOrderedAndClear()
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().Order();
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrdered(IComparer<T> comparer)
+    public ImmutableArray<T> ToImmutableOrderedAndClear(IComparer<T> comparer)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().Order(comparer);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrdered(Comparison<T> comparison)
+    public ImmutableArray<T> ToImmutableOrderedAndClear(Comparison<T> comparison)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().Order(comparison);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedDescending()
+    public ImmutableArray<T> ToImmutableOrderedDescendingAndClear()
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderDescending();
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedDescending(IComparer<T> comparer)
+    public ImmutableArray<T> ToImmutableOrderedDescendingAndClear(IComparer<T> comparer)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderDescending(comparer);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedDescending(Comparison<T> comparison)
+    public ImmutableArray<T> ToImmutableOrderedDescendingAndClear(Comparison<T> comparison)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderDescending(comparison);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector)
+    public ImmutableArray<T> ToImmutableOrderedByAndClear<TKey>(Func<T, TKey> keySelector)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderBy(keySelector);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
+    public ImmutableArray<T> ToImmutableOrderedByAndClear<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderBy(keySelector, comparer);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedBy<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
+    public ImmutableArray<T> ToImmutableOrderedByAndClear<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderBy(keySelector, comparison);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector)
+    public ImmutableArray<T> ToImmutableOrderedByDescendingAndClear<TKey>(Func<T, TKey> keySelector)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderByDescending(keySelector);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
+    public ImmutableArray<T> ToImmutableOrderedByDescendingAndClear<TKey>(Func<T, TKey> keySelector, IComparer<TKey> comparer)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderByDescending(keySelector, comparer);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableOrderedByDescending<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
+    public ImmutableArray<T> ToImmutableOrderedByDescendingAndClear<TKey>(Func<T, TKey> keySelector, Comparison<TKey> comparison)
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().OrderByDescending(keySelector, comparison);
 
         return result;
     }
 
-    public ImmutableArray<T> DrainToImmutableReversed()
+    public ImmutableArray<T> ToImmutableReversedAndClear()
     {
-        var result = DrainToImmutable();
+        var result = ToImmutableAndClear();
         result.Unsafe().Reverse();
 
         return result;

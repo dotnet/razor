@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -10,13 +10,14 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Editor.Razor;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider
+internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelperCompletionService) : IRazorCompletionItemProvider, IHtmlDependentCompletionItemProvider
 {
     // Internal for testing
     internal static readonly ImmutableArray<RazorCommitCharacter> MinimizedAttributeCommitCharacters = RazorCommitCharacter.CreateArray(["=", " "]);
@@ -28,6 +29,65 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
 
     private readonly ITagHelperCompletionService _tagHelperCompletionService = tagHelperCompletionService;
 
+    public bool NeedsHtmlCompletions(RazorCompletionContext context)
+    {
+        // .razor files never need HTML-dependent completions — tag helpers targeting HTML
+        // schema elements and OutputElementHint are legacy (.cshtml) concepts only.
+        if (context.CodeDocument.FileKind != RazorFileKind.Legacy)
+        {
+            return false;
+        }
+
+        // Only the element completion path uses HTML labels to decide which tag helpers to
+        // surface. The attribute path does not depend on HTML labels at all.
+        var owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(context.Owner);
+        if (owner is not null
+            && HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out _, out _)
+            && containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
+        {
+            // Phase 2 is only needed when the document contains tag helpers whose element
+            // completion visibility depends on HTML labels. This includes:
+            // 1. Tag helpers targeting HTML schema elements (e.g., InputTagHelper targeting <input>)
+            // 2. Tag helpers with a TagOutputHint (visibility depends on ExistingCompletions)
+            foreach (var descriptor in context.TagHelperDocumentContext.TagHelpers)
+            {
+                if (descriptor.TagOutputHint is not null
+                    || descriptor.TagMatchingRules.Any(static rule => HtmlFacts.IsHtmlTagName(rule.TagName)))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public ImmutableArray<RazorCompletionItem> GetHtmlDependentCompletionItems(RazorHtmlDependentCompletionContext context)
+    {
+        var owner = context.Owner;
+        if (owner is null)
+        {
+            Debug.Fail("Owner should never be null.");
+            return [];
+        }
+
+        owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(owner);
+        if (owner is null)
+        {
+            return [];
+        }
+
+        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, out _) &&
+            containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
+        {
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
+            var containingElement = owner.Parent;
+            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, context.HtmlLabels);
+        }
+
+        return [];
+    }
+
     public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         var owner = context.Owner;
@@ -37,25 +97,22 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             return [];
         }
 
-        owner = owner switch
+        owner = CompletionContextHelper.AdjustSyntaxNodeForCompletion(owner);
+        if (owner is null)
         {
-            // This provider is trying to find the nearest Start or End tag. Most of the time, that's a level up, but if the index the user is typing at
-            // is a token of a start or end tag directly, we already have the node we want.
-            MarkupStartTagSyntax or MarkupEndTagSyntax or MarkupTagHelperStartTagSyntax or MarkupTagHelperEndTagSyntax or MarkupTagHelperAttributeSyntax => owner,
-            // Invoking completion in an empty file will give us RazorDocumentSyntax which always has null parent
-            RazorDocumentSyntax => owner,
-            // Either the parent is a context we can handle, or it's not and we shouldn't show completions.
-            _ => owner.Parent
-        };
+            return [];
+        }
 
-        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var attributes, closingForwardSlashOrCloseAngleToken: out _) &&
+        if (HtmlFacts.TryGetElementInfo(owner, out var containingTagNameToken, out var elementAttributes, out _) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
-            // Trying to complete the element type
-            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(attributes);
+            // When NeedsHtmlCompletions returned false (pure Blazor/component scenario),
+            // element completions run here in phase 1 with no HTML labels. Component
+            // completions are always included regardless of HTML labels, so this still
+            // produces the right results.
+            var stringifiedAttributes = TagHelperFacts.StringifyAttributes(elementAttributes);
             var containingElement = owner.Parent;
-            var elementCompletions = GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context);
-            return elementCompletions;
+            return GetElementCompletions(containingElement, containingTagNameToken.Content, stringifiedAttributes, context, htmlLabels: []);
         }
 
         if (HtmlFacts.TryGetAttributeInfo(
@@ -64,7 +121,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
                 out var prefixLocation,
                 out var selectedAttributeName,
                 out var selectedAttributeNameLocation,
-                out attributes) &&
+                out var attributes) &&
             (selectedAttributeName is null ||
             selectedAttributeNameLocation?.IntersectsWith(context.AbsoluteIndex) == true ||
             (prefixLocation?.IntersectsWith(context.AbsoluteIndex) ?? false)))
@@ -118,9 +175,9 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         RazorCompletionOptions options)
     {
         var ancestors = containingAttribute.Parent.Ancestors();
-        var nonDirectiveAttributeTagHelpers = tagHelperDocumentContext.TagHelpers.WhereAsArray(
+        var nonDirectiveAttributeTagHelpers = tagHelperDocumentContext.TagHelpers.Where(
             static tagHelper => !tagHelper.BoundAttributes.Any(static attribute => attribute.IsDirectiveAttribute));
-        var filteredContext = TagHelperDocumentContext.Create(tagHelperDocumentContext.Prefix, nonDirectiveAttributeTagHelpers);
+        var filteredContext = TagHelperDocumentContext.GetOrCreate(tagHelperDocumentContext.Prefix, nonDirectiveAttributeTagHelpers);
         var (ancestorTagName, ancestorIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
         var attributeCompletionContext = new AttributeCompletionContext(
             filteredContext,
@@ -152,7 +209,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             }
 
             var attributeContext = ResolveAttributeContext(boundAttributes, isIndexer, options.SnippetsSupported);
-            var attributeCommitCharacters = ResolveAttributeCommitCharacters(attributeContext);
+            var attributeCommitCharacters = options.UseVsCodeCompletionCommitCharacters ? [] : ResolveAttributeCommitCharacters(attributeContext);
             var isSnippet = false;
             var insertText = filterText;
 
@@ -189,7 +246,7 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             completionItems.Add(razorCompletionItem);
         }
 
-        return completionItems.DrainToImmutable();
+        return completionItems.ToImmutableAndClear();
     }
 
     private static bool TryResolveInsertText(string baseInsertText, AttributeContext context, bool autoInsertAttributeQuotes, [NotNullWhen(true)] out string? snippetText)
@@ -211,13 +268,14 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         RazorSyntaxNode containingElement,
         string containingTagName,
         ImmutableArray<KeyValuePair<string, string>> attributes,
-        RazorCompletionContext context)
+        RazorCompletionContext context,
+        HashSet<string> htmlLabels)
     {
         var ancestors = containingElement.Ancestors();
         var (ancestorTagName, ancestorIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
         var elementCompletionContext = new ElementCompletionContext(
             context.TagHelperDocumentContext,
-            context.ExistingCompletions,
+            htmlLabels,
             containingTagName,
             attributes,
             ancestorTagName,
@@ -233,18 +291,57 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
 
         foreach (var (displayText, tagHelpers) in completionResult.Completions)
         {
-            var tagHelperDescriptions = tagHelpers.SelectAsArray(BoundElementDescriptionInfo.From);
+            var descriptionInfo = new AggregateBoundElementDescription(tagHelpers.SelectAsArray(BoundElementDescriptionInfo.From));
 
+            // Always add the regular completion item
             var razorCompletionItem = RazorCompletionItem.CreateTagHelperElement(
                 displayText: displayText,
                 insertText: displayText,
-                descriptionInfo: new(tagHelperDescriptions),
-                commitCharacters: commitChars);
+                descriptionInfo,
+                commitCharacters: commitChars,
+                isSnippet: false);
 
             completionItems.Add(razorCompletionItem);
+
+            AddCompletionItemWithRequiredAttributesSnippet(
+                ref completionItems.AsRef(),
+                context,
+                tagHelpers,
+                displayText,
+                descriptionInfo,
+                commitChars);
+
+            AddCompletionItemWithUsingDirective(ref completionItems.AsRef(), context, commitChars, displayText, descriptionInfo);
         }
 
-        return completionItems.DrainToImmutable();
+        return completionItems.ToImmutableAndClear();
+    }
+
+    private static void AddCompletionItemWithUsingDirective(ref PooledArrayBuilder<RazorCompletionItem> completionItems, RazorCompletionContext context, ImmutableArray<RazorCommitCharacter> commitChars, string displayText, AggregateBoundElementDescription descriptionInfo)
+    {
+        // If this is a fully qualified name (contains a dot), it means there's an out-of-scope component
+        // so we add an additional completion item with @using hint and additional edits that will insert
+        // the @using correctly.
+        var lastDotIndex = displayText.LastIndexOf('.');
+        if (lastDotIndex == -1)
+        {
+            return;
+        }
+
+        var @namespace = displayText[..lastDotIndex];
+        var shortName = displayText[(lastDotIndex + 1)..]; // Get the short name after the last dot
+        var displayTextWithUsing = $"{shortName} - @using {@namespace}";
+
+        var addUsingEdit = UsingDirectiveHelper.CreateAddUsingTextEdit(@namespace, context.CodeDocument);
+
+        var razorCompletionItemWithUsing = RazorCompletionItem.CreateTagHelperElement(
+            displayText: displayTextWithUsing,
+            insertText: shortName,
+            descriptionInfo,
+            commitCharacters: commitChars,
+            additionalTextEdits: [addUsingEdit]);
+
+        completionItems.Add(razorCompletionItemWithUsing);
     }
 
     private const string BooleanTypeString = "System.Boolean";
@@ -281,6 +378,79 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
             AttributeContext.FullSnippet => AttributeSnippetCommitCharacters,
             _ => throw new InvalidOperationException("Unexpected context"),
         };
+    }
+
+    private static void AddCompletionItemWithRequiredAttributesSnippet(
+        ref PooledArrayBuilder<RazorCompletionItem> completionItems,
+        RazorCompletionContext context,
+        IEnumerable<TagHelperDescriptor> tagHelpers,
+        string displayText,
+        AggregateBoundElementDescription descriptionInfo,
+        ImmutableArray<RazorCommitCharacter> commitChars)
+    {
+        // If snippets are not supported, exit early
+        if (!context.Options.SnippetsSupported)
+        {
+            return;
+        }
+
+        if (TryGetEditorRequiredAttributesSnippet(tagHelpers, displayText, out var snippetText))
+        {
+            var snippetCompletionItem = RazorCompletionItem.CreateTagHelperElement(
+                displayText: SR.FormatComponentCompletionWithRequiredAttributesLabel(displayText),
+                insertText: snippetText,
+                descriptionInfo: descriptionInfo,
+                commitCharacters: commitChars,
+                isSnippet: true);
+
+            completionItems.Add(snippetCompletionItem);
+        }
+    }
+
+    private static bool TryGetEditorRequiredAttributesSnippet(
+        IEnumerable<TagHelperDescriptor> tagHelpers,
+        string tagName,
+        [NotNullWhen(true)] out string? snippetText)
+    {
+        // For components, there should only be one tag helper descriptor per component name
+        // Get EditorRequired attributes from the first component tag helper
+        var componentTagHelper = tagHelpers.FirstOrDefault(th => th.Kind == TagHelperKind.Component);
+        if (componentTagHelper is null)
+        {
+            snippetText = null;
+            return false;
+        }
+
+        var requiredAttributes = componentTagHelper.EditorRequiredAttributes;
+        if (requiredAttributes.Length == 0)
+        {
+            snippetText = null;
+            return false;
+        }
+
+        // Build snippet with placeholders for each required attribute
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        builder.Append(tagName);
+
+        var tabStopIndex = 1;
+        foreach (var attribute in requiredAttributes)
+        {
+            builder.Append(' ');
+            builder.Append(attribute.Name);
+            builder.Append("=\"$");
+            builder.Append(tabStopIndex);
+            builder.Append('"');
+
+            tabStopIndex++;
+        }
+
+        // Add final tab stop for the element content
+        builder.Append(">$0</");
+        builder.Append(tagName);
+        builder.Append('>');
+
+        snippetText = builder.ToString();
+        return true;
     }
 
     private enum AttributeContext

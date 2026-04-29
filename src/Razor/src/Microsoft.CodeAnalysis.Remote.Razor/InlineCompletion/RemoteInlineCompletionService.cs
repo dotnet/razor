@@ -1,9 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
@@ -33,14 +32,14 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
     public async ValueTask<InlineCompletionRequestInfo?> GetInlineCompletionInfoAsync(RemoteDocumentContext context, LinePosition linePosition, CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(linePosition, out var hostDocumentPosition))
         {
             return null;
         }
 
-        if (!_documentMappingService.TryMapToGeneratedDocumentPosition(csharpDocument, hostDocumentPosition, out var mappedPosition, out _))
+        if (!_documentMappingService.TryMapToCSharpDocumentPosition(csharpDocument, hostDocumentPosition, out var mappedPosition, out _))
         {
             return null;
         }
@@ -61,16 +60,16 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
     private async ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RemoteDocumentContext context, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
-        if (!_documentMappingService.TryMapToHostDocumentRange(csharpDocument, span, out var razorRange))
+        if (!_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, span, out var razorRange))
         {
             return null;
         }
 
         var hostDocumentIndex = codeDocument.Source.Text.GetRequiredAbsoluteIndex(razorRange.End);
 
-        var formattingContext = FormattingContext.Create(context.Snapshot, codeDocument, options, useNewFormattingEngine: false);
+        var formattingContext = FormattingContext.Create(context.Snapshot, codeDocument, options, logger: null);
         if (!SnippetFormatter.TryGetSnippetWithAdjustedIndentation(formattingContext, text, hostDocumentIndex, out var newSnippetText))
         {
             return null;

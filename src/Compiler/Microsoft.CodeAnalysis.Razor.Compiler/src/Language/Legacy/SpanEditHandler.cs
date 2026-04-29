@@ -5,22 +5,42 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class SpanEditHandler
 {
+    internal static readonly Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> NoTokenizer = _ => [];
+
+    private static readonly ImmutableArray<SpanEditHandler> s_defaultEditHandlers =
+    [
+        // AcceptedCharactersInternal consists up of 3 bit flags.
+        // So, there are 8 possible combinations from 0 to 7.
+        CreateDefault(NoTokenizer, AcceptedCharactersInternal.None),
+        CreateDefault(NoTokenizer, (AcceptedCharactersInternal)1),
+        CreateDefault(NoTokenizer, (AcceptedCharactersInternal)2),
+        CreateDefault(NoTokenizer, (AcceptedCharactersInternal)3),
+        CreateDefault(NoTokenizer, (AcceptedCharactersInternal)4),
+        CreateDefault(NoTokenizer, (AcceptedCharactersInternal)5),
+        CreateDefault(NoTokenizer, (AcceptedCharactersInternal)6),
+        CreateDefault(NoTokenizer, (AcceptedCharactersInternal)7)
+    ];
+
     private static readonly int TypeHashCode = typeof(SpanEditHandler).GetHashCode();
 
     public required AcceptedCharactersInternal AcceptedCharacters { get; init; }
     public required Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> Tokenizer { get; init; }
 
-    public static SpanEditHandler CreateDefault(AcceptedCharactersInternal acceptedCharacters)
+    public static SpanEditHandler GetDefault(AcceptedCharactersInternal acceptedCharacters)
     {
-        return CreateDefault(static c => Enumerable.Empty<Syntax.InternalSyntax.SyntaxToken>(), acceptedCharacters);
+        var index = (int)acceptedCharacters;
+
+        ArgHelper.ThrowIfNegative(index, nameof(acceptedCharacters));
+        ArgHelper.ThrowIfGreaterThanOrEqual(index, 8, nameof(acceptedCharacters));
+
+        return s_defaultEditHandlers[index];
     }
 
     public static SpanEditHandler CreateDefault(Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> tokenizer, AcceptedCharactersInternal acceptedCharacters)
@@ -75,43 +95,17 @@ internal class SpanEditHandler
             builder.Add(token);
         }
 
-        SyntaxNode newTarget = null;
-        if (target is RazorMetaCodeSyntax metaCode)
+        var newTarget = target switch
         {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.RazorMetaCode(builder.ToList(), metaCode.ChunkGenerator).CreateRed(target.Parent, target.Position);
-        }
-        else if (target is MarkupTextLiteralSyntax markupLiteral)
-        {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.MarkupTextLiteral(builder.ToList(), markupLiteral.ChunkGenerator).CreateRed(target.Parent, target.Position);
-        }
-        else if (target is MarkupEphemeralTextLiteralSyntax ephemeral)
-        {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.MarkupEphemeralTextLiteral(builder.ToList(), ephemeral.ChunkGenerator).CreateRed(target.Parent, target.Position);
-        }
-        else if (target is CSharpStatementLiteralSyntax statement)
-        {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.CSharpStatementLiteral(builder.ToList(), statement.ChunkGenerator).CreateRed(target.Parent, target.Position);
-        }
-        else if (target is CSharpExpressionLiteralSyntax expression)
-        {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), expression.ChunkGenerator).CreateRed(target.Parent, target.Position);
-        }
-        else if (target is CSharpEphemeralTextLiteralSyntax cSharpEphemeral)
-        {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.CSharpEphemeralTextLiteral(builder.ToList(), cSharpEphemeral.ChunkGenerator).CreateRed(target.Parent, target.Position);
-        }
-        else if (target is UnclassifiedTextLiteralSyntax unclassified)
-        {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.UnclassifiedTextLiteral(builder.ToList(), unclassified.ChunkGenerator).CreateRed(target.Parent, target.Position);
-        }
-        else
-        {
-            Debug.Fail($"The type {target?.GetType().Name} is not a supported span node.");
-        }
-
-        var editHandler = target.GetEditHandler();
-        newTarget = editHandler != null ? newTarget?.WithEditHandler(editHandler) : newTarget;
-
+            RazorMetaCodeSyntax syntax => Syntax.InternalSyntax.SyntaxFactory.RazorMetaCode(builder.ToList(), syntax.ChunkGenerator, syntax.EditHandler).CreateRed(target.Parent, target.Position),
+            MarkupTextLiteralSyntax syntax => Syntax.InternalSyntax.SyntaxFactory.MarkupTextLiteral(builder.ToList(), syntax.ChunkGenerator, syntax.EditHandler).CreateRed(target.Parent, target.Position),
+            MarkupEphemeralTextLiteralSyntax syntax => Syntax.InternalSyntax.SyntaxFactory.MarkupEphemeralTextLiteral(builder.ToList(), syntax.ChunkGenerator, syntax.EditHandler).CreateRed(target.Parent, target.Position),
+            CSharpStatementLiteralSyntax syntax => Syntax.InternalSyntax.SyntaxFactory.CSharpStatementLiteral(builder.ToList(), syntax.ChunkGenerator, syntax.EditHandler).CreateRed(target.Parent, target.Position),
+            CSharpExpressionLiteralSyntax syntax => Syntax.InternalSyntax.SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), syntax.ChunkGenerator, syntax.EditHandler).CreateRed(target.Parent, target.Position),
+            CSharpEphemeralTextLiteralSyntax syntax => Syntax.InternalSyntax.SyntaxFactory.CSharpEphemeralTextLiteral(builder.ToList(), syntax.ChunkGenerator, syntax.EditHandler).CreateRed(target.Parent, target.Position),
+            UnclassifiedTextLiteralSyntax syntax => Syntax.InternalSyntax.SyntaxFactory.UnclassifiedTextLiteral(builder.ToList(), syntax.ChunkGenerator, syntax.EditHandler).CreateRed(target.Parent, target.Position),
+            _ => Assumed.Unreachable<SyntaxNode>($"The type {target?.GetType().Name} is not a supported span node."),
+        };
         return newTarget;
     }
 

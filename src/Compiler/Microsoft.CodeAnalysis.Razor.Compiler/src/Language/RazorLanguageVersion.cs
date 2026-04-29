@@ -25,7 +25,10 @@ public sealed record RazorLanguageVersion : IComparable<RazorLanguageVersion>
     public static readonly RazorLanguageVersion Version_7_0 = new(7, 0);
     public static readonly RazorLanguageVersion Version_8_0 = new(8, 0);
     public static readonly RazorLanguageVersion Version_9_0 = new(9, 0);
+    public static readonly RazorLanguageVersion Version_10_0 = new(10, 0); // Didn't ship anywhere
+    public static readonly RazorLanguageVersion Version_11_0 = new(11, 0);
     public static readonly RazorLanguageVersion Latest = Version_9_0;
+    public static readonly RazorLanguageVersion Preview = Version_11_0;
     public static readonly RazorLanguageVersion Experimental = new(1337, 1337);
 
     private static readonly FrozenDictionary<string, RazorLanguageVersion> s_knownVersions = BuildKnownVersions();
@@ -53,7 +56,10 @@ public sealed record RazorLanguageVersion : IComparable<RazorLanguageVersion>
             ["7.0"] = Version_7_0,
             ["8.0"] = Version_8_0,
             ["9.0"] = Version_9_0,
+            ["10.0"] = Version_10_0,
+            ["11.0"] = Version_11_0,
             ["latest"] = Latest,
+            ["preview"] = Preview,
             ["experimental"] = Experimental,
         };
 
@@ -106,4 +112,11 @@ public sealed record RazorLanguageVersion : IComparable<RazorLanguageVersion>
     public static bool operator <=(RazorLanguageVersion x, RazorLanguageVersion y) => x.CompareTo(y) <= 0;
     public static bool operator >(RazorLanguageVersion x, RazorLanguageVersion y) => x.CompareTo(y) > 0;
     public static bool operator >=(RazorLanguageVersion x, RazorLanguageVersion y) => x.CompareTo(y) >= 0;
+
+    /// <summary>
+    /// Gets the default warning level for this language version.
+    /// The warning level corresponds to the major version number
+    /// (e.g., <see cref="Version_11_0"/> → <c>11</c>).
+    /// </summary>
+    public int GetDefaultWarningLevel() => Major;
 }

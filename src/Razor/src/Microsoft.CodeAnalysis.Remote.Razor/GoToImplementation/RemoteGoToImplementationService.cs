@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +25,8 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
     }
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
+
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
     public ValueTask<RemoteResponse<LspLocation[]?>> GetImplementationAsync(
         JsonSerializableRazorPinnedSolutionInfoWrapper solutionInfo,
@@ -66,11 +68,13 @@ internal sealed class RemoteGoToImplementationService(in ServiceArgs args) : Raz
             .GetGeneratedDocumentAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        var supportsVisualStudioExtensions = _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions;
+
         var locations = await ExternalHandlers.GoToImplementation
             .FindImplementationsAsync(
                 generatedDocument,
                 positionInfo.Position.ToLinePosition(),
-                supportsVisualStudioExtensions: true,
+                supportsVisualStudioExtensions,
                 cancellationToken)
             .ConfigureAwait(false);
 

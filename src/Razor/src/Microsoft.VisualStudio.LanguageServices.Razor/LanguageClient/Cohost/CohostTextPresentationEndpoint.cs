@@ -1,15 +1,14 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -20,15 +19,14 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [ExportCohostStatelessLspService(typeof(CohostTextPresentationEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal class CohostTextPresentationEndpoint(
-    IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
+internal sealed class CohostTextPresentationEndpoint(
+    IIncompatibleProjectService incompatibleProjectService,
     IFilePathService filePathService,
-    LSPRequestInvoker requestInvoker)
-    : AbstractRazorCohostDocumentRequestHandler<VSInternalTextPresentationParams, WorkspaceEdit?>, IDynamicRegistrationProvider
+    IHtmlRequestInvoker requestInvoker)
+    : AbstractCohostDocumentEndpoint<VSInternalTextPresentationParams, WorkspaceEdit?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
-    private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly IFilePathService _filePathService = filePathService;
-    private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
 
     protected override bool MutatesSolutionState => false;
 
@@ -51,41 +49,28 @@ internal class CohostTextPresentationEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalTextPresentationParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override Task<WorkspaceEdit?> HandleRequestAsync(VSInternalTextPresentationParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-        => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
-
-    private async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalTextPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalTextPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (htmlDocument is null)
-        {
-            return null;
-        }
-
-        request.TextDocument = request.TextDocument.WithUri(htmlDocument.Uri);
-
-        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalTextPresentationParams, WorkspaceEdit?>(
-            htmlDocument.Buffer,
+        var workspaceEdit = await _requestInvoker.MakeHtmlLspRequestAsync<VSInternalTextPresentationParams, WorkspaceEdit>(
+            razorDocument,
             VSInternalMethods.TextDocumentTextPresentationName,
-            RazorLSPConstants.HtmlLanguageServerName,
             request,
             cancellationToken).ConfigureAwait(false);
 
-        if (result?.Response is not { } workspaceEdit)
+        if (workspaceEdit is null)
         {
             return null;
         }
 
-        if (!workspaceEdit.TryGetTextDocumentEdits(out var edits))
+        // NOTE: We iterate over just the TextDocumentEdit objects and modify them in place.
+        // We intentionally do NOT create a new WorkspaceEdit here to avoid losing any
+        // CreateFile, RenameFile, or DeleteFile operations that may be in DocumentChanges.
+        foreach (var edit in workspaceEdit.EnumerateTextDocumentEdits())
         {
-            return null;
-        }
-
-        foreach (var edit in edits)
-        {
-            if (_filePathService.IsVirtualHtmlFile(edit.TextDocument.Uri))
+            if (edit.TextDocument.DocumentUri.ParsedUri is { } uri &&
+                _filePathService.IsVirtualHtmlFile(uri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = _filePathService.GetRazorDocumentUri(edit.TextDocument.Uri) };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(_filePathService.GetRazorDocumentUri(uri)) };
             }
         }
 

@@ -8,14 +8,14 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public partial class BoundAttributeDescriptorBuilder
 {
-    internal static readonly ObjectPool<BoundAttributeDescriptorBuilder> Pool = DefaultPool.Create(Policy.Instance);
+    internal static readonly ObjectPool<BoundAttributeDescriptorBuilder> Pool =
+        DefaultPool.Create(static () => new BoundAttributeDescriptorBuilder());
 
-    internal static BoundAttributeDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent, string kind)
+    internal static BoundAttributeDescriptorBuilder GetInstance(TagHelperDescriptorBuilder parent)
     {
         var builder = Pool.Get();
 
         builder._parent = parent;
-        builder._kind = kind;
 
         return builder;
     }
@@ -23,31 +23,18 @@ public partial class BoundAttributeDescriptorBuilder
     private protected override void Reset()
     {
         _parent = null;
-        _kind = null;
+        _flags = 0;
+        _typeNameObject = default;
+        _indexerTypeNameObject = default;
         _documentationObject = default;
-        _caseSensitive = null;
+        _metadataObject = null;
+        _caseSensitiveSet = false;
 
         Name = null;
-        TypeName = null;
-        IsEnum = false;
-        IsDictionary = false;
-        IsEditorRequired = false;
+        PropertyName = null;
         IndexerAttributeNamePrefix = null;
-        IndexerValueTypeName = null;
         DisplayName = null;
         ContainingType = null;
         Parameters.Clear();
-        _metadata.Clear();
-    }
-
-    private sealed class Policy : PooledBuilderPolicy<BoundAttributeDescriptorBuilder>
-    {
-        public static readonly Policy Instance = new();
-
-        private Policy()
-        {
-        }
-
-        public override BoundAttributeDescriptorBuilder Create() => new();
     }
 }

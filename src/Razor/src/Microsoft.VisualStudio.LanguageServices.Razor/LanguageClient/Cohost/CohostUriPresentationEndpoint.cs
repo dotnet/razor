@@ -1,17 +1,16 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -22,17 +21,16 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [ExportCohostStatelessLspService(typeof(CohostUriPresentationEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
-internal class CohostUriPresentationEndpoint(
+internal sealed class CohostUriPresentationEndpoint(
+    IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
-    IHtmlDocumentSynchronizer htmlDocumentSynchronizer,
     IFilePathService filePathService,
-    LSPRequestInvoker requestInvoker)
-    : AbstractRazorCohostDocumentRequestHandler<VSInternalUriPresentationParams, WorkspaceEdit?>, IDynamicRegistrationProvider
+    IHtmlRequestInvoker requestInvoker)
+    : AbstractCohostDocumentEndpoint<VSInternalUriPresentationParams, WorkspaceEdit?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
-    private readonly IHtmlDocumentSynchronizer _htmlDocumentSynchronizer = htmlDocumentSynchronizer;
     private readonly IFilePathService _filePathService = filePathService;
-    private readonly LSPRequestInvoker _requestInvoker = requestInvoker;
+    private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
 
     protected override bool MutatesSolutionState => false;
 
@@ -55,10 +53,7 @@ internal class CohostUriPresentationEndpoint(
     protected override RazorTextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalUriPresentationParams request)
         => request.TextDocument.ToRazorTextDocumentIdentifier();
 
-    protected override Task<WorkspaceEdit?> HandleRequestAsync(VSInternalUriPresentationParams request, RazorCohostRequestContext context, CancellationToken cancellationToken)
-        => HandleRequestAsync(request, context.TextDocument.AssumeNotNull(), cancellationToken);
-
-    private async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalUriPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalUriPresentationParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteUriPresentationService, RemoteResponse<TextChange?>>(
             razorDocument.Project.Solution,
@@ -78,7 +73,7 @@ internal class CohostUriPresentationEndpoint(
                     {
                         TextDocument = new()
                         {
-                            Uri = request.TextDocument.Uri
+                            DocumentUri = request.TextDocument.DocumentUri
                         },
                         Edits = [sourceText.GetTextEdit(textChange)]
                     }
@@ -92,41 +87,31 @@ internal class CohostUriPresentationEndpoint(
             return null;
         }
 
-        var htmlDocument = await _htmlDocumentSynchronizer.TryGetSynchronizedHtmlDocumentAsync(razorDocument, cancellationToken).ConfigureAwait(false);
-        if (htmlDocument is null)
-        {
-            return null;
-        }
-
-        request.TextDocument = request.TextDocument.WithUri(htmlDocument.Uri);
-
-        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalUriPresentationParams, WorkspaceEdit?>(
-            htmlDocument.Buffer,
+        var workspaceEdit = await _requestInvoker.MakeHtmlLspRequestAsync<VSInternalUriPresentationParams, WorkspaceEdit>(
+            razorDocument,
             VSInternalMethods.TextDocumentUriPresentationName,
-            RazorLSPConstants.HtmlLanguageServerName,
             request,
             cancellationToken).ConfigureAwait(false);
 
         // TODO: We _really_ should go back to OOP to remap the response to razor, but the fact is, Razor and Html are 1:1 mappings, so we're
         //       just adjusting Uris, and we don't need OOP for that. If we ever do proper Html mapping then this will not be true.
 
-        if (result?.Response is not { } workspaceEdit)
+        if (workspaceEdit is null)
         {
             return null;
         }
 
-        if (!workspaceEdit.TryGetTextDocumentEdits(out var edits))
-        {
-            return null;
-        }
-
+        // NOTE: We iterate over just the TextDocumentEdit objects and modify them in place.
+        // We intentionally do NOT create a new WorkspaceEdit here to avoid losing any
+        // CreateFile, RenameFile, or DeleteFile operations that may be in DocumentChanges.
         // TODO: We could have a helper service for this, because RazorDocumentMappingService used to do it, but we can't use that in devenv,
         //       but if we move this all to OOP, per the above TODO, then that point is moot.
-        foreach (var edit in edits)
+        foreach (var edit in workspaceEdit.EnumerateTextDocumentEdits())
         {
-            if (_filePathService.IsVirtualHtmlFile(edit.TextDocument.Uri))
+            if (edit.TextDocument.DocumentUri.ParsedUri is { } uri &&
+                _filePathService.IsVirtualHtmlFile(uri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = _filePathService.GetRazorDocumentUri(edit.TextDocument.Uri) };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(_filePathService.GetRazorDocumentUri(uri)) };
             }
         }
 

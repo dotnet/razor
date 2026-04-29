@@ -9,8 +9,8 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class FileKinds
 {
-    private const string ComponentFileExtension = ".razor";
-    private const string LegacyFileExtension = ".cshtml";
+    public const string ComponentFileExtension = ".razor";
+    public const string LegacyFileExtension = ".cshtml";
 
     /// <summary>
     ///  Returns <see langword="true"/> if the specified value represents a component or component import.
@@ -40,7 +40,7 @@ public static class FileKinds
 
         var fileName = Path.GetFileName(filePath);
 
-        if (string.Equals(ComponentMetadata.ImportsFileName, fileName, StringComparison.Ordinal))
+        if (string.Equals(ComponentHelpers.ImportsFileName, fileName, StringComparison.Ordinal))
         {
             fileKind = RazorFileKind.ComponentImport;
             return true;

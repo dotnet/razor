@@ -1,12 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
@@ -16,100 +15,179 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
     public void SimpleTagHelpers()
     {
         // Arrange
-        var descriptors = new[]
-        {
-                CreateTagHelperDescriptor(
-                    tagName: "input",
-                    typeName: "InputTagHelper",
-                    assemblyName: "TestAssembly")
-            };
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly")
+        ];
 
-        var projectEngine = CreateProjectEngine(builder => builder.AddTagHelpers(descriptors));
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
         var projectItem = CreateProjectItemFromFile();
 
         // Act
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
     }
 
     [Fact]
     public void TagHelpersWithBoundAttributes()
     {
         // Arrange
-        var descriptors = new[]
-        {
-                CreateTagHelperDescriptor(
-                    tagName: "input",
-                    typeName: "InputTagHelper",
-                    assemblyName: "TestAssembly",
-                    attributes: new Action<BoundAttributeDescriptorBuilder>[]
-                    {
-                        builder => builder
-                            .Name("bound")
-                            .Metadata(PropertyName("FooProp"))
-                            .TypeName("System.String"),
-                    })
-            };
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly",
+                attributes:
+                [
+                    builder => builder
+                        .Name("bound")
+                        .PropertyName("FooProp")
+                        .TypeName("System.String"),
+                ])
+        ];
 
-        var projectEngine = CreateProjectEngine(builder => builder.AddTagHelpers(descriptors));
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
         var projectItem = CreateProjectItemFromFile();
 
         // Act
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
     }
 
     [Fact]
     public void NestedTagHelpers()
     {
         // Arrange
-        var descriptors = new[]
-        {
-                CreateTagHelperDescriptor(
-                    tagName: "p",
-                    typeName: "PTagHelper",
-                    assemblyName: "TestAssembly"),
-                CreateTagHelperDescriptor(
-                    tagName: "form",
-                    typeName: "FormTagHelper",
-                    assemblyName: "TestAssembly"),
-                CreateTagHelperDescriptor(
-                    tagName: "input",
-                    typeName: "InputTagHelper",
-                    assemblyName: "TestAssembly",
-                    attributes: new Action<BoundAttributeDescriptorBuilder>[]
-                    {
-                        builder => builder
-                            .Name("value")
-                            .Metadata(PropertyName("FooProp"))
-                            .TypeName("System.String"),
-                    })
-            };
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "p",
+                typeName: "PTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "form",
+                typeName: "FormTagHelper",
+                assemblyName: "TestAssembly"),
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly",
+                attributes:
+                [
+                    builder => builder
+                        .Name("value")
+                        .PropertyName("FooProp")
+                        .TypeName("System.String"),
+                ])
+        ];
 
-        var projectEngine = CreateProjectEngine(builder => builder.AddTagHelpers(descriptors));
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
         var projectItem = CreateProjectItemFromFile();
 
         // Act
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        var irTree = codeDocument.GetDocumentIntermediateNode();
-        AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
+        AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
+    }
+
+    [Fact]
+    public void AddTagHelperDirective_IsUnused_WhenNoTagHelpersReferenced()
+    {
+        // Arrange
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly")
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <div>Hello</div>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        Assert.False(codeDocument.IsDirectiveUsed(addTagHelperDirective));
+    }
+
+    [Fact]
+    public void AddTagHelperDirective_IsUsed_WhenTagHelperReferenced()
+    {
+        // Arrange
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly")
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <input />
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        Assert.True(codeDocument.IsDirectiveUsed(addTagHelperDirective));
+    }
+
+    [Fact]
+    public void AddTagHelperDirective_StoresDirectiveTagHelperContributions()
+    {
+        // Arrange
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "input",
+                typeName: "InputTagHelper",
+                assemblyName: "TestAssembly")
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <div>Hello</div>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert
+        var addTagHelperDirective = codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<BaseRazorDirectiveSyntax>().Single();
+        var contributions = codeDocument.GetDirectiveTagHelperContributions();
+        var contribution = Assert.Single(contributions);
+        Assert.Equal(addTagHelperDirective.SpanStart, contribution.DirectiveSpanStart);
+        Assert.NotEmpty(contribution.ContributedTagHelpers);
     }
 
     private static TagHelperDescriptor CreateTagHelperDescriptor(
         string tagName,
         string typeName,
         string assemblyName,
-        IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null)
+        IEnumerable<Action<BoundAttributeDescriptorBuilder>>? attributes = null)
     {
-        var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
-        builder.Metadata(TypeName(typeName));
+        var builder = TagHelperDescriptorBuilder.CreateTagHelper(typeName, assemblyName);
+        builder.SetTypeName(typeName, typeNamespace: null, typeNameIdentifier: null);
 
         if (attributes != null)
         {

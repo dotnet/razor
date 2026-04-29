@@ -15,14 +15,14 @@ public class RuntimeNodeWriterTest : RazorProjectEngineTestBase
 
     protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorIntermediateNodeLoweringPhase>();
+        processor.ExecutePhasesThrough<DefaultTagHelperResolutionPhase>();
     }
 
     [Fact]
     public void WriteUsingDirective_NoSource_WritesContent()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new UsingDirectiveIntermediateNode()
@@ -46,7 +46,7 @@ public class RuntimeNodeWriterTest : RazorProjectEngineTestBase
     public void WriteUsingDirective_WithSource_WritesContentWithLinePragma()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new UsingDirectiveIntermediateNode()
@@ -77,7 +77,7 @@ using System
     public void WriteUsingDirective_WithSourceAndLineDirectives_WritesContentWithLinePragmaAndMapping()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new UsingDirectiveIntermediateNode()
@@ -111,20 +111,13 @@ using System
     public void WriteCSharpExpression_SkipsLinePragma_WithoutSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            WriteCSharpExpressionMethod = "Test"
-        };
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
-        builder.Add(new IntermediateToken()
-        {
-            Content = "i++",
-            Kind = TokenKind.CSharp
-        });
+        builder.Add(IntermediateNodeFactory.CSharpToken("i++"));
 
         // Act
         writer.WriteCSharpExpression(context, node);
@@ -132,8 +125,7 @@ using System
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"Test(
-i++);
+@"Write(i++);
 ",
             csharp,
             ignoreLineEndingDifferences: true);
@@ -143,21 +135,13 @@ i++);
     public void WriteCSharpExpression_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            WriteCSharpExpressionMethod = "Test"
-        };
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
-        builder.Add(new IntermediateToken()
-        {
-            Content = "i++",
-            Kind = TokenKind.CSharp,
-            Source = new SourceSpan("test.cshtml", 0, 0, 0, 3, 0, 3)
-        });
+        builder.Add(IntermediateNodeFactory.CSharpToken("i++", new SourceSpan("test.cshtml", 0, 0, 0, 3, 0, 3)));
 
         // Act
         writer.WriteCSharpExpression(context, node);
@@ -165,10 +149,10 @@ i++);
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"Test(
+@"
 #nullable restore
-#line (1,1)-(1,4) ""test.cshtml""
-i++
+#line (1,1)-(1,4) 6 ""test.cshtml""
+Write(i++
 
 #line default
 #line hidden
@@ -183,28 +167,17 @@ i++
     public void WriteCSharpExpression_WithExtensionNode_WritesPadding()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            WriteCSharpExpressionMethod = "Test"
-        };
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
-        builder.Add(new IntermediateToken()
-        {
-            Content = "i",
-            Kind = TokenKind.CSharp
-        });
+        builder.Add(IntermediateNodeFactory.CSharpToken("i"));
 
         builder.Add(new MyExtensionIntermediateNode());
 
-        builder.Add(new IntermediateToken()
-        {
-            Content = "++",
-            Kind = TokenKind.CSharp
-        });
+        builder.Add(IntermediateNodeFactory.CSharpToken("++"));
 
         // Act
         writer.WriteCSharpExpression(context, node);
@@ -212,8 +185,7 @@ i++
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"Test(
-iRender Children
+@"Write(iRender Children
 ++);
 ",
             csharp,
@@ -224,30 +196,17 @@ iRender Children
     public void WriteCSharpExpression_WithSource_WritesPadding()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            WriteCSharpExpressionMethod = "Test"
-        };
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpExpressionIntermediateNode();
         var builder = IntermediateNodeBuilder.Create(node);
-        builder.Add(new IntermediateToken()
-        {
-            Content = "i",
-            Kind = TokenKind.CSharp,
-            Source = new SourceSpan("test.cshtml", 0, 0, 0, 1, 0, 1)
-        });
+        builder.Add(IntermediateNodeFactory.CSharpToken("i", new SourceSpan("test.cshtml", 0, 0, 0, 1, 0, 1)));
 
         builder.Add(new MyExtensionIntermediateNode());
 
-        builder.Add(new IntermediateToken()
-        {
-            Content = "++",
-            Kind = TokenKind.CSharp,
-            Source = new SourceSpan("test.cshtml", 2, 0, 2, 2, 0, 4)
-        });
+        builder.Add(IntermediateNodeFactory.CSharpToken("++", new SourceSpan("test.cshtml", 2, 0, 2, 2, 0, 4)));
 
         // Act
         writer.WriteCSharpExpression(context, node);
@@ -255,10 +214,10 @@ iRender Children
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"Test(
+@"
 #nullable restore
-#line (1,1)-(1,2) ""test.cshtml""
-i
+#line (1,1)-(1,2) 6 ""test.cshtml""
+Write(i
 
 #line default
 #line hidden
@@ -281,16 +240,12 @@ Render Children
     public void WriteCSharpCode_WhitespaceContent_DoesNothing()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
         IntermediateNodeBuilder.Create(node)
-            .Add(new IntermediateToken()
-            {
-                Kind = TokenKind.CSharp,
-                Content = "  \t"
-            });
+            .Add(IntermediateNodeFactory.CSharpToken("  \t"));
 
         // Act
         writer.WriteCSharpCode(context, node);
@@ -304,16 +259,12 @@ Render Children
     public void WriteCSharpCode_SkipsLinePragma_WithoutSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
         IntermediateNodeBuilder.Create(node)
-            .Add(new IntermediateToken()
-            {
-                Kind = TokenKind.CSharp,
-                Content = "if (true) { }"
-            });
+            .Add(IntermediateNodeFactory.CSharpToken("if (true) { }"));
 
         // Act
         writer.WriteCSharpCode(context, node);
@@ -331,17 +282,12 @@ Render Children
     public void WriteCSharpCode_WritesLinePragma_WithSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
         IntermediateNodeBuilder.Create(node)
-            .Add(new IntermediateToken()
-            {
-                Kind = TokenKind.CSharp,
-                Content = "if (true) { }",
-                Source = new SourceSpan("test.cshtml", 0, 0, 0, 13)
-            });
+            .Add(IntermediateNodeFactory.CSharpToken("if (true) { }", new SourceSpan("test.cshtml", 0, 0, 0, 13)));
 
         // Act
         writer.WriteCSharpCode(context, node);
@@ -367,17 +313,12 @@ if (true) { }
     public void WriteCSharpCode_WritesPadding_WithSource()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new CSharpCodeIntermediateNode();
         IntermediateNodeBuilder.Create(node)
-            .Add(new IntermediateToken()
-            {
-                Kind = TokenKind.CSharp,
-                Content = "    if (true) { }",
-                Source = new SourceSpan("test.cshtml", 0, 0, 0, 17)
-            });
+            .Add(IntermediateNodeFactory.CSharpToken("    if (true) { }", new SourceSpan("test.cshtml", 0, 0, 0, 17)));
 
         // Act
         writer.WriteCSharpCode(context, node);
@@ -403,11 +344,11 @@ if (true) { }
     public void WriteHtmlLiteral_WithinMaxSize_WritesSingleLiteral()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
-        writer.WriteHtmlLiteral(context, maxStringLiteralLength: 6, "Hello");
+        writer.WriteHtmlLiteral(context, maxStringLiteralLength: 6, "Hello".AsMemory());
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -422,11 +363,11 @@ if (true) { }
     public void WriteHtmlLiteral_GreaterThanMaxSize_WritesMultipleLiterals()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
-        writer.WriteHtmlLiteral(context, maxStringLiteralLength: 6, "Hello World");
+        writer.WriteHtmlLiteral(context, maxStringLiteralLength: 6, "Hello World".AsMemory());
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -442,11 +383,11 @@ WriteLiteral(""World"");
     public void WriteHtmlLiteral_GreaterThanMaxSize_SingleEmojisSplit()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
-        writer.WriteHtmlLiteral(context, maxStringLiteralLength: 2, " 👦");
+        writer.WriteHtmlLiteral(context, maxStringLiteralLength: 2, " 👦".AsMemory());
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -462,11 +403,11 @@ WriteLiteral(""👦"");
     public void WriteHtmlLiteral_GreaterThanMaxSize_SequencedZeroWithJoinedEmojisSplit()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         // Act
-        writer.WriteHtmlLiteral(context, maxStringLiteralLength: 6, "👩‍👩‍👧‍👧👩‍👩‍👧‍👧");
+        writer.WriteHtmlLiteral(context, maxStringLiteralLength: 6, "👩‍👩‍👧‍👧👩‍👩‍👧‍👧".AsMemory());
 
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
@@ -484,15 +425,11 @@ WriteLiteral(""👧‍👧"");
     public void WriteHtmlContent_RendersContentCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new HtmlContentIntermediateNode();
-        node.Children.Add(new IntermediateToken()
-        {
-            Content = "SomeContent",
-            Kind = TokenKind.Html,
-        });
+        node.Children.Add(IntermediateNodeFactory.HtmlToken("SomeContent"));
 
         // Act
         writer.WriteHtmlContent(context, node);
@@ -510,15 +447,11 @@ WriteLiteral(""👧‍👧"");
     public void WriteHtmlContent_LargeStringLiteral_UsesMultipleWrites()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         using var context = TestCodeRenderingContext.CreateRuntime();
 
         var node = new HtmlContentIntermediateNode();
-        node.Children.Add(new IntermediateToken()
-        {
-            Content = new string('*', 2000),
-            Kind = TokenKind.Html
-        });
+        node.Children.Add(IntermediateNodeFactory.HtmlToken(new string('*', 2000)));
 
         // Act
         writer.WriteHtmlContent(context, node);
@@ -538,13 +471,13 @@ WriteLiteral(@""{1}"");
     public void WriteHtmlAttribute_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single();
+        var node = FindDescendant<HtmlAttributeIntermediateNode>(documentNode);
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -567,13 +500,13 @@ EndWriteAttribute();
     public void WriteHtmlAttributeValue_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[0] as HtmlAttributeValueIntermediateNode;
+        var node = FindDescendant<HtmlAttributeIntermediateNode>(documentNode).Children[0] as HtmlAttributeValueIntermediateNode;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -593,13 +526,13 @@ EndWriteAttribute();
     public void WriteCSharpExpressionAttributeValue_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
         var content = "<input checked=\"hello-world @false\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1] as CSharpExpressionAttributeValueIntermediateNode;
+        var node = FindDescendant<HtmlAttributeIntermediateNode>(documentNode).Children[1] as CSharpExpressionAttributeValueIntermediateNode;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -627,14 +560,14 @@ false
     public void WriteCSharpCodeAttributeValue_BuffersResult()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter();
+        var writer = RuntimeNodeWriter.Instance;
 
         var content = "<input checked=\"hello-world @if(@true){ }\" />";
         var source = TestRazorSourceDocument.Create(content);
         var codeDocument = ProjectEngine.CreateCodeDocument(source);
         var processor = CreateCodeDocumentProcessor(codeDocument);
         var documentNode = processor.GetDocumentNode();
-        var node = documentNode.Children.OfType<HtmlAttributeIntermediateNode>().Single().Children[1] as CSharpCodeAttributeValueIntermediateNode;
+        var node = FindDescendant<HtmlAttributeIntermediateNode>(documentNode).Children[1] as CSharpCodeAttributeValueIntermediateNode;
 
         using var context = TestCodeRenderingContext.CreateRuntime(source: source);
 
@@ -665,10 +598,7 @@ if(@true){ }
     public void BeginWriterScope_UsesSpecifiedWriter_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            PushWriterMethod = "TestPushWriter"
-        };
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -678,7 +608,7 @@ if(@true){ }
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"TestPushWriter(MyWriter);
+@"PushWriter(MyWriter);
 ",
             csharp,
             ignoreLineEndingDifferences: true);
@@ -688,10 +618,7 @@ if(@true){ }
     public void EndWriterScope_RendersCorrectly()
     {
         // Arrange
-        var writer = new RuntimeNodeWriter()
-        {
-            PopWriterMethod = "TestPopWriter"
-        };
+        var writer = RuntimeNodeWriter.Instance;
 
         using var context = TestCodeRenderingContext.CreateRuntime();
 
@@ -701,7 +628,7 @@ if(@true){ }
         // Assert
         var csharp = context.CodeWriter.GetText().ToString();
         Assert.Equal(
-@"TestPopWriter();
+@"PopWriter();
 ",
             csharp,
             ignoreLineEndingDifferences: true);
@@ -722,3 +649,4 @@ if(@true){ }
         }
     }
 }
+

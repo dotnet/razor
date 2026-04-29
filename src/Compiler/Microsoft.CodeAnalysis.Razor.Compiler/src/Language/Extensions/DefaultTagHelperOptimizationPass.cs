@@ -1,21 +1,23 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
-internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRazorOptimizationPass
+internal sealed class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRazorOptimizationPass
 {
     // Run later than default order for user code so other passes have a chance to modify the
     // tag helper nodes.
     public override int Order => DefaultFeatureOrder + 1000;
 
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
+    protected override void ExecuteCore(
+        RazorCodeDocument codeDocument,
+        DocumentIntermediateNode documentNode,
+        CancellationToken cancellationToken)
     {
         var @class = documentNode.FindPrimaryClass();
         if (@class == null)
@@ -155,7 +157,7 @@ internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRaz
         {
             FieldName = context.GetFieldName(tagHelper),
             TagHelper = tagHelper,
-            TypeName = tagHelper.GetTypeName(),
+            TypeName = tagHelper.TypeName,
         });
 
         // Next we need to rewrite any property nodes to use the field and property name for this
@@ -169,7 +171,7 @@ internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRaz
                 node.Children[i] = new DefaultTagHelperPropertyIntermediateNode(propertyNode)
                 {
                     FieldName = context.GetFieldName(tagHelper),
-                    PropertyName = propertyNode.BoundAttribute.GetPropertyName(),
+                    PropertyName = propertyNode.BoundAttribute.PropertyName,
                 };
             }
         }
@@ -195,16 +197,10 @@ internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRaz
 
         context.Class.Children.Insert(i, new FieldDeclarationIntermediateNode()
         {
-            Annotations =
-                {
-                    { CommonAnnotations.DefaultTagHelperExtension.TagHelperField, bool.TrueString },
-                },
-            Modifiers =
-                {
-                    "private",
-                },
-            FieldName = context.GetFieldName(tagHelper),
-            FieldType = "global::" + tagHelper.GetTypeName(),
+            IsTagHelperField = true,
+            Modifiers = CommonModifiers.Private,
+            Name = context.GetFieldName(tagHelper),
+            Type = "global::" + tagHelper.TypeName
         });
     }
 
@@ -254,7 +250,7 @@ internal class DefaultTagHelperOptimizationPass : IntermediateNodePassBase, IRaz
 
         private static string GenerateFieldName(TagHelperDescriptor tagHelper)
         {
-            return "__" + tagHelper.GetTypeName().Replace('.', '_');
+            return "__" + tagHelper.TypeName.Replace('.', '_');
         }
     }
 }

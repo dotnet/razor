@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal class HtmlCodeActionResolver(IEditMappingService editMappingService) : IHtmlCodeActionResolver
+internal class HtmlCodeActionResolver(IRazorEditService razorEditService) : IHtmlCodeActionResolver
 {
-    private readonly IEditMappingService _editMappingService = editMappingService;
+    private readonly IRazorEditService _razorEditService = razorEditService;
 
     public string Action => LanguageServerConstants.CodeActions.Default;
 
@@ -20,7 +20,7 @@ internal class HtmlCodeActionResolver(IEditMappingService editMappingService) : 
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
-        await HtmlCodeActionProvider.RemapAndFixHtmlCodeActionEditAsync(_editMappingService, documentContext.Snapshot, codeAction, cancellationToken).ConfigureAwait(false);
+        await HtmlCodeActionProvider.MapAndFixHtmlCodeActionEditAsync(_razorEditService, documentContext.Snapshot, codeAction, cancellationToken).ConfigureAwait(false);
 
         return codeAction;
     }

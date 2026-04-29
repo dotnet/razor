@@ -9,9 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using static System.StringExtensions;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -119,7 +117,7 @@ public sealed partial class CodeWriter : IDisposable
             if (_indentSize != value)
             {
                 _indentSize = value;
-                _indentString = ComputeIndent(value, IndentWithTabs, TabSize);
+                _indentString = IndentCache.GetIndentString(value, IndentWithTabs, TabSize);
             }
         }
     }
@@ -190,7 +188,7 @@ public sealed partial class CodeWriter : IDisposable
 
         var indentString = size == _indentSize
             ? _indentString
-            : ComputeIndent(size, IndentWithTabs, TabSize);
+            : IndentCache.GetIndentString(size, IndentWithTabs, TabSize);
 
         AddTextChunk(indentString);
 
@@ -199,30 +197,6 @@ public sealed partial class CodeWriter : IDisposable
         _absoluteIndex += indentLength;
 
         return this;
-    }
-
-    private static ReadOnlyMemory<char> ComputeIndent(int size, bool useTabs, int tabSize)
-    {
-        if (size == 0)
-        {
-            return ReadOnlyMemory<char>.Empty;
-        }
-
-        if (useTabs)
-        {
-            var tabCount = size / tabSize;
-            var spaceCount = size % tabSize;
-
-            using var _ = StringBuilderPool.GetPooledObject(out var builder);
-            builder.SetCapacityIfLarger(tabCount + spaceCount);
-
-            builder.Append('\t', tabCount);
-            builder.Append(' ', spaceCount);
-
-            return builder.ToString().AsMemory();
-        }
-
-        return new string(' ', size).AsMemory();
     }
 
     public CodeWriter Write(string value)
@@ -243,6 +217,14 @@ public sealed partial class CodeWriter : IDisposable
         ArgHelper.ThrowIfGreaterThan(startIndex, value.Length - count);
 
         return WriteCore(value.AsMemory(startIndex, count));
+    }
+
+    internal CodeWriter Write<T>(T value)
+        where T : IWriteableValue
+    {
+        value.WriteTo(this);
+
+        return this;
     }
 
     public CodeWriter Write([InterpolatedStringHandlerArgument("")] ref WriteInterpolatedStringHandler handler)
@@ -323,14 +305,20 @@ public sealed partial class CodeWriter : IDisposable
 
     public SourceText GetText()
     {
-        using var reader = new Reader(this);
+        using var reader = new Reader(_pages, Length);
         return SourceText.From(reader, Length, Encoding.UTF8);
     }
 
-    private sealed class Reader(CodeWriter codeWriter) : TextReader
+    // Internal for testing
+    internal static TextReader GetTestTextReader(LinkedList<ReadOnlyMemory<char>[]> pages)
     {
-        private LinkedListNode<ReadOnlyMemory<char>[]>? _page = codeWriter._pages.First;
-        private int _remainingLength = codeWriter.Length;
+        return new Reader(pages, pages.Count);
+    }
+
+    private sealed class Reader(LinkedList<ReadOnlyMemory<char>[]> pages, int length) : TextReader
+    {
+        private LinkedListNode<ReadOnlyMemory<char>[]>? _page = pages.First;
+        private int _remainingLength = length;
         private int _chunkIndex;
         private int _charIndex;
 
@@ -410,10 +398,10 @@ public sealed partial class CodeWriter : IDisposable
 
             if (_page is null)
             {
-                return -1;
+                return 0;
             }
 
-            var destination = buffer.AsSpan(index);
+            var destination = buffer.AsSpan(index, count);
             var charsWritten = 0;
 
             var page = _page;
@@ -430,6 +418,12 @@ public sealed partial class CodeWriter : IDisposable
 
                 foreach (var chunk in chunks)
                 {
+                    if (destination.IsEmpty)
+                    {
+                        // If we have no more space in the destination, we're done.
+                        break;
+                    }
+
                     var source = chunk.Span;
 
                     // Slice if the first chunk is partial. Note that this only occurs for the first chunk.
@@ -443,38 +437,28 @@ public sealed partial class CodeWriter : IDisposable
                         }
                     }
 
-                    var endOfChunkWritten = true;
-
                     // Are we about to write past the end of the buffer? If so, adjust source.
                     // This will be the last chunk we write, so be sure to update charIndex.
                     if (source.Length > destination.Length)
                     {
                         source = source[..destination.Length];
                         charIndex += source.Length;
+                    }
+                    else
+                    {
+                        chunkIndex++;
+                        charIndex = 0;
+                    }
 
-                        // There's more to this chunk to write! Note this so that we don't update
-                        // chunkIndex later.
-                        endOfChunkWritten = false;
+                    if (source.IsEmpty)
+                    {
+                        continue;
                     }
 
                     source.CopyTo(destination);
                     destination = destination[source.Length..];
 
                     charsWritten += source.Length;
-
-                    // Be careful not to increment chunkIndex unless we actually wrote to the end of the chunk.
-                    if (endOfChunkWritten)
-                    {
-                        chunkIndex++;
-                    }
-
-                    // Break if we are done writing. chunkIndex and charIndex should have their correct values at this point.
-                    if (destination.IsEmpty)
-                    {
-                        break;
-                    }
-
-                    charIndex = 0;
                 }
 
                 if (destination.IsEmpty)
@@ -501,6 +485,8 @@ public sealed partial class CodeWriter : IDisposable
                 _charIndex = -1;
             }
 
+            _remainingLength -= charsWritten;
+
             return charsWritten;
         }
 
@@ -511,7 +497,7 @@ public sealed partial class CodeWriter : IDisposable
                 return string.Empty;
             }
 
-            var result = CreateString(_remainingLength, (_page, _chunkIndex, _charIndex), static (destination, state) =>
+            var result = string.Create(_remainingLength, (_page, _chunkIndex, _charIndex), static (destination, state) =>
             {
                 var (page, chunkIndex, charIndex) = state;
 
@@ -555,6 +541,7 @@ public sealed partial class CodeWriter : IDisposable
             _page = null;
             _chunkIndex = -1;
             _charIndex = 1;
+            _remainingLength = 0;
 
             return result;
         }

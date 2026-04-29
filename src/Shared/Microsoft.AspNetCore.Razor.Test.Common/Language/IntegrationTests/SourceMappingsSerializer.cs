@@ -13,11 +13,11 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public static class SourceMappingsSerializer
 {
-    internal static string Serialize(IRazorGeneratedDocument csharpDocument, RazorSourceDocument sourceDocument)
+    internal static string Serialize(RazorCSharpDocument csharpDocument, RazorSourceDocument sourceDocument)
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-        foreach (var sourceMapping in csharpDocument.SourceMappings)
+        foreach (var sourceMapping in csharpDocument.SourceMappingsSortedByGenerated)
         {
             builder.Append("Source Location: ");
             var sourceCode = GetCodeForSpan(sourceMapping.OriginalSpan, sourceDocument.Text);

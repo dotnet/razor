@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -30,10 +31,15 @@ internal sealed class OOPCodeActionResolveService(
     [ImportMany] IEnumerable<IRazorCodeActionResolver> razorCodeActionResolvers,
     [ImportMany] IEnumerable<ICSharpCodeActionResolver> csharpCodeActionResolvers,
     [ImportMany] IEnumerable<IHtmlCodeActionResolver> htmlCodeActionResolvers,
+    IClientSettingsManager clientSettingsManager,
     ILoggerFactory loggerFactory)
-    : CodeActionResolveService(razorCodeActionResolvers, csharpCodeActionResolvers, htmlCodeActionResolvers, loggerFactory);
+    : CodeActionResolveService(razorCodeActionResolvers, csharpCodeActionResolvers, htmlCodeActionResolvers, clientSettingsManager, loggerFactory);
 
 // Code Action Providers
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPExtractToCssCodeActionProvider(ILoggerFactory loggerFactory) : ExtractToCssCodeActionProvider(loggerFactory);
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
 [method: ImportingConstructor]
@@ -43,17 +49,32 @@ internal sealed class OOPExtractToCodeBehindCodeActionProvider(ILoggerFactory lo
 internal sealed class OOPExtractToComponentCodeActionProvider : ExtractToComponentCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class OOPSimplifyTagToSelfClosingCodeActionProvider : SimplifyTagToSelfClosingCodeActionProvider;
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class OOPSimplifyFullyQualifiedComponentCodeActionProvider : SimplifyFullyQualifiedComponentCodeActionProvider;
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPComponentAccessibilityCodeActionProvider(IFileSystem fileSystem) : ComponentAccessibilityCodeActionProvider(fileSystem);
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
-internal sealed class OOPGenerateMethodCodeActionProvider : GenerateMethodCodeActionProvider;
+internal sealed class OOPUnboundDirectiveAttributeAddUsingCodeActionProvider : UnboundDirectiveAttributeAddUsingCodeActionProvider;
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class OOPGenerateEventHandlerCodeActionProvider : GenerateEventHandlerCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPPromoteUsingDirectiveCodeActionProvider : PromoteUsingCodeActionProvider;
 
 [Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class OOPRemoveUnnecessaryDirectivesCodeActionProvider : RemoveUnnecessaryDirectivesCodeActionProvider;
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
 internal sealed class OOPWrapAttributesCodeActionProvider : WrapAttributesCodeActionProvider;
+
+[Export(typeof(IRazorCodeActionProvider)), Shared]
+internal sealed class OOPSortAndConsolidateUsingsCodeActionProvider : SortAndConsolidateUsingsCodeActionProvider;
 
 [Export(typeof(ICSharpCodeActionProvider)), Shared]
 internal sealed class OOPTypeAccessibilityCodeActionProvider : TypeAccessibilityCodeActionProvider;
@@ -64,9 +85,14 @@ internal sealed class OOPDefaultCSharpCodeActionProvider(LanguageServerFeatureOp
 
 [Export(typeof(IHtmlCodeActionProvider)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPDefaultHtmlCodeActionProvider(IEditMappingService editMappingService) : HtmlCodeActionProvider(editMappingService);
+internal sealed class OOPDefaultHtmlCodeActionProvider(IRazorEditService razorEditService) : HtmlCodeActionProvider(razorEditService);
 
 // Code Action Resolvers
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+[method: ImportingConstructor]
+internal sealed class OOPExtractToCssCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions, IFileSystem fileSystem)
+    : ExtractToCssCodeActionResolver(languageServerFeatureOptions, fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
@@ -80,6 +106,12 @@ internal sealed class OOPExtractToCodeBehindCodeActionResolver(
 internal sealed class OOPExtractToComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : ExtractToComponentCodeActionResolver(languageServerFeatureOptions);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class OOPSimplifyTagToSelfClosingCodeActionResolver : SimplifyTagToSelfClosingCodeActionResolver;
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class OOPSimplifyFullyQualifiedComponentCodeActionResolver : SimplifyFullyQualifiedComponentCodeActionResolver;
+
+[Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
 internal sealed class OOPCreateComponentCodeActionResolver(LanguageServerFeatureOptions languageServerFeatureOptions) : CreateComponentCodeActionResolver(languageServerFeatureOptions);
 
@@ -88,23 +120,20 @@ internal sealed class OOPAddUsingsCodeActionResolver : AddUsingsCodeActionResolv
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPGenerateMethodCodeActionResolver(
-    IRoslynCodeActionHelpers roslynCodeActionHelpers,
-    IDocumentMappingService documentMappingService,
-    IRazorFormattingService razorFormattingService,
-    IFileSystem fileSystem)
-    : GenerateMethodCodeActionResolver(roslynCodeActionHelpers, documentMappingService, razorFormattingService, fileSystem);
+internal sealed class OOPPromoteUsingDirectiveCodeActionResolver(IFileSystem fileSystem) : PromoteUsingCodeActionResolver(fileSystem);
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
-[method: ImportingConstructor]
-internal sealed class OOPPromoteUsingDirectiveCodeActionResolver(IFileSystem fileSystem) : PromoteUsingCodeActionResolver(fileSystem);
+internal sealed class OOPRemoveUnnecessaryDirectivesCodeActionResolver : RemoveUnnecessaryDirectivesCodeActionResolver;
 
 [Export(typeof(IRazorCodeActionResolver)), Shared]
 internal sealed class OOPWrapAttributesCodeActionResolver : WrapAttributesCodeActionResolver;
 
+[Export(typeof(IRazorCodeActionResolver)), Shared]
+internal sealed class OOPSortAndConsolidateUsingsCodeActionResolver : SortAndConsolidateUsingsCodeActionResolver;
+
 [Export(typeof(ICSharpCodeActionResolver)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPCSharpCodeActionResolver(IRazorFormattingService razorFormattingService) : CSharpCodeActionResolver(razorFormattingService);
+internal sealed class OOPCSharpCodeActionResolver(IRazorFormattingService razorFormattingService, IClientSettingsManager clientSettingsManager) : CSharpCodeActionResolver(razorFormattingService, clientSettingsManager);
 
 [Export(typeof(ICSharpCodeActionResolver)), Shared]
 [method: ImportingConstructor]
@@ -112,4 +141,4 @@ internal sealed class OOPUnformattedRemappingCSharpCodeActionResolver(IDocumentM
 
 [Export(typeof(IHtmlCodeActionResolver)), Shared]
 [method: ImportingConstructor]
-internal sealed class OOPHtmlCodeActionResolver(IEditMappingService editMappingService) : HtmlCodeActionResolver(editMappingService);
+internal sealed class OOPHtmlCodeActionResolver(IRazorEditService razorEditService) : HtmlCodeActionResolver(razorEditService);

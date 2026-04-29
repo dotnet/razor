@@ -1,13 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test.Extensions;
 
@@ -17,9 +15,9 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     public void GetLanguageKind_TagHelperElementOwnsName()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
+        descriptor.TypeName = "TestTagHelper";
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
-        descriptor.SetMetadata(TypeName("TestTagHelper"));
 
         TestCode code = """
             @addTagHelper *, TestAssembly
@@ -39,9 +37,9 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     public void GetLanguageKind_TagHelpersDoNotOwnTrailingEdge()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
+        descriptor.TypeName = "TestTagHelper";
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
-        descriptor.SetMetadata(TypeName("TestTagHelper"));
 
         TestCode code = """
             @addTagHelper *, TestAssembly
@@ -61,15 +59,15 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     public void GetLanguageKind_TagHelperNestedCSharpAttribute()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
+        descriptor.TypeName = "TestTagHelper";
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
         descriptor.BindAttribute(builder =>
         {
             builder.Name = "asp-int";
             builder.TypeName = typeof(int).FullName;
-            builder.SetMetadata(PropertyName("AspInt"));
+            builder.PropertyName = "AspInt";
         });
-        descriptor.SetMetadata(TypeName("TestTagHelper"));
 
         TestCode code = """
             @addTagHelper *, TestAssembly
@@ -272,6 +270,34 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     }
 
     [Fact]
+    public void GetLanguageKind_HtmlAtCSharpBraceLeftAssociative()
+    {
+        // Arrange
+        TestCode code = "@if (true) {$$ <br /> }";
+        var codeDocument = CreateCodeDocument(code);
+
+        // Act
+        var languageKind = codeDocument.GetLanguageKind(code.Position, rightAssociative: false);
+
+        // Assert
+        Assert.Equal(RazorLanguageKind.CSharp, languageKind);
+    }
+
+    [Fact]
+    public void GetLanguageKind_HtmlAtCSharpBraceRightAssociative()
+    {
+        // Arrange
+        TestCode code = "@if (true) {$$ <br /> }";
+        var codeDocument = CreateCodeDocument(code);
+
+        // Act
+        var languageKind = codeDocument.GetLanguageKind(code.Position, rightAssociative: true);
+
+        // Assert
+        Assert.Equal(RazorLanguageKind.Html, languageKind);
+    }
+
+    [Fact]
     public void GetLanguageKind_HtmlInCSharpLeftAssociative()
     {
         // Arrange
@@ -282,7 +308,7 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
         var languageKind = codeDocument.GetLanguageKind(code.Position, rightAssociative: false);
 
         // Assert
-        Assert.Equal(RazorLanguageKind.CSharp, languageKind);
+        Assert.Equal(RazorLanguageKind.Html, languageKind);
     }
 
     [Fact]
@@ -303,9 +329,9 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
     public void GetLanguageKind_TagHelperInCSharpRightAssociative()
     {
         // Arrange
-        var descriptor = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly");
+        descriptor.TypeName = "TestTagHelper";
         descriptor.TagMatchingRule(rule => rule.TagName = "test");
-        descriptor.SetMetadata(TypeName("TestTagHelper"));
 
         TestCode code = """
             @addTagHelper *, TestAssembly
@@ -323,9 +349,9 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
         Assert.Equal(RazorLanguageKind.Html, languageKind);
     }
 
-    private static RazorCodeDocument CreateCodeDocument(TestCode code, params ImmutableArray<TagHelperDescriptor> tagHelpers)
+    private static RazorCodeDocument CreateCodeDocument(TestCode code, params TagHelperCollection tagHelpers)
     {
-        tagHelpers = tagHelpers.NullToEmpty();
+        tagHelpers ??= [];
 
         var sourceDocument = TestRazorSourceDocument.Create(code.Text);
         var projectEngine = RazorProjectEngine.Create(builder =>
@@ -336,6 +362,6 @@ public class RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput) : Too
             });
         });
 
-        return projectEngine.ProcessDesignTime(sourceDocument, RazorFileKind.Legacy, importSources: default, tagHelpers);
+        return projectEngine.Process(sourceDocument, RazorFileKind.Legacy, importSources: default, tagHelpers);
     }
 }

@@ -49,7 +49,7 @@ public class RazorIntegrationTestBase
         ImportItems = ImmutableArray.CreateBuilder<RazorProjectItem>();
 
         BaseCompilation = DefaultBaseCompilation;
-        Configuration = RazorConfiguration.Default;
+        Configuration = RazorConfiguration.Default with { LanguageVersion = RazorLanguageVersion.Preview };
         FileSystem = new VirtualRazorProjectFileSystem();
         PathSeparator = Path.DirectorySeparatorChar.ToString();
         WorkingDirectory = PlatformInformation.IsWindows ? ArbitraryWindowsPath : ArbitraryMacLinuxPath;
@@ -252,9 +252,9 @@ public class RazorIntegrationTestBase
             {
                 // Result of generating declarations
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
-                Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -265,8 +265,8 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().Text.ToString(),
-                RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
 
@@ -282,10 +282,10 @@ public class RazorIntegrationTestBase
             {
                 // Result of generating definition
                 codeDocument = DesignTime ? projectEngine.ProcessDesignTime(item) : projectEngine.Process(item);
-                Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, csharpParseOptions, path: item.FilePath);
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
@@ -296,8 +296,8 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().Text.ToString(),
-                RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
         }
@@ -327,8 +327,8 @@ public class RazorIntegrationTestBase
             {
                 BaseCompilation = baseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().Text.ToString(),
-                RazorDiagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                RazorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
                 ParseOptions = csharpParseOptions,
             };
         }
@@ -379,15 +379,22 @@ public class RazorIntegrationTestBase
         {
             throw new CompilationFailedException(compilation, emitResult.Diagnostics);
         }
+
         peStream.Position = 0;
         return peStream;
     }
 
-    protected INamedTypeSymbol CompileToComponent(string cshtmlSource)
+    protected INamedTypeSymbol CompileToComponent(string cshtmlSource, int genericArity = 0)
     {
         var assemblyResult = CompileToAssembly(DefaultFileName, cshtmlSource);
 
         var componentFullTypeName = $"{DefaultRootNamespace}.{Path.GetFileNameWithoutExtension(DefaultFileName)}";
+
+        if (genericArity > 0)
+        {
+            componentFullTypeName += "`" + genericArity;
+        }
+
         return CompileToComponent(assemblyResult, componentFullTypeName);
     }
 

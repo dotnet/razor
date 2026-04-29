@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>$(NetVS);netstandard2.0</TargetFrameworks>
@@ -17,10 +17,15 @@
 
     <!-- Don't warn about restoring ServiceHub assets for .NET Framework when we're compiling against netstandard2.0 -->
     <NoWarn>$(NoWarn);NU1701</NoWarn>
+
+    <!-- Only enable R2R for official builds. This keeps crossgen2 in the restore graph for CI
+         while avoiding AdditionalProperties clashes between CoreComponents and RazorExtension. -->
+    <PublishReadyToRun Condition="'$(OfficialBuildId)' != ''">true</PublishReadyToRun>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="$(RepoRoot)eng\BannedSymbols.MEFv1.txt" />
+    <AdditionalFiles Include="$(RepositoryEngineeringDir)BannedSymbols.MEFv1.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +37,7 @@
     <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLog.cs" Link="Telemetry\AggregatingTelemetryLog.cs" />
     <Compile Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Telemetry\AggregatingTelemetryLogManager.cs" Link="Telemetry\AggregatingTelemetryLogManager.cs" />
 
-    <Compile Include="..\..\src\Microsoft.AspNetCore.Razor.LanguageServer\GlobalUsings.cs" Link="GlobalUsings.cs" />
+    <Compile Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,8 +59,11 @@
   <ItemGroup>
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Cohosting" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.Test" />
   </ItemGroup>
 
   <ItemGroup Label="String Resources">
@@ -66,5 +74,26 @@
 
     <Using Include="$(ProjectName).Resources" />
   </ItemGroup>
+
+  <!-- Special target only consumed at VSIX creation time -->
+  
+  <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
+    <ItemGroup>
+      <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
+
+      <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.*" />
+
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Razor.*" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.*" Exclude="@(_ExcludedFiles)" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.AspNetCore.*" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.Extensions.ObjectPool.dll" />
+
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
+      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.xml'" />
+
+      <!-- Set TargetPath -->
+      <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+  </Target>
 
 </Project>

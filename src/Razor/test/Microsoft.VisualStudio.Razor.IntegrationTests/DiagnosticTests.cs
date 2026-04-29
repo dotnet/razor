@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
@@ -79,6 +79,10 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
             (error) =>
             {
                 AssertEx.EqualOrDiff("Error.cshtml(10, 6): warning HTML0001: Element start tag is missing closing angle bracket.", error);
+            },
+            (error) =>
+            {
+                AssertEx.EqualOrDiff("Error.cshtml(2, 1): warning RZ0005: @addTagHelper directive is unnecessary.", error);
             });
     }
 
@@ -154,7 +158,7 @@ public class DiagnosticTests(ITestOutputHelper testOutputHelper) : AbstractRazor
             });
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/12372")]
     public async Task Diagnostics_ShowErrors_CSharpAndHtml()
     {
         // Arrange

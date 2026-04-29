@@ -20,9 +20,13 @@
   <ItemGroup>
     <None Include="$(SharedFilesRoot)Compiler\MSN.cshtml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="$(SharedFilesRoot)Compiler\BlazorServerTagHelpers.razor" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="$(SharedFilesRoot)Compiler\taghelpers.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
 
-  <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.Serialization.Json\Microsoft.AspNetCore.Razor.Serialization.Json.projitems" Label="Shared" />
+    <Compile Remove="Resources\**\*.*" />
+    <None Remove="Resources\**\*.*" />
+
+    <EmbeddedResource Include="Resources\**\*.*" />
+    <EmbeddedResource Include="$(SharedFilesRoot)\Tooling\**\*.*" Link="Resources\Tooling\%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="$(SharedFilesRoot)\Compiler\**\*.*" Link="Resources\Compiler\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
 
 </Project>

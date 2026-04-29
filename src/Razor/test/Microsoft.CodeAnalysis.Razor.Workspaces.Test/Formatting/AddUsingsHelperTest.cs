@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
@@ -16,7 +16,7 @@ public class AddUsingsHelperTest(ITestOutputHelper testOutput) : ToolingTestBase
         var csharpAddUsing = "Abc.Xyz;";
 
         // Act
-        var res = AddUsingsHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
+        var res = UsingDirectiveHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
         // Assert
         Assert.False(res);
@@ -31,7 +31,7 @@ public class AddUsingsHelperTest(ITestOutputHelper testOutput) : ToolingTestBase
         var csharpAddUsing = "using Abc.Xyz;";
 
         // Act
-        var res = AddUsingsHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
+        var res = UsingDirectiveHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
         // Assert
         Assert.True(res);
@@ -46,7 +46,7 @@ public class AddUsingsHelperTest(ITestOutputHelper testOutput) : ToolingTestBase
         var csharpAddUsing = "using static X.Y.Z;";
 
         // Act
-        var res = AddUsingsHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
+        var res = UsingDirectiveHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
         // Assert
         Assert.True(res);
@@ -61,7 +61,7 @@ public class AddUsingsHelperTest(ITestOutputHelper testOutput) : ToolingTestBase
         var csharpAddUsing = "Goo - using X.Y.Z;";
 
         // Act
-        var res = AddUsingsHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
+        var res = UsingDirectiveHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
         // Assert
         Assert.True(res);

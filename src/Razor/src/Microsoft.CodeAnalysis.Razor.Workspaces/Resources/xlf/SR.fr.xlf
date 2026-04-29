@@ -7,6 +7,11 @@
         <target state="translated">La valeur ne peut pas être Null ni être une chaîne vide.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
+        <source>{0} (and req'd attributes...)</source>
+        <target state="translated">{0} (et attributs requis...)</target>
+        <note>The term "req'd" is an abbreviation for "required"</note>
+      </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
         <target state="translated">Créer un composant à partir de la balise</target>
@@ -59,6 +64,11 @@
         <target state="translated">Extraire l’élément vers un nouveau composant</target>
         <note />
       </trans-unit>
+      <trans-unit id="ExtractTo_Css_Title">
+        <source>Extract to {0}.css</source>
+        <target state="translated">Extraire vers {0}.css</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Format_operation_changed_diagnostics">
         <source>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</source>
         <target state="translated">Une opération de formatage est en cours d’abandon, car elle introduit ou supprime un ou plusieurs diagnostics.</target>
@@ -67,6 +77,11 @@
       <trans-unit id="Format_operation_changed_nonwhitespace">
         <source>A format operation is being abandoned because it would add or delete non-whitespace content.</source>
         <target state="translated">Une opération de formatage est en cours d’abandon, car elle ajouterait ou supprimerait du contenu qui n’est pas un espace blanc.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_Error">
+        <source>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</source>
+        <target state="translated">Erreur de mise en forme. Abandon du travail pour éviter de corrompre le fichier, veuillez signaler ce problème. Voir : https://aka.ms/razor-formatting-issue</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
@@ -79,9 +94,24 @@
         <target state="translated">Générer le gestionnaire d’événements '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="IncompatibleProject_NoAdditionalFiles">
+        <source>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has no Razor documents that are AdditionalFiles, so the editing experience will be limited. Is it using the Razor SDK? No more messages will be logged for this project.</source>
+        <target state="translated">L’éditeur Razor utilise le générateur de source Razor, qui requiert que les fichiers *.razor et *.cshtml soient AdditionalFiles dans le projet. {0} semble provenir de '{1}', qui ne contient aucun document Razor qui sont des AdditionalFiles. L’expérience d’édition sera donc limitée. Utilise-t-il le kit de développement logiciel (SDK) Razor ? Aucun autre message ne sera enregistré pour ce projet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IncompatibleProject_NotAnAdditionalFile">
+        <source>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has Razor documents but this file is not an AdditionalFile, so the editing experience will be limited. No more messages will be logged for this project.</source>
+        <target state="translated">L’éditeur Razor utilise le générateur de source Razor, qui requiert que les fichiers *.razor et *.cshtml soient AdditionalFiles dans le projet. {0} semble provenir de '{1}', qui contient des documents Razor, mais ce fichier n’est pas un AdditionalFile. L’expérience d’édition sera donc limitée. Aucun autre message ne sera enregistré pour ce projet.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_Offset">
         <source>Invalid offset.</source>
         <target state="translated">Décalage non valide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="KeywordDescription">
+        <source>{0} Keyword</source>
+        <target state="translated">Mot clé {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
@@ -107,6 +137,26 @@
       <trans-unit id="Promote_using_directive_to">
         <source>Promote using directive to {0}</source>
         <target state="translated">Promouvoir en utilisant la directive vers {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_directives">
+        <source>Remove unnecessary directives</source>
+        <target state="translated">Supprimez les directives inutiles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Fully_Qualified_Component_Title">
+        <source>Simplify fully qualified component</source>
+        <target state="translated">Simplifier le composant complet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_Tag_To_SelfClosing_Title">
+        <source>Simplify tag to self-closing</source>
+        <target state="translated">Simplifier la balise pour qu’elle se ferme automatiquement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_And_Consolidate_Usings_Title">
+        <source>Sort and consolidate usings</source>
+        <target state="translated">Trier et regrouper les utilisations</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">

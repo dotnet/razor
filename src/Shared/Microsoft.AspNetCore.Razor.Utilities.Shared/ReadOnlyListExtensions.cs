@@ -1,80 +1,123 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace System.Collections.Generic;
 
 internal static class ReadOnlyListExtensions
 {
-    public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IReadOnlyList<T> source, Func<T, TResult> selector)
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of values to invoke a transform function on.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/>.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, TResult> selector)
     {
-        return source switch
+        var count = list.Count;
+        if (count == 0)
         {
-            [] => [],
-            [var item] => [selector(item)],
-            [var item1, var item2] => [selector(item1), selector(item2)],
-            [var item1, var item2, var item3] => [selector(item1), selector(item2), selector(item3)],
-            [var item1, var item2, var item3, var item4] => [selector(item1), selector(item2), selector(item3), selector(item4)],
-            var items => BuildResult(items, selector)
-        };
-
-        static ImmutableArray<TResult> BuildResult(IReadOnlyList<T> items, Func<T, TResult> selector)
-        {
-            using var results = new PooledArrayBuilder<TResult>(capacity: items.Count);
-
-            for (var i = 0; i < items.Count; i++)
-            {
-                results.Add(selector(items[i]));
-            }
-
-            return results.DrainToImmutable();
+            return [];
         }
+
+        // If the list is a boxed ImmutableArray<T>, it's better to unbox it here and call the SelectAsArray<T>
+        // extension method that takes an ImmutableArray<T> rather than iterating through the interface.
+        if (list is ImmutableArray<T> array)
+        {
+            return ImmutableArrayExtensions.SelectAsArray(array, selector);
+        }
+
+        var result = new TResult[count];
+
+        for (var i = 0; i < count; i++)
+        {
+            result[i] = selector(list[i]);
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(result);
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form by incorporating the element's index.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of values to invoke a transform function on.</param>
+    /// <param name="selector">
+    ///  A transform function to apply to each element; the second parameter of the function represents the index of the element.
+    /// </param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/>.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, int, TResult> selector)
+    {
+        var count = list.Count;
+        if (count == 0)
+        {
+            return [];
+        }
+
+        // If the list is a boxed ImmutableArray<T>, it's better to unbox it here and call the SelectAsArray<T>
+        // extension method that takes an ImmutableArray<T> rather than iterating through the interface.
+        if (list is ImmutableArray<T> array)
+        {
+            return ImmutableArrayExtensions.SelectAsArray(array, selector);
+        }
+
+        var result = new TResult[count];
+
+        for (var i = 0; i < count; i++)
+        {
+            result[i] = selector(list[i], i);
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(result);
     }
 
     public static T[] ToArray<T>(this IReadOnlyList<T> list)
     {
-        return list switch
+        // If the list is a boxed ImmutableArray<T>, it's better to unbox it here and call through
+        // the official ImmutableArray<T>.ToArray() extension method.
+        if (list is ImmutableArray<T> array)
         {
-            [] => [],
-            [var item] => [item],
-            [var item1, var item2] => [item1, item2],
-            [var item1, var item2, var item3] => [item1, item2, item3],
-            [var item1, var item2, var item3, var item4] => [item1, item2, item3, item4],
-            var items => BuildResult(items)
-        };
-
-        static T[] BuildResult(IReadOnlyList<T> items)
-        {
-            var result = new T[items.Count];
-            items.CopyTo(result);
-
-            return result;
+            return Linq.ImmutableArrayExtensions.ToArray(array);
         }
+
+        return list.Count > 0
+            ? CreateArray(list)
+            : [];
     }
 
     public static ImmutableArray<T> ToImmutableArray<T>(this IReadOnlyList<T> list)
     {
-        return list switch
+        // If the list is a boxed ImmutableArray<T>, it's better to unbox it here and just return it.
+        // This is what the official IEnumerable<T>.ToImmutableArray() extension method does.
+        if (list is ImmutableArray<T> array)
         {
-            [] => [],
-            [var item] => [item],
-            [var item1, var item2] => [item1, item2],
-            [var item1, var item2, var item3] => [item1, item2, item3],
-            [var item1, var item2, var item3, var item4] => [item1, item2, item3, item4],
-            var items => BuildResult(items)
-        };
-
-        static ImmutableArray<T> BuildResult(IReadOnlyList<T> items)
-        {
-            var result = items.ToArray();
-
-            return ImmutableCollectionsMarshal.AsImmutableArray(result);
+            return array;
         }
+
+        return list.Count > 0
+            ? ImmutableCollectionsMarshal.AsImmutableArray(CreateArray(list))
+            : [];
+    }
+
+    private static T[] CreateArray<T>(IReadOnlyList<T> list)
+    {
+        var result = new T[list.Count];
+        CopyTo(list, result);
+
+        return result;
     }
 
     /// <summary>
@@ -293,7 +336,7 @@ internal static class ReadOnlyListExtensions
     ///  An <see cref="IReadOnlyList{T}"/> to return the first element of.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty
+    ///  The default value to return if the list is empty.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty; otherwise,
@@ -330,6 +373,36 @@ internal static class ReadOnlyListExtensions
     }
 
     /// <summary>
+    ///  Returns the first element of the list that satisfies a condition, or a specified default value if no such element is found.
+    /// </summary>
+    /// <param name="list">
+    ///  An <see cref="IReadOnlyList{T}"/> to return an element from.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if the list is empty or no element is found.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the first element in <paramref name="list"/>
+    ///  that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public static T? FirstOrDefault<T>(this IReadOnlyList<T> list, Func<T, bool> predicate, T defaultValue)
+    {
+        foreach (var item in list.AsEnumerable())
+        {
+            if (predicate(item))
+            {
+                return item;
+            }
+        }
+
+        return defaultValue;
+    }
+
+    /// <summary>
     ///  Returns the first element of the list that satisfies a condition or a default value if no such element is found.
     /// </summary>
     /// <param name="list">
@@ -357,6 +430,39 @@ internal static class ReadOnlyListExtensions
         }
 
         return default;
+    }
+
+    /// <summary>
+    ///  Returns the first element of the list that satisfies a condition, or a specified default value if no such element is found.
+    /// </summary>
+    /// <param name="list">
+    ///  An <see cref="IReadOnlyList{T}"/> to return an element from.
+    /// </param>
+    /// <param name="arg">
+    ///  An argument to pass to <paramref name="predicate"/>.
+    /// </param>
+    /// <param name="predicate">
+    ///  A function to test each element for a condition.
+    /// </param>
+    /// <param name="defaultValue">
+    ///  The default value to return if the list is empty or no element is found.
+    /// </param>
+    /// <returns>
+    ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty or if no element
+    ///  passes the test specified by <paramref name="predicate"/>; otherwise, the first element in <paramref name="list"/>
+    ///  that passes the test specified by <paramref name="predicate"/>.
+    /// </returns>
+    public static T? FirstOrDefault<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
+    {
+        foreach (var item in list.AsEnumerable())
+        {
+            if (predicate(item, arg))
+            {
+                return item;
+            }
+        }
+
+        return defaultValue;
     }
 
     /// <summary>
@@ -391,7 +497,7 @@ internal static class ReadOnlyListExtensions
     /// </exception>
     public static T Last<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item))
             {
@@ -422,7 +528,7 @@ internal static class ReadOnlyListExtensions
     /// </exception>
     public static T Last<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item, arg))
             {
@@ -453,7 +559,7 @@ internal static class ReadOnlyListExtensions
     ///  An <see cref="IReadOnlyList{T}"/> to return the last element of.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty
+    ///  The default value to return if the list is empty.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty; otherwise,
@@ -478,7 +584,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T? LastOrDefault<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item))
             {
@@ -508,7 +614,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T? LastOrDefault<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item, arg))
             {
@@ -529,7 +635,7 @@ internal static class ReadOnlyListExtensions
     ///  A function to test each element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty.
+    ///  The default value to return if the list is empty or no element is found.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty or if no element
@@ -538,7 +644,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T LastOrDefault<T>(this IReadOnlyList<T> list, Func<T, bool> predicate, T defaultValue)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item))
             {
@@ -562,7 +668,7 @@ internal static class ReadOnlyListExtensions
     ///  A function to test each element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty.
+    ///  The default value to return if the list is empty or no element is found.
     /// </param>
     /// <returns>
     ///  <paramref name="defaultValue"/> if <paramref name="list"/> is empty or if no element
@@ -571,7 +677,7 @@ internal static class ReadOnlyListExtensions
     /// </returns>
     public static T LastOrDefault<T, TArg>(this IReadOnlyList<T> list, TArg arg, Func<T, TArg, bool> predicate, T defaultValue)
     {
-        foreach (var item in list.AsEnumerable().Reverse())
+        foreach (var item in list.AsEnumerable().Reversed())
         {
             if (predicate(item, arg))
             {
@@ -734,7 +840,7 @@ internal static class ReadOnlyListExtensions
     ///  An <see cref="IReadOnlyList{T}"/> to return the single element of.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty
+    ///  The default value to return if the list is empty.
     /// </param>
     /// <returns>
     ///  The single element in the list, or <paramref name="defaultValue"/>
@@ -845,7 +951,7 @@ internal static class ReadOnlyListExtensions
     ///  A function to test an element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty.
+    ///  The default value to return if the list is empty or no element is found.
     /// </param>
     /// <returns>
     ///  The single element of the list that satisfies the condition, or
@@ -890,7 +996,7 @@ internal static class ReadOnlyListExtensions
     ///  A function to test an element for a condition.
     /// </param>
     /// <param name="defaultValue">
-    ///  The default value to return if the list is empty.
+    ///  The default value to return if the list is empty or no element is found.
     /// </param>
     /// <returns>
     ///  The single element of the list that satisfies the condition, or
@@ -921,78 +1027,124 @@ internal static class ReadOnlyListExtensions
         return result;
     }
 
-    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list) => new(list);
-
-    public readonly ref struct Enumerable<T>(IReadOnlyList<T> list)
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list)
     {
-        public Enumerator<T> GetEnumerator() => new(list);
+        ArgHelper.ThrowIfNull(list);
 
-        public ReverseEnumerable<T> Reverse() => new(list);
+        return new(list, 0, list.Count);
     }
 
-    public ref struct Enumerator<T>(IReadOnlyList<T> list)
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list, int start)
+    {
+        ArgHelper.ThrowIfNull(list);
+        ArgHelper.ThrowIfNegative(start);
+        ArgHelper.ThrowIfGreaterThan(start, list.Count);
+
+        return new(list, start, list.Count - start);
+    }
+
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list, Index startIndex)
+    {
+        ArgHelper.ThrowIfNull(list);
+
+        var start = startIndex.GetOffset(list.Count);
+        var count = list.Count - start;
+
+        return new(list, start, count);
+    }
+
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list, Range range)
+    {
+        ArgHelper.ThrowIfNull(list);
+
+        var (start, count) = range.GetOffsetAndLength(list.Count);
+
+        return new(list, start, count);
+    }
+
+    public static Enumerable<T> AsEnumerable<T>(this IReadOnlyList<T> list, int start, int count)
+    {
+        ArgHelper.ThrowIfNull(list);
+        ArgHelper.ThrowIfNegative(start);
+        ArgHelper.ThrowIfNegative(count);
+        ArgHelper.ThrowIfGreaterThan(start + count, list.Count);
+
+        return new(list, start, count);
+    }
+
+    public readonly ref struct Enumerable<T>(IReadOnlyList<T> list, int start, int count)
     {
         private readonly IReadOnlyList<T> _list = list;
-        private int _index = 0;
-        private T _current = default!;
+        private readonly int _first = start;
+        private readonly int _last = start + count - 1;
 
-        public readonly T Current => _current;
+        private readonly T this[int index] => _list[index];
 
-        public bool MoveNext()
+        public Enumerator GetEnumerator() => new(this);
+
+        public readonly ReversedEnumerable Reversed() => new(this);
+
+        public ref struct Enumerator(Enumerable<T> enumerable)
         {
-            if (_index < _list.Count)
+            private readonly Enumerable<T> _enumerable = enumerable;
+
+            private int _index = enumerable._first;
+            private T _current = default!;
+
+            public readonly T Current => _current;
+
+            public bool MoveNext()
             {
-                _current = _list[_index];
-                _index++;
-                return true;
+                if (_index <= _enumerable._last)
+                {
+                    _current = _enumerable[_index];
+                    _index++;
+                    return true;
+                }
+
+                return false;
             }
 
-            return false;
-        }
-
-        public void Reset()
-        {
-            _index = 0;
-            _current = default!;
-        }
-    }
-
-    public readonly ref struct ReverseEnumerable<T>(IReadOnlyList<T> list)
-    {
-        public ReverseEnumerator<T> GetEnumerator() => new(list);
-    }
-
-    public ref struct ReverseEnumerator<T>
-    {
-        private readonly IReadOnlyList<T> _list;
-        private int _index;
-        private T _current;
-
-        public readonly T Current => _current;
-
-        public ReverseEnumerator(IReadOnlyList<T> list)
-        {
-            _list = list;
-            _index = _list.Count - 1;
-            _current = default!;
-        }
-
-        public bool MoveNext()
-        {
-            if (_index >= 0)
+            public void Reset()
             {
-                _current = _list[_index];
-                _index--;
-                return true;
+                _index = _enumerable._first;
+                _current = default!;
             }
-
-            return false;
         }
 
-        public void Reset()
+        public readonly ref struct ReversedEnumerable(Enumerable<T> enumerable)
         {
-            _index = _list.Count - 1;
-            _current = default!;
+            private readonly Enumerable<T> _enumerable = enumerable;
+
+            public ReversedEnumerator GetEnumerator() => new(_enumerable);
+
+            public ref struct ReversedEnumerator(Enumerable<T> enumerable)
+            {
+                private readonly Enumerable<T> _enumerable = enumerable;
+
+                private int _index = enumerable._last;
+                private T _current = default!;
+
+                public readonly T Current => _current;
+
+                public bool MoveNext()
+                {
+                    if (_index >= _enumerable._first)
+                    {
+                        _current = _enumerable[_index];
+                        _index--;
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                public void Reset()
+                {
+                    _index = _enumerable._last;
+                    _current = default!;
+                }
+            }
         }
     }
 
@@ -1043,7 +1195,7 @@ internal static class ReadOnlyListExtensions
     ///  Sorts the elements of an <see cref="IReadOnlyList{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
     /// </returns>
@@ -1062,7 +1214,7 @@ internal static class ReadOnlyListExtensions
     ///  Sorts the elements of an <see cref="IReadOnlyList{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
@@ -1082,7 +1234,7 @@ internal static class ReadOnlyListExtensions
     ///  Sorts the elements of an <see cref="IReadOnlyList{T}"/> in ascending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order.
@@ -1102,7 +1254,7 @@ internal static class ReadOnlyListExtensions
     ///  Sorts the elements of an <see cref="IReadOnlyList{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
     /// </returns>
@@ -1121,7 +1273,7 @@ internal static class ReadOnlyListExtensions
     ///  Sorts the elements of an <see cref="IReadOnlyList{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
@@ -1141,7 +1293,7 @@ internal static class ReadOnlyListExtensions
     ///  Sorts the elements of an <see cref="IReadOnlyList{T}"/> in descending order.
     /// </summary>
     /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order.
@@ -1162,7 +1314,7 @@ internal static class ReadOnlyListExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in ascending order according to a key.
@@ -1184,7 +1336,7 @@ internal static class ReadOnlyListExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
     /// <returns>
@@ -1207,7 +1359,7 @@ internal static class ReadOnlyListExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare keys.</param>
     /// <returns>
@@ -1230,7 +1382,7 @@ internal static class ReadOnlyListExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <returns>
     ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are sorted in descending order according to a key.
@@ -1252,7 +1404,7 @@ internal static class ReadOnlyListExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
     /// <returns>
@@ -1275,7 +1427,7 @@ internal static class ReadOnlyListExtensions
     /// </summary>
     /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
     /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
-    /// <param name="list">An <see cref="IReadOnlyList{T}"/> to ordered.</param>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> whose elements will be sorted.</param>
     /// <param name="keySelector">A function to extract a key from an element.</param>
     /// <param name="comparison">An <see cref="Comparison{T}"/> to compare keys.</param>
     /// <returns>
@@ -1323,5 +1475,263 @@ internal static class ReadOnlyListExtensions
         Array.Sort(keys.Array, newArray, 0, length, sortHelper.GetOrCreateComparer());
 
         return ImmutableCollectionsMarshal.AsImmutableArray(newArray);
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in ascending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in ascending order.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, TResult> selector)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().Order();
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in ascending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in ascending order.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(
+        this IReadOnlyList<T> list, Func<T, TResult> selector, IComparer<TResult> comparer)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().Order(comparer);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in ascending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in ascending order.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderAsArray<T, TResult>(
+        this IReadOnlyList<T> list, Func<T, TResult> selector, Comparison<TResult> comparison)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().Order(comparison);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in descending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in descending order.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(this IReadOnlyList<T> list, Func<T, TResult> selector)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderDescending();
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in descending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in descending order.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(
+        this IReadOnlyList<T> list, Func<T, TResult> selector, IComparer<TResult> comparer)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderDescending(comparer);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in descending order.
+    /// </summary>
+    /// <typeparam name="T">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="comparison">An <see cref="Comparison{T}"/> to compare elements.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in descending order.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderDescendingAsArray<T, TResult>(
+        this IReadOnlyList<T> list, Func<T, TResult> selector, Comparison<TResult> comparison)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderDescending(comparison);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in ascending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="keySelector">A function to extract a key from a projected element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in ascending order according to a key.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
+        this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderBy(keySelector);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in ascending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="keySelector">A function to extract a key from a projected element.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in ascending order according to a key.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
+        this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderBy(keySelector, comparer);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in ascending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="keySelector">A function to extract a key from a projected element.</param>
+    /// <param name="comparison">An <see cref="Comparison{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in ascending order according to a key.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderByAsArray<TElement, TKey, TResult>(
+        this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, Comparison<TKey> comparison)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderBy(keySelector, comparison);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in descending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="keySelector">A function to extract a key from a projected element.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in descending order according to a key.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
+        this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderByDescending(keySelector);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in descending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="keySelector">A function to extract a key from a projected element.</param>
+    /// <param name="comparer">An <see cref="IComparer{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in descending order according to a key.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
+        this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, IComparer<TKey> comparer)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderByDescending(keySelector, comparer);
+
+        return result;
+    }
+
+    /// <summary>
+    ///  Projects each element of an <see cref="IReadOnlyList{T}"/> into a new form and sorts them in descending order according to a key.
+    /// </summary>
+    /// <typeparam name="TElement">The type of the elements in <paramref name="list"/>.</typeparam>
+    /// <typeparam name="TKey">The type of key returned by <paramref name="keySelector"/>.</typeparam>
+    /// <typeparam name="TResult">The type of the value returned by <paramref name="selector"/>.</typeparam>
+    /// <param name="list">An <see cref="IReadOnlyList{T}"/> of elements to invoke a transform function on and sort.</param>
+    /// <param name="selector">A transform function to apply to each element.</param>
+    /// <param name="keySelector">A function to extract a key from a projected element.</param>
+    /// <param name="comparison">An <see cref="Comparison{T}"/> to compare keys.</param>
+    /// <returns>
+    ///  Returns a new <see cref="ImmutableArray{T}"/> whose elements are the result of invoking the transform function
+    ///  on each element of <paramref name="list"/> and sorted in descending order according to a key.
+    /// </returns>
+    public static ImmutableArray<TResult> SelectAndOrderByDescendingAsArray<TElement, TKey, TResult>(
+        this IReadOnlyList<TElement> list, Func<TElement, TResult> selector, Func<TResult, TKey> keySelector, Comparison<TKey> comparison)
+    {
+        var result = list.SelectAsArray(selector);
+        result.Unsafe().OrderByDescending(keySelector, comparison);
+
+        return result;
     }
 }

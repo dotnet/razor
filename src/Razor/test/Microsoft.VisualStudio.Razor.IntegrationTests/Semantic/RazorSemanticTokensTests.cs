@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -21,8 +21,6 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : AbstractRazorEditorTest(testOutputHelper)
 {
-    private static readonly AsyncLocal<string?> s_fileName = new();
-
     private static string? s_projectPath;
 
     // WARNING: If you leave this as "true" it will cause the semantic tokens tests to change their expected values.

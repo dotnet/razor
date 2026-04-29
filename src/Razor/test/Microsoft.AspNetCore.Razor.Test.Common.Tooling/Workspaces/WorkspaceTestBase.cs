@@ -1,15 +1,12 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Razor.ProjectEngineHost;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 using Xunit.Abstractions;
@@ -22,7 +19,6 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
     private HostServices? _hostServices;
     private Workspace? _workspace;
     private IWorkspaceProvider? _workspaceProvider;
-    private IProjectEngineFactoryProvider? _projectEngineFactoryProvider;
     private LanguageServerFeatureOptions? _languageServerFeatureOptions;
 
     protected HostServices HostServices
@@ -52,15 +48,6 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
         }
     }
 
-    private protected IProjectEngineFactoryProvider ProjectEngineFactoryProvider
-    {
-        get
-        {
-            EnsureInitialized();
-            return _projectEngineFactoryProvider;
-        }
-    }
-
     private protected LanguageServerFeatureOptions LanguageServerFeatureOptions
     {
         get
@@ -69,15 +56,6 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
             return _languageServerFeatureOptions;
         }
     }
-
-    private protected RazorCompilerOptions CompilerOptions
-        => LanguageServerFeatureOptions.ToCompilerOptions();
-
-    private protected override TestProjectSnapshotManager CreateProjectSnapshotManager()
-        => CreateProjectSnapshotManager(ProjectEngineFactoryProvider, LanguageServerFeatureOptions);
-
-    private protected override TestProjectSnapshotManager CreateProjectSnapshotManager(IProjectEngineFactoryProvider projectEngineFactoryProvider)
-        => CreateProjectSnapshotManager(projectEngineFactoryProvider, LanguageServerFeatureOptions);
 
     protected virtual void ConfigureWorkspace(AdhocWorkspace workspace)
     {
@@ -91,7 +69,6 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
         nameof(_hostServices),
         nameof(_workspace),
         nameof(_workspaceProvider),
-        nameof(_projectEngineFactoryProvider),
         nameof(_languageServerFeatureOptions))]
     private void EnsureInitialized()
     {
@@ -100,12 +77,9 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
             _hostServices.AssumeNotNull();
             _workspace.AssumeNotNull();
             _workspaceProvider.AssumeNotNull();
-            _projectEngineFactoryProvider.AssumeNotNull();
             _languageServerFeatureOptions.AssumeNotNull();
             return;
         }
-
-        _projectEngineFactoryProvider = TestProjectEngineFactoryProvider.Instance.AddConfigure(ConfigureProjectEngine);
 
         _hostServices = MefHostServices.DefaultHost;
         _workspace = TestWorkspace.Create(_hostServices, ConfigureWorkspace);
@@ -126,7 +100,7 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
             {
                 var currentCount = 0;
 
-                Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                using var _ = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
 
                 if (!Workspace.TryApplyChanges(solution))
                 {
@@ -142,10 +116,9 @@ public abstract class WorkspaceTestBase(ITestOutputHelper testOutput) : ToolingT
                 }
                 while (lastCount != currentCount);
 
-                Workspace.WorkspaceChanged -= OnWorkspaceChanged;
                 return true;
 
-                void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+                void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
                 {
                     currentCount++;
                 }

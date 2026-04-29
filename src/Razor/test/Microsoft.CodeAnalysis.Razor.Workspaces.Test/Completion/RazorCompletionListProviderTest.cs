@@ -1,33 +1,29 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.LanguageServer;
-using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using Xunit.Abstractions;
-using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-public class RazorCompletionListProviderTest : LanguageServerTestBase
+public class RazorCompletionListProviderTest
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
     private readonly VSInternalClientCapabilities _clientCapabilities;
     private readonly VSInternalCompletionContext _defaultCompletionContext;
     private readonly RazorCompletionOptions _razorCompletionOptions;
+    private readonly TestOutputLoggerFactory _loggerFactory;
 
     public RazorCompletionListProviderTest(ITestOutputHelper testOutput)
-        : base(testOutput)
     {
         _completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders());
         _completionListCache = new CompletionListCache();
@@ -39,7 +35,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
                 {
                     CompletionItemKind = new CompletionItemKindSetting()
                     {
-                        ValueSet = new[] { CompletionItemKind.TagHelper }
+                        ValueSet = [CompletionItemKind.TagHelper]
                     },
                     CompletionList = new VSInternalCompletionListSetting()
                     {
@@ -51,72 +47,17 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         };
 
         _defaultCompletionContext = new VSInternalCompletionContext();
-        _razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true);
+        _razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
+
+        _loggerFactory = new TestOutputLoggerFactory(testOutput);
     }
 
-    private static IEnumerable<IRazorCompletionItemProvider> GetCompletionProviders()
-    {
-        // Working around strong naming restriction.
-        var tagHelperCompletionService = new TagHelperCompletionService();
-
-        var completionProviders = new IRazorCompletionItemProvider[]
-        {
+    private static IRazorCompletionItemProvider[] GetCompletionProviders()
+        => [
             new DirectiveCompletionItemProvider(),
             new DirectiveAttributeCompletionItemProvider(),
-            new DirectiveAttributeParameterCompletionItemProvider(),
-            new TagHelperCompletionProvider(tagHelperCompletionService)
-        };
-
-        return completionProviders;
-    }
-
-    [Fact]
-    public void IsApplicableTriggerContext_Deletion_ReturnsFalse()
-    {
-        // Arrange
-        var completionContext = new VSInternalCompletionContext()
-        {
-            InvokeKind = VSInternalCompletionInvokeKind.Deletion
-        };
-
-        // Act
-        var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void IsApplicableTriggerContext_Explicit_ReturnsTrue()
-    {
-        // Arrange
-        var completionContext = new VSInternalCompletionContext()
-        {
-            InvokeKind = VSInternalCompletionInvokeKind.Explicit
-        };
-
-        // Act
-        var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public void IsApplicableTriggerContext_Typing_ReturnsTrue()
-    {
-        // Arrange
-        var completionContext = new VSInternalCompletionContext()
-        {
-            InvokeKind = VSInternalCompletionInvokeKind.Typing
-        };
-
-        // Act
-        var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
-
-        // Assert
-        Assert.True(result);
-    }
+            new TagHelperCompletionProvider(new TagHelperCompletionService())
+        ];
 
     [Fact]
     public void TryConvert_Directive_ReturnsTrue()
@@ -164,7 +105,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_DirectiveAttributeTransition_SerializationDoesNotThrow()
     {
         // Arrange
-        var directiveAttributeTransitionCompletionItemProvider = new DirectiveAttributeTransitionCompletionItemProvider(TestLanguageServerFeatureOptions.Instance);
+        var directiveAttributeTransitionCompletionItemProvider = new DirectiveAttributeTransitionCompletionItemProvider(new TestClientCapabilitiesService(new()));
         var completionItem = directiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
         RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
 
@@ -176,7 +117,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_DirectiveAttributeTransition_ReturnsTrue()
     {
         // Arrange
-        var directiveAttributeTransitionCompletionItemProvider = new DirectiveAttributeTransitionCompletionItemProvider(TestLanguageServerFeatureOptions.Instance);
+        var directiveAttributeTransitionCompletionItemProvider = new DirectiveAttributeTransitionCompletionItemProvider(new TestClientCapabilitiesService(new()));
         var completionItem = directiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
 
         // Act
@@ -231,7 +172,8 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             displayText: "@testDisplay",
             insertText: "testInsert",
             descriptionInfo: null!,
-            commitCharacters: RazorCommitCharacter.CreateArray(["=", ":"]));
+            commitCharacters: RazorCommitCharacter.CreateArray(["=", ":"]),
+            isSnippet: false);
 
         // Act
         Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
@@ -251,7 +193,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     public void TryConvert_DirectiveAttributeParameter_ReturnsTrue()
     {
         // Arrange
-        var completionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(displayText: "format", insertText: "format", descriptionInfo: null!);
+        var completionItem = RazorCompletionItem.CreateDirectiveAttributeParameter(displayText: "format", insertText: "format", descriptionInfo: null!, commitCharacters: [], isSnippet: false);
 
         // Act
         Assert.True(RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted));
@@ -383,11 +325,11 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
         var documentPath = "C:/path/to/document.cshtml";
         TestFileMarkupParser.GetPosition(documentText, out documentText, out var cursorPosition);
         var codeDocument = CreateCodeDocument(documentText, documentPath);
-        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: cursorPosition, _defaultCompletionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: cursorPosition, _defaultCompletionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
 
@@ -411,11 +353,11 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
             InvokeKind = VSInternalCompletionInvokeKind.Deletion,
         };
 
-        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
@@ -432,12 +374,12 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "C:/path/to/document.razor";
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
+        builder.TypeName = "TestNamespace.TestTagHelper";
         builder.TagMatchingRule(rule => rule.TagName = "Test");
-        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var codeDocument = CreateCodeDocument("@in", documentPath, [tagHelper]);
-        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
         var completionContext = new VSInternalCompletionContext()
         {
             TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
@@ -445,7 +387,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
@@ -460,12 +402,12 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "C:/path/to/document.razor";
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
+        builder.TypeName = "TestNamespace.TestTagHelper";
         builder.TagMatchingRule(rule => rule.TagName = "Test");
-        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var codeDocument = CreateCodeDocument("@inje", documentPath, [tagHelper]);
-        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
         var completionContext = new VSInternalCompletionContext()
         {
             TriggerKind = CompletionTriggerKind.TriggerCharacter,
@@ -473,11 +415,10 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
-        Assert.NotNull(completionList);
-        Assert.Empty(completionList.Items);
+        Assert.Null(completionList);
     }
 
     [Fact]
@@ -486,12 +427,12 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "C:/path/to/document.razor";
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
+        builder.TypeName = "TestNamespace.TestTagHelper";
         builder.TagMatchingRule(rule => rule.TagName = "Test");
-        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var codeDocument = CreateCodeDocument("@inje", documentPath, [tagHelper]);
-        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
         var completionContext = new VSInternalCompletionContext()
         {
             TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
@@ -499,7 +440,7 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 1, completionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
@@ -515,16 +456,23 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "C:/path/to/document.cshtml";
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
-        builder.TagMatchingRule(rule => rule.TagName = "Test");
-        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
-        var tagHelper = builder.Build();
-        var codeDocument = CreateCodeDocument("<", documentPath, [tagHelper]);
-        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var componentBuilder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
+        componentBuilder.TypeName = "TestNamespace.TestTagHelper";
+        componentBuilder.TagMatchingRule(rule => rule.TagName = "Test");
+        var componentTagHelper = componentBuilder.Build();
+
+        // Add an HTML-targeting tag helper so NeedsHtmlCompletions returns true
+        // (pure component-only documents skip the HTML-dependent phase entirely).
+        var htmlBuilder = TagHelperDescriptorBuilder.Create("InputTagHelper", "TestAssembly");
+        htmlBuilder.TagMatchingRule(rule => rule.TagName = "input");
+        var htmlTagHelper = htmlBuilder.Build();
+
+        var codeDocument = CreateCodeDocument("<", documentPath, [componentTagHelper, htmlTagHelper]);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
 
         // Act
-        var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 1, _defaultCompletionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+        var completionList = provider.GetHtmlDependentCompletionList(
+            codeDocument, absoluteIndex: 1, _defaultCompletionContext, _clientCapabilities, _razorCompletionOptions, []);
 
         // Assert
         Assert.NotNull(completionList);
@@ -537,22 +485,22 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "C:/path/to/document.cshtml";
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
+        builder.TypeName = "TestNamespace.TestTagHelper";
         builder.TagMatchingRule(rule => rule.TagName = "*");
         builder.BindAttribute(attribute =>
         {
             attribute.Name = "testAttribute";
             attribute.TypeName = typeof(string).FullName;
-            attribute.SetMetadata(PropertyName("TestAttribute"));
+            attribute.PropertyName = "TestAttribute";
         });
-        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var codeDocument = CreateCodeDocument("<test  ", documentPath, [tagHelper]);
-        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 6, _defaultCompletionContext, _clientCapabilities, existingCompletions: null, _razorCompletionOptions);
+            codeDocument, absoluteIndex: 6, _defaultCompletionContext, _clientCapabilities, _razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
@@ -564,41 +512,41 @@ public class RazorCompletionListProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "C:/path/to/document.cshtml";
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        var builder = TagHelperDescriptorBuilder.CreateComponent("TestTagHelper", "TestAssembly");
+        builder.TypeName = "TestNamespace.TestTagHelper";
         builder.TagMatchingRule(rule => rule.TagName = "*");
         builder.BindAttribute(attribute =>
         {
             attribute.Name = "testAttribute";
             attribute.TypeName = typeof(string).FullName;
-            attribute.SetMetadata(PropertyName("TestAttribute"));
+            attribute.PropertyName = "TestAttribute";
         });
-        builder.SetMetadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var codeDocument = CreateCodeDocument("<test  ", documentPath, [tagHelper]);
 
         // Set up desired options
-        var razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true);
+        var razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: false, CommitElementsWithSpace: true, UseVsCodeCompletionCommitCharacters: false);
 
         var completionFactsService = new LspRazorCompletionFactsService(GetCompletionProviders());
-        var provider = new RazorCompletionListProvider(completionFactsService, _completionListCache, LoggerFactory);
+        var provider = new RazorCompletionListProvider(completionFactsService, _completionListCache, _loggerFactory);
 
         // Act
         var completionList = provider.GetCompletionList(
-            codeDocument, absoluteIndex: 6, _defaultCompletionContext, _clientCapabilities, existingCompletions: null, razorCompletionOptions);
+            codeDocument, absoluteIndex: 6, _defaultCompletionContext, _clientCapabilities, razorCompletionOptions).CompletionList;
 
         // Assert
         Assert.NotNull(completionList);
         Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=$0");
     }
 
-    private static RazorCodeDocument CreateCodeDocument(string text, string documentFilePath, ImmutableArray<TagHelperDescriptor> tagHelpers = default)
+    private static RazorCodeDocument CreateCodeDocument(string text, string documentFilePath, TagHelperCollection? tagHelpers = null)
     {
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: documentFilePath);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
-        codeDocument.SetSyntaxTree(syntaxTree);
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: null, tagHelpers.NullToEmpty());
-        codeDocument.SetTagHelperContext(tagHelperDocumentContext);
+        codeDocument = codeDocument.WithTagHelperRewrittenSyntaxTree(syntaxTree);
+        var tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers ?? []);
+        codeDocument = codeDocument.WithTagHelperContext(tagHelperDocumentContext);
         return codeDocument;
     }
 }

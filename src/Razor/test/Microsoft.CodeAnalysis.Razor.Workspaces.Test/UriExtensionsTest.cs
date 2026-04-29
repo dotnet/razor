@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using Microsoft.AspNetCore.Razor;
@@ -60,6 +60,7 @@ public class UriExtensionsTest : ToolingTestBase
     [InlineData(@"git:/c%3A/path/to/dir/Index.cshtml", @"c:/_git_/path/to/dir/Index.cshtml")]
     [InlineData(@"git:/c:/path%2Fto/dir/Index.cshtml?%7B%22p", @"c:/_git_/path/to/dir/Index.cshtml")]
     [InlineData(@"git:/c:/path/to/dir/Index.cshtml", @"c:/_git_/path/to/dir/Index.cshtml")]
+    [InlineData(@"chat-editing-text-model:/c:/path/to/dir/Index.cshtml", @"c:/_chat-editing-text-model_/path/to/dir/Index.cshtml")]
     public void GetAbsoluteOrUNCPath_AbsolutePath_HandlesGitScheme(string filePath, string expected)
     {
         // Arrange

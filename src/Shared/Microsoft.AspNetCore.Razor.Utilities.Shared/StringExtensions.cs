@@ -1,11 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Diagnostics.CodeAnalysis;
-
-#if !NET
 using Microsoft.AspNetCore.Razor;
-#endif
 
 namespace System;
 
@@ -555,6 +552,75 @@ internal static class StringExtensions
 #endif
     }
 
+    extension(string)
+    {
+        /// <summary>
+        ///  Builds a string using a <see cref="MemoryBuilder{T}"/> of <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/>
+        ///  through the specified action delegate.
+        /// </summary>
+        /// <typeparam name="TState">
+        ///  The type of the state object passed to the action.
+        /// </typeparam>
+        /// <param name="state">
+        ///  The state object to pass to the action delegate.
+        /// </param>
+        /// <param name="action">
+        ///  The delegate that operates on the memory builder to construct the string content.
+        /// </param>
+        /// <returns>
+        ///  A string built from the chunks added to the memory builder by the action delegate.
+        /// </returns>
+        public static string Build<TState>(TState state, MemoryBuilderAction<ReadOnlyMemory<char>, TState> action)
+        {
+            var builder = new MemoryBuilder<ReadOnlyMemory<char>>();
+            try
+            {
+                action(ref builder, state);
+                return builder.CreateString();
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+
+        /// <summary>
+        ///  Attempts to build a string using a <see cref="MemoryBuilder{T}"/> of <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/>
+        ///  through the specified function delegate.
+        /// </summary>
+        /// <typeparam name="TState">
+        ///  The type of the state object passed to the function.
+        /// </typeparam>
+        /// <param name="state">
+        ///  The state object to pass to the function delegate.
+        /// </param>
+        /// <param name="func">
+        ///  The delegate that operates on the memory builder and returns a boolean indicating success.
+        /// </param>
+        /// <returns>
+        ///  A string built from the chunks added to the memory builder if the function returns <see langword="true"/>;
+        ///  otherwise, <see langword="null"/>.
+        /// </returns>
+        public static string? TryBuild<TState>(TState state, MemoryBuilderFunc<ReadOnlyMemory<char>, TState, bool> func)
+        {
+            var builder = new MemoryBuilder<ReadOnlyMemory<char>>();
+            try
+            {
+                if (func(ref builder, state))
+                {
+                    return builder.CreateString();
+                }
+
+                return null;
+            }
+            finally
+            {
+                builder.Dispose();
+            }
+        }
+    }
+
+#if !NET
     /// <summary>
     ///  Encapsulates a method that receives a span of objects of type <typeparamref name="T"/>
     ///  and a state object of type <typeparamref name="TArg"/>.
@@ -573,49 +639,49 @@ internal static class StringExtensions
     /// </param>
     public delegate void SpanAction<T, in TArg>(Span<T> span, TArg arg);
 
-    /// <summary>
-    ///  Creates a new string with a specific length and initializes it after creation by using the specified callback.
-    /// </summary>
-    /// <typeparam name="TState">
-    ///  The type of the element to pass to <paramref name="action"/>.
-    /// </typeparam>
-    /// <param name="length">
-    ///  The length of the string to create.
-    /// </param>
-    /// <param name="state">
-    ///  The element to pass to <paramref name="action"/>.
-    /// </param>
-    /// <param name="action">
-    ///  A callback to initialize the string
-    /// </param>
-    /// <returns>
-    ///  The created string.
-    /// </returns>
-    /// <remarks>
-    ///  The initial content of the destination span passed to <paramref name="action"/> is undefined.
-    ///  Therefore, it is the delegate's responsibility to ensure that every element of the span is assigned.
-    ///  Otherwise, the resulting string could contain random characters
-    /// </remarks>
-    public unsafe static string CreateString<TState>(int length, TState state, SpanAction<char, TState> action)
+    extension(string)
     {
-#if NET
-        return string.Create(length, (action, state), static (span, state) => state.action(span, state.state));
-#else
-        ArgHelper.ThrowIfNegative(length);
-
-        if (length == 0)
+        /// <summary>
+        ///  Creates a new string with a specific length and initializes it after creation by using the specified callback.
+        /// </summary>
+        /// <typeparam name="TState">
+        ///  The type of the element to pass to <paramref name="action"/>.
+        /// </typeparam>
+        /// <param name="length">
+        ///  The length of the string to create.
+        /// </param>
+        /// <param name="state">
+        ///  The element to pass to <paramref name="action"/>.
+        /// </param>
+        /// <param name="action">
+        ///  A callback to initialize the string
+        /// </param>
+        /// <returns>
+        ///  The created string.
+        /// </returns>
+        /// <remarks>
+        ///  The initial content of the destination span passed to <paramref name="action"/> is undefined.
+        ///  Therefore, it is the delegate's responsibility to ensure that every element of the span is assigned.
+        ///  Otherwise, the resulting string could contain random characters.
+        /// </remarks>
+        public static unsafe string Create<TState>(int length, TState state, SpanAction<char, TState> action)
         {
-            return string.Empty;
+            ArgHelper.ThrowIfNegative(length);
+
+            if (length == 0)
+            {
+                return string.Empty;
+            }
+
+            var result = new string('\0', length);
+
+            fixed (char* ptr = result)
+            {
+                action(new Span<char>(ptr, length), state);
+            }
+
+            return result;
         }
-
-        var result = new string('\0', length);
-
-        fixed (char* ptr = result)
-        {
-            action(new Span<char>(ptr, length), state);
-        }
-
-        return result;
-#endif
     }
+#endif
 }

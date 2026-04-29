@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -9,26 +9,27 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class FormattingDiagnosticValidationPass(ILoggerFactory loggerFactory) : IFormattingPass
+internal sealed class FormattingDiagnosticValidationPass(ILoggerFactory loggerFactory) : IFormattingValidationPass
 {
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<FormattingDiagnosticValidationPass>();
 
     // Internal for testing.
     internal bool DebugAssertsEnabled { get; set; } = true;
 
-    public async Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    public async Task<bool> IsValidAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
-        var originalDiagnostics = context.CodeDocument.GetSyntaxTree().Diagnostics;
+        var originalDiagnostics = context.CodeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Diagnostics;
 
         var text = context.SourceText;
         var changedText = text.WithChanges(changes);
         var changedContext = await context.WithTextAsync(changedText, cancellationToken).ConfigureAwait(false);
-        var changedDiagnostics = changedContext.CodeDocument.GetSyntaxTree().Diagnostics;
+        var changedDiagnostics = changedContext.CodeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Diagnostics;
 
         // We want to ensure diagnostics didn't change, but since we're formatting things, its expected
         // that some of them might have moved around.
@@ -37,28 +38,38 @@ internal sealed class FormattingDiagnosticValidationPass(ILoggerFactory loggerFa
         // at all possible). Also worth noting the order has to be maintained in that case.
         if (!originalDiagnostics.SequenceEqual(changedDiagnostics, LocationIgnoringDiagnosticComparer.Instance))
         {
-            _logger.LogWarning($"{SR.Format_operation_changed_diagnostics}");
-            _logger.LogWarning($"{SR.Diagnostics_before}");
-            foreach (var diagnostic in originalDiagnostics)
-            {
-                _logger.LogWarning($"{diagnostic}");
-            }
-
-            _logger.LogWarning($"{SR.Diagnostics_after}");
-            foreach (var diagnostic in changedDiagnostics)
-            {
-                _logger.LogWarning($"{diagnostic}");
-            }
+            var message = GetLogMessage(originalDiagnostics, changedDiagnostics);
+            _logger.LogError(message);
 
             if (DebugAssertsEnabled)
             {
-                Debug.Fail("A formatting result was rejected because the formatted text produced different diagnostics compared to the original text.");
+                Debug.Fail(message);
             }
 
-            return [];
+            return false;
         }
 
-        return changes;
+        return true;
+    }
+
+    private static string GetLogMessage(ImmutableArray<RazorDiagnostic> originalDiagnostics, ImmutableArray<RazorDiagnostic> changedDiagnostics)
+    {
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        builder.AppendLine(SR.Format_operation_changed_diagnostics);
+        builder.AppendLine(SR.Diagnostics_before);
+        foreach (var diagnostic in originalDiagnostics)
+        {
+            builder.AppendLine(diagnostic.ToString());
+        }
+
+        builder.AppendLine(SR.Diagnostics_after);
+        foreach (var diagnostic in changedDiagnostics)
+        {
+            builder.AppendLine(diagnostic.ToString());
+        }
+
+        return builder.ToString();
     }
 
     private class LocationIgnoringDiagnosticComparer : IEqualityComparer<RazorDiagnostic>

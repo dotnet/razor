@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -14,7 +15,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal static class TagHelperParseTreeRewriter
 {
-    public static RazorSyntaxTree Rewrite(RazorSyntaxTree syntaxTree, TagHelperBinder binder, out ISet<TagHelperDescriptor> usedDescriptors)
+    public static RazorSyntaxTree Rewrite(
+        RazorSyntaxTree syntaxTree,
+        TagHelperBinder binder,
+        TagHelperCollection.Builder? usedDescriptors = null,
+        CancellationToken cancellationToken = default)
     {
         using var errorSink = new ErrorSink();
 
@@ -22,7 +27,9 @@ internal static class TagHelperParseTreeRewriter
             syntaxTree.Source,
             binder,
             syntaxTree.Options,
-            errorSink);
+            errorSink,
+            usedDescriptors,
+            cancellationToken);
 
         var rewritten = rewriter.Visit(syntaxTree.Root);
 
@@ -34,49 +41,36 @@ internal static class TagHelperParseTreeRewriter
         builder.AddRange(treeDiagnostics);
         builder.AddRange(sinkDiagnostics);
 
-        foreach (var descriptor in binder.Descriptors)
+        foreach (var descriptor in binder.TagHelpers)
         {
-            foreach (var diagnostic in descriptor.GetAllDiagnostics())
-            {
-                builder.Add(diagnostic);
-            }
+            descriptor.AppendAllDiagnostics(ref builder.AsRef());
         }
 
         var diagnostics = builder.ToImmutableOrderedBy(static d => d.Span.AbsoluteIndex);
 
-        usedDescriptors = rewriter.UsedDescriptors;
         return new RazorSyntaxTree(rewritten, syntaxTree.Source, diagnostics, syntaxTree.Options);
     }
 
     // Internal for testing.
-    internal sealed class Rewriter : SyntaxRewriter
+    internal sealed class Rewriter(
+        RazorSourceDocument source,
+        TagHelperBinder binder,
+        RazorParserOptions options,
+        ErrorSink errorSink,
+        TagHelperCollection.Builder? usedDescriptors,
+        CancellationToken cancellationToken) : SyntaxRewriter
     {
         // Internal for testing.
         // Null characters are invalid markup for HTML attribute values.
         internal const char InvalidAttributeValueMarker = '\0';
 
-        private readonly RazorSourceDocument _source;
-        private readonly TagHelperBinder _binder;
-        private readonly Stack<TagTracker> _trackerStack;
-        private readonly ErrorSink _errorSink;
-        private readonly RazorParserOptions _options;
-        private readonly HashSet<TagHelperDescriptor> _usedDescriptors;
-
-        public Rewriter(
-            RazorSourceDocument source,
-            TagHelperBinder binder,
-            RazorParserOptions options,
-            ErrorSink errorSink)
-        {
-            _source = source;
-            _binder = binder;
-            _trackerStack = new Stack<TagTracker>();
-            _options = options;
-            _usedDescriptors = new HashSet<TagHelperDescriptor>();
-            _errorSink = errorSink;
-        }
-
-        public HashSet<TagHelperDescriptor> UsedDescriptors => _usedDescriptors;
+        private readonly RazorSourceDocument _source = source;
+        private readonly TagHelperBinder _binder = binder;
+        private readonly Stack<TagTracker> _trackerStack = new();
+        private readonly ErrorSink _errorSink = errorSink;
+        private readonly RazorParserOptions _options = options;
+        private readonly TagHelperCollection.Builder? _usedDescriptors = usedDescriptors;
+        private readonly CancellationToken _cancellationToken = cancellationToken;
 
         private TagTracker? CurrentTracker => _trackerStack.Count > 0 ? _trackerStack.Peek() : null;
 
@@ -84,10 +78,26 @@ internal static class TagHelperParseTreeRewriter
 
         private bool CurrentParentIsTagHelper => CurrentTracker?.IsTagHelper ?? false;
 
-        private TagHelperTracker? CurrentTagHelperTracker => _trackerStack.FirstOrDefault(t => t.IsTagHelper) as TagHelperTracker;
+        private TagHelperTracker? CurrentTagHelperTracker
+        {
+            get
+            {
+                foreach (var tracker in _trackerStack)
+                {
+                    if (tracker.IsTagHelper)
+                    {
+                        return tracker as TagHelperTracker;
+                    }
+                }
+
+                return null;
+            }
+        }
 
         public override SyntaxNode VisitMarkupElement(MarkupElementSyntax node)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
+
             if (IsPartOfStartTag(node))
             {
                 // If this element is inside a start tag, it is some sort of malformed case like
@@ -105,32 +115,33 @@ internal static class TagHelperParseTreeRewriter
             if (startTag != null)
             {
                 var tagName = startTag.GetTagNameWithOptionalBang();
-                if (TryRewriteTagHelperStart(startTag, node.EndTag, out tagHelperStart, out tagHelperInfo))
+                if (TryRewriteTagHelperStart(startTag, node.MarkupEndTag, out tagHelperStart, out tagHelperInfo))
                 {
                     // This is a tag helper.
                     if (tagHelperInfo.TagMode == TagMode.SelfClosing || tagHelperInfo.TagMode == TagMode.StartTagOnly)
                     {
-                        var tagHelperElement = SyntaxFactory.MarkupTagHelperElement(tagHelperStart, body: default, endTag: null);
-                        var rewrittenTagHelper = tagHelperElement.WithTagHelperInfo(tagHelperInfo);
-                        if (node.Body.Count == 0 && node.EndTag == null)
+                        var tagHelperElement = SyntaxFactory.MarkupTagHelperElement(tagHelperStart, body: default, tagHelperEndTag: null, tagHelperInfo);
+
+                        if (node.Body.Count == 0 && node.MarkupEndTag == null)
                         {
-                            return rewrittenTagHelper;
+                            return tagHelperElement;
                         }
 
                         // This tag contains a body and/or an end tag which needs to be moved to the parent.
-                        using var _ = SyntaxListBuilderPool.GetPooledBuilder<RazorSyntaxNode>(out var rewrittenNodes);
-                        rewrittenNodes.Add(rewrittenTagHelper);
+                        using PooledArrayBuilder<RazorSyntaxNode> rewrittenNodes = [];
+
+                        rewrittenNodes.Add(tagHelperElement);
                         var rewrittenBody = VisitList(node.Body);
                         rewrittenNodes.AddRange(rewrittenBody);
 
-                        return SyntaxFactory.MarkupElement(startTag: null, body: rewrittenNodes.ToList(), endTag: node.EndTag);
+                        return SyntaxFactory.MarkupElement(markupStartTag: null, body: rewrittenNodes.ToList(), markupEndTag: node.MarkupEndTag);
                     }
                     else if (node.EndTag == null)
                     {
                         // Start tag helper with no corresponding end tag.
                         var source = new SourceSpan(SourceLocationTracker.Advance(startTag.GetSourceLocation(_source), "<"), tagName.Length);
                         _errorSink.OnError(
-                            node.StartTag.IsVoidElement()
+                            startTag.IsVoidElement()
                                 ? RazorDiagnosticFactory.CreateParsing_VoidElement(source, tagName)
                                 : RazorDiagnosticFactory.CreateParsing_TagHelperFoundMalformedTagHelper(source, tagName));
                     }
@@ -161,7 +172,7 @@ internal static class TagHelperParseTreeRewriter
             var body = VisitList(node.Body);
 
             // Visit end tag.
-            var endTag = (MarkupEndTagSyntax)Visit(node.EndTag);
+            var endTag = (MarkupEndTagSyntax?)Visit(node.EndTag);
             if (endTag != null)
             {
                 var tagName = endTag.GetTagNameWithOptionalBang();
@@ -197,8 +208,7 @@ internal static class TagHelperParseTreeRewriter
             if (tagHelperInfo != null)
             {
                 // If we get here it means this element was rewritten as a tag helper.
-                var tagHelperElement = SyntaxFactory.MarkupTagHelperElement(tagHelperStart, body, tagHelperEnd);
-                return tagHelperElement.WithTagHelperInfo(tagHelperInfo);
+                return SyntaxFactory.MarkupTagHelperElement(tagHelperStart, body, tagHelperEnd, tagHelperInfo);
             }
 
             // There was no matching tag helper for this element. Return.
@@ -207,6 +217,8 @@ internal static class TagHelperParseTreeRewriter
 
         public override SyntaxNode VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
+
             var tagParent = node.FirstAncestorOrSelf<SyntaxNode>(n => n is MarkupStartTagSyntax || n is MarkupEndTagSyntax);
             var isPartOfTagBlock = tagParent != null;
             if (!isPartOfTagBlock)
@@ -270,10 +282,7 @@ internal static class TagHelperParseTreeRewriter
                 return false;
             }
 
-            foreach (var descriptor in tagHelperBinding.Descriptors)
-            {
-                _usedDescriptors.Add(descriptor);
-            }
+            _usedDescriptors?.AddRange(tagHelperBinding.TagHelpers);
 
             ValidateParentAllowsTagHelper(tagName, startTag);
             ValidateBinding(tagHelperBinding, tagName, startTag);
@@ -367,7 +376,14 @@ internal static class TagHelperParseTreeRewriter
             }
 
             rewritten = SyntaxFactory.MarkupTagHelperEndTag(
-                endTag.OpenAngle, endTag.ForwardSlash, endTag.Bang, endTag.Name, endTag.MiscAttributeContent, endTag.CloseAngle, chunkGenerator: null);
+                endTag.OpenAngle,
+                endTag.ForwardSlash,
+                endTag.Bang,
+                endTag.Name,
+                endTag.MiscAttributeContent,
+                endTag.CloseAngle,
+                chunkGenerator: null,
+                editHandler: null);
 
             return true;
         }
@@ -439,7 +455,7 @@ internal static class TagHelperParseTreeRewriter
                 attributeValueBuilder.Clear();
             }
 
-            return attributes.DrainToImmutable();
+            return attributes.ToImmutableAndClear();
         }
 
         private void ValidateParentAllowsTagHelper(string tagName, MarkupStartTagSyntax tagBlock)
@@ -755,7 +771,7 @@ internal static class TagHelperParseTreeRewriter
 
                 using var result = new PooledArrayBuilder<string>();
 
-                foreach (var tagHelper in _binding.Descriptors)
+                foreach (var tagHelper in _binding.TagHelpers)
                 {
                     foreach (var allowedChildTag in tagHelper.AllowedChildTags)
                     {
@@ -768,7 +784,7 @@ internal static class TagHelperParseTreeRewriter
                     }
                 }
 
-                return (result.DrainToImmutable(), distinctSet);
+                return (result.ToImmutableAndClear(), distinctSet);
             }
 
             private HashSet<string> CreatePrefixedAllowedChildren()

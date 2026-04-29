@@ -1,13 +1,13 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -34,9 +34,9 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
     public async ValueTask<LinePositionSpan?> ValidateBreakableRangeAsync(RemoteDocumentContext context, LinePositionSpan span, CancellationToken cancellationToken)
     {
         var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var csharpDocument = codeDocument.GetCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
 
-        if (!_documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, span, out var mappedSpan))
+        if (!_documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, span, out var mappedSpan))
         {
             return null;
         }
@@ -45,7 +45,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
         var result = await ExternalAccess.Razor.Cohost.Handlers.ValidateBreakableRange.GetBreakableRangeAsync(generatedDocument, mappedSpan, cancellationToken).ConfigureAwait(false);
         if (result is { } csharpSpan &&
-            _documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), csharpSpan, MappingBehavior.Inclusive, out var hostSpan))
+            _documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), csharpSpan, MappingBehavior.Inclusive, out var hostSpan))
         {
             return hostSpan;
         }
@@ -79,7 +79,7 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
         var projectedRange = csharpText.GetLinePositionSpan(csharpBreakpointSpan);
 
         // Inclusive mapping means we are lenient to portions of the breakpoint that might be outside of use code in the Razor file
-        if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, MappingBehavior.Inclusive, out var hostDocumentRange))
+        if (!_documentMappingService.TryMapToRazorDocumentRange(codeDocument.GetRequiredCSharpDocument(), projectedRange, MappingBehavior.Inclusive, out var hostDocumentRange))
         {
             return null;
         }
@@ -113,27 +113,48 @@ internal sealed class RemoteDebugInfoService(in ServiceArgs args) : RazorDocumen
 
     private bool TryGetUsableProjectedIndex(RazorCodeDocument codeDocument, LinePosition hostDocumentPosition, out int projectedIndex)
     {
-        var hostDocumentIndex = codeDocument.Source.Text.GetPosition(hostDocumentPosition);
-
         projectedIndex = 0;
-        var languageKind = codeDocument.GetLanguageKind(hostDocumentIndex, rightAssociative: false);
-        // For C#, we just map
-        if (languageKind == RazorLanguageKind.CSharp &&
-            !_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out _, out projectedIndex))
+
+        var sourceText = codeDocument.Source.Text;
+        var hostDocumentIndex = sourceText.GetPosition(hostDocumentPosition);
+        var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+
+        // We want to find a position that maps to C# on the same line as the original request, but we might have to skip over
+        // some Razor/HTML nodes to find valid C#.
+        while (sourceText.GetLinePosition(hostDocumentIndex).Line == hostDocumentPosition.Line)
         {
-            return false;
-        }
-        // Otherwise see if there is more C# on the line to map to. This is for situations like "$$<p>@DateTime.Now</p>"
-        else if (languageKind == RazorLanguageKind.Html &&
-            !_documentMappingService.TryMapToGeneratedDocumentOrNextCSharpPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out _, out projectedIndex))
-        {
-            return false;
-        }
-        else if (languageKind == RazorLanguageKind.Razor)
-        {
-            return false;
+            if (_documentMappingService.TryMapToCSharpPositionOrNext(csharpDocument, hostDocumentIndex, out _, out projectedIndex))
+            {
+                if (syntaxRoot.FindInnermostNode(hostDocumentIndex) is not { } node)
+                {
+                    return false;
+                }
+
+                // We want to avoid component tags and component attributes, where we map to C#, but they're not valid breakpoint locations
+                if (!node.IsAnyAttributeSyntax() && node is not (MarkupTagHelperStartTagSyntax or MarkupEndTagSyntax))
+                {
+                    // Found something valid!
+                    return true;
+                }
+
+                // It's C#, but not valid, so skip past it so we can try to find more C#
+                hostDocumentIndex = node.Span.End + 1;
+            }
+
+            // See if there is more C# on the line to map to, for example "$$<p>@DateTime.Now</p>"
+            if (!_documentMappingService.TryMapToCSharpPositionOrNext(csharpDocument, hostDocumentIndex, out _, out projectedIndex))
+            {
+                return false;
+            }
+
+            // We found some C# later on the line, so map that back to Razor so we can loop around and check the node type
+            if (!_documentMappingService.TryMapToRazorDocumentPosition(csharpDocument, projectedIndex, out _, out hostDocumentIndex))
+            {
+                return false;
+            }
         }
 
-        return true;
+        return false;
     }
 }

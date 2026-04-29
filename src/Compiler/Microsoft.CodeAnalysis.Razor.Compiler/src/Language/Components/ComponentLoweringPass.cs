@@ -5,17 +5,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
+internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
     // This pass runs earlier than our other passes that 'lower' specific kinds of attributes.
     public override int Order => 0;
 
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
+    protected override void ExecuteCore(
+        RazorCodeDocument codeDocument,
+        DocumentIntermediateNode documentNode,
+        CancellationToken cancellationToken)
     {
         if (!IsComponentDocument(documentNode))
         {
@@ -34,11 +40,11 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
         // APIs.
         var usings = documentNode.FindDescendantNodes<UsingDirectiveIntermediateNode>();
         var references = documentNode.FindDescendantReferences<TagHelperIntermediateNode>();
-        for (var i = 0; i < references.Count; i++)
+
+        foreach (var reference in references)
         {
-            var reference = references[i];
-            var node = (TagHelperIntermediateNode)reference.Node;
-            if (node.TagHelpers.Any(t => t.IsChildContentTagHelper))
+            var node = reference.Node;
+            if (node.TagHelpers.Any(t => t.Kind == TagHelperKind.ChildContent))
             {
                 // This is a child content tag helper. This will be rewritten when we visit its parent.
                 continue;
@@ -46,23 +52,18 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
 
             // The element didn't match any child content descriptors. Look for any matching component descriptors.
             var count = 0;
-            for (var j = 0; j < node.TagHelpers.Count; j++)
+            foreach (var tagHelper in node.TagHelpers)
             {
-                if (node.TagHelpers[j].IsComponentTagHelper)
+                if (tagHelper.Kind == TagHelperKind.Component)
                 {
-                    // Only allow a single component tag helper per element. If there are multiple, we'll just consider
-                    // the first one and ignore the others.
-                    if (++count > 1)
-                    {
-                        node.Diagnostics.Add(ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, node.TagName, node.TagHelpers));
-                        break;
-                    }
+                    // Count component tag helpers
+                    count++;
                 }
             }
 
             if (count == 1)
             {
-                reference.Replace(RewriteAsComponent(node, node.TagHelpers.Single(n => n.IsComponentTagHelper)));
+                reference.Replace(RewriteAsComponent(node, node.TagHelpers.Single(n => n.Kind == TagHelperKind.Component)));
             }
             else if (count > 1)
             {
@@ -89,10 +90,9 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
         {
             TagHelperDescriptor candidate = null;
             List<TagHelperDescriptor> matched = null;
-            for (var i = 0; i < node.TagHelpers.Count; i++)
+            foreach (var tagHelper in node.TagHelpers)
             {
-                var tagHelper = node.TagHelpers[i];
-                if (!tagHelper.IsComponentTagHelper)
+                if (tagHelper.Kind != TagHelperKind.Component)
                 {
                     continue;
                 }
@@ -100,7 +100,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                 for (var j = 0; j < usings.Count; j++)
                 {
                     var usingNamespace = usings[j].Content;
-                    if (string.Equals(tagHelper.GetTypeNamespace(), usingNamespace, StringComparison.Ordinal))
+                    if (string.Equals(tagHelper.TypeNamespace, usingNamespace, StringComparison.Ordinal))
                     {
                         if (candidate == null)
                         {
@@ -117,40 +117,244 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
 
             if (matched != null)
             {
-                matched.Add(candidate);
-                var diagnostic = ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, candidate.Name, matched);
-                // Iterate over existing diagnostics to avoid adding multiple diagnostics when we find an ambiguous tag.
-                for (var i = 0; i < node.Diagnostics.Count; i++)
+                // Insert candidate at the beginning to maintain the original order
+                matched.Insert(0, candidate);
+
+                // Before reporting an ambiguity error, try to disambiguate based on whether
+                // type parameters are provided. This handles the case where both a generic
+                // and non-generic version of a component exist with the same name.
+                var resolvedCandidate = TryDisambiguateByTypeParameters(node, matched);
+                if (resolvedCandidate != null)
                 {
-                    var existing = node.Diagnostics[i];
-                    if (diagnostic.Id == existing.Id)
+                    return resolvedCandidate;
+                }
+
+                // Iterate over existing diagnostics to avoid adding multiple diagnostics when we find an ambiguous tag.
+                foreach (var diagnostic in node.Diagnostics)
+                {
+                    if (diagnostic.Id == ComponentDiagnosticFactory.MultipleComponents.Id ||
+                        diagnostic.Id == ComponentDiagnosticFactory.AmbiguousComponentSelection.Id)
                     {
                         return null;
                     }
                 }
-                node.Diagnostics.Add(diagnostic);
+
+                node.AddDiagnostic(ComponentDiagnosticFactory.Create_MultipleComponents(node.Source, node.TagName, matched));
 
                 return null;
             }
 
             return candidate;
         }
+
+        // Try to disambiguate between multiple components with the same name by checking if
+        // type parameters are provided. The logic handles:
+        // 1. One generic and one non-generic component
+        // 2. Multiple generic components with different type parameter counts
+        //
+        // Disambiguation is based on matching the provided type parameters in the markup
+        // with the type parameters defined by each candidate component.
+        static TagHelperDescriptor TryDisambiguateByTypeParameters(TagHelperIntermediateNode node, List<TagHelperDescriptor> candidates)
+        {
+            // Separate candidates into generic and non-generic
+            var genericCandidates = candidates.Where(c => c.IsGenericTypedComponent()).ToList();
+            var nonGenericCandidates = candidates.Where(c => !c.IsGenericTypedComponent()).ToList();
+
+            // Get all type parameter attributes provided in the markup
+            using var providedTypeParameters = GetProvidedTypeParameters(node);
+
+            // If no type parameters are provided
+            if (providedTypeParameters.Count == 0)
+            {
+                // If there's exactly one non-generic component, prefer it
+                if (nonGenericCandidates.Count == 1 && genericCandidates.Count >= 1)
+                {
+                    var nonGenericComponent = nonGenericCandidates[0];
+                    
+                    // Check for ambiguity with any generic component
+                    foreach (var genericComponent in genericCandidates)
+                    {
+                        if (HasAmbiguousParameters(node, genericComponent, nonGenericComponent))
+                        {
+                            // Report an ambiguity error and return null
+                            node.AddDiagnostic(ComponentDiagnosticFactory.Create_AmbiguousComponentSelection(
+                                node.Source, 
+                                node.TagName, 
+                                genericComponent, 
+                                nonGenericComponent));
+                            return null;
+                        }
+                    }
+                    
+                    // No ambiguity with any generic variant, use the non-generic component
+                    return nonGenericComponent;
+                }
+                
+                // Can't disambiguate - either no non-generic or multiple non-generic components
+                return null;
+            }
+
+            // Type parameters are provided - find the generic component that matches
+            TagHelperDescriptor bestMatch = null;
+            var providedTypeParametersArray = providedTypeParameters.ToArray();
+            
+            foreach (var candidate in genericCandidates)
+            {
+                using var candidateTypeParams = GetTypeParameterNames(candidate);
+                
+                // Check if all provided type parameters exist in this candidate's type parameters
+                var allProvidedMatch = true;
+                foreach (var provided in providedTypeParametersArray)
+                {
+                    if (!candidateTypeParams.Contains(provided))
+                    {
+                        allProvidedMatch = false;
+                        break;
+                    }
+                }
+                
+                if (!allProvidedMatch)
+                {
+                    continue;
+                }
+                
+                // All provided type parameters match this candidate
+                // Check if this is a complete match (all type parameters provided)
+                if (providedTypeParameters.Count == candidateTypeParams.Count)
+                {
+                    // Exact match - this is the component to use
+                    return candidate;
+                }
+                
+                // Partial match - could be this component (type inference will handle the rest)
+                // Keep track of it as a potential match
+                if (bestMatch == null)
+                {
+                    bestMatch = candidate;
+                }
+                else
+                {
+                    // Multiple components match the provided type parameters - ambiguous
+                    return null;
+                }
+            }
+
+            // Return the best match if we found one, otherwise null (ambiguous or no match)
+            return bestMatch;
+        }
+
+        // Get all type parameter names provided in the markup
+        static PooledHashSet<string> GetProvidedTypeParameters(TagHelperIntermediateNode node)
+        {
+            var result = new PooledHashSet<string>(StringComparer.Ordinal);
+            
+            foreach (var child in node.Children)
+            {
+                if (child is TagHelperPropertyIntermediateNode property)
+                {
+                    // Check if this property matches any type parameter from any candidate
+                    // We'll check this by seeing if it's a type parameter for any of the tag helpers
+                    foreach (var tagHelper in node.TagHelpers)
+                    {
+                        if (tagHelper.IsGenericTypedComponent())
+                        {
+                            foreach (var typeParam in tagHelper.GetTypeParameters())
+                            {
+                                if (string.Equals(property.AttributeName, typeParam.Name, StringComparison.Ordinal))
+                                {
+                                    result.Add(property.AttributeName);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return result;
+        }
+
+        // Get the set of type parameter names for a component
+        static PooledHashSet<string> GetTypeParameterNames(TagHelperDescriptor component)
+        {
+            var result = new PooledHashSet<string>(StringComparer.Ordinal);
+            foreach (var typeParam in component.GetTypeParameters())
+            {
+                result.Add(typeParam.Name);
+            }
+            return result;
+        }
+
+        // Check if both components have parameters with the same names as those used in the markup,
+        // which would make selection ambiguous when no type parameters are provided
+        static bool HasAmbiguousParameters(TagHelperIntermediateNode node, TagHelperDescriptor genericComponent, TagHelperDescriptor nonGenericComponent)
+        {
+            // Get all the attribute names used in the markup (excluding type parameters)
+            using var typeParameterNames = GetTypeParameterNames(genericComponent);
+
+            using var markupAttributeNames = new PooledHashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var child in node.Children)
+            {
+                if (child is TagHelperPropertyIntermediateNode property)
+                {
+                    // Skip type parameters
+                    if (!typeParameterNames.Contains(property.AttributeName))
+                    {
+                        markupAttributeNames.Add(property.AttributeName);
+                    }
+                }
+            }
+
+            // If no non-type-parameter attributes are used, there's no ambiguity
+            if (markupAttributeNames.Count == 0)
+            {
+                return false;
+            }
+
+            // Check if both components have bound attributes with the same names
+            using var genericParamNames = new PooledHashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var attr in genericComponent.BoundAttributes)
+            {
+                if (!attr.IsTypeParameterProperty())
+                {
+                    genericParamNames.Add(attr.Name);
+                }
+            }
+
+            using var nonGenericParamNames = new PooledHashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var attr in nonGenericComponent.BoundAttributes)
+            {
+                nonGenericParamNames.Add(attr.Name);
+            }
+
+            // Check if any of the used attributes exist in both components
+            var markupAttributesArray = markupAttributeNames.ToArray();
+            foreach (var attrName in markupAttributesArray)
+            {
+                if (genericParamNames.Contains(attrName) && nonGenericParamNames.Contains(attrName))
+                {
+                    // Found a parameter that exists in both components - this is ambiguous
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     private static ComponentIntermediateNode RewriteAsComponent(TagHelperIntermediateNode node, TagHelperDescriptor tagHelper)
     {
+        Debug.Assert(node.StartTagSpan.HasValue, "Component tags should always have a start tag span.");
         var component = new ComponentIntermediateNode()
         {
             Component = tagHelper,
             Source = node.Source,
             TagName = node.TagName,
-            TypeName = tagHelper.GetTypeName(),
+            TypeName = tagHelper.TypeName,
+            StartTagSpan = node.StartTagSpan.AssumeNotNull(),
         };
 
-        for (var i = 0; i < node.Diagnostics.Count; i++)
-        {
-            component.Diagnostics.Add(node.Diagnostics[i]);
-        }
+        component.AddDiagnosticsFromNode(node);
 
         var visitor = new ComponentRewriteVisitor(component);
         visitor.Visit(node);
@@ -159,7 +363,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
         // because we see the nodes in the wrong order.
         foreach (var childContent in component.ChildContents)
         {
-            childContent.ParameterName ??= component.ChildContentParameterName ?? ComponentMetadata.ChildContent.DefaultParameterName;
+            childContent.ParameterName ??= component.ChildContentParameterName ?? ComponentHelpers.ChildContent.DefaultParameterName;
         }
 
         ValidateRequiredAttributes(node, tagHelper, component);
@@ -169,7 +373,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
 
     private static void ValidateRequiredAttributes(TagHelperIntermediateNode node, TagHelperDescriptor tagHelper, ComponentIntermediateNode intermediateNode)
     {
-        if (intermediateNode.Children.Any(c => c is TagHelperDirectiveAttributeIntermediateNode node && (node.TagHelper?.IsSplatTagHelper() ?? false)))
+        if (intermediateNode.Children.Any(static c => c is TagHelperDirectiveAttributeIntermediateNode node && (node.TagHelper?.Kind == TagHelperKind.Splat)))
         {
             // If there are any splat attributes, assume the user may have provided all values.
             // This pass runs earlier than ComponentSplatLoweringPass, so we cannot rely on the presence of SplatIntermediateNode to make this check.
@@ -180,7 +384,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
         {
             if (!IsPresentAsAttribute(requiredAttribute.Name, intermediateNode))
             {
-                intermediateNode.Diagnostics.Add(
+                intermediateNode.AddDiagnostic(
                   RazorDiagnosticFactory.CreateComponent_EditorRequiredParameterNotSpecified(
                       node.Source,
                       intermediateNode.TagName,
@@ -244,10 +448,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             TagName = node.TagName,
         };
 
-        for (var i = 0; i < node.Diagnostics.Count; i++)
-        {
-            result.Diagnostics.Add(node.Diagnostics[i]);
-        }
+        result.AddDiagnosticsFromNode(node);
 
         var visitor = new ElementRewriteVisitor(result.Children);
         visitor.Visit(node);
@@ -309,7 +510,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             //    which is always allowed.
             // 5. Each 'child content' element will generate its own lambda, and be assigned to the property
             //    that matches the element name.
-            if (!node.Children.OfType<TagHelperIntermediateNode>().Any(t => t.TagHelpers.Any(th => th.IsChildContentTagHelper)))
+            if (!node.Children.OfType<TagHelperIntermediateNode>().Any(t => t.TagHelpers.Any(th => th.Kind == TagHelperKind.ChildContent)))
             {
                 // This node has implicit child content. It may or may not have an attribute that matches.
                 var attribute = _component.Component.BoundAttributes
@@ -332,18 +533,23 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                 }
 
                 if (child is TagHelperIntermediateNode tagHelperNode &&
-                    tagHelperNode.TagHelpers.Any(th => th.IsChildContentTagHelper))
+                    tagHelperNode.TagHelpers.Any(th => th.Kind == TagHelperKind.ChildContent))
                 {
                     // This is a child content element
                     var attribute = _component.Component.BoundAttributes
                         .Where(a => string.Equals(a.Name, tagHelperNode.TagName, StringComparison.Ordinal))
                         .FirstOrDefault();
-                    _children.Add(RewriteChildContent(attribute, child.Source, child.Children));
+                    var rewrittenChildContent = RewriteChildContent(attribute, child.Source, child.Children);
+                    // Transfer diagnostics from the TagHelperIntermediateNode to the rewritten child content.
+                    // The resolution phase may have placed diagnostics on the tag helper node that need
+                    // to survive rewriting into a ComponentChildContentIntermediateNode.
+                    rewrittenChildContent.AddDiagnosticsFromNode(tagHelperNode);
+                    _children.Add(rewrittenChildContent);
                     continue;
                 }
 
                 // If we get here then this is significant content inside a component with explicit child content.
-                child.Diagnostics.Add(ComponentDiagnosticFactory.Create_ChildContentMixedWithExplicitChildContent(child.Source, _component));
+                child.AddDiagnostic(ComponentDiagnosticFactory.Create_ChildContentMixedWithExplicitChildContent(child.Source, _component));
                 _children.Add(child);
             }
 
@@ -400,22 +606,22 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                         }
 
                         // The parameter name is invalid.
-                        childContent.Diagnostics.Add(ComponentDiagnosticFactory.Create_ChildContentHasInvalidParameter(property.Source, property.AttributeName, attribute.Name));
+                        childContent.AddDiagnostic(ComponentDiagnosticFactory.Create_ChildContentHasInvalidParameter(property.Source, property.AttributeName, attribute.Name));
                         continue;
                     }
 
                     // This is an unrecognized tag helper bound attribute. This will practically never happen unless the child content descriptor was misconfigured.
-                    childContent.Diagnostics.Add(ComponentDiagnosticFactory.Create_ChildContentHasInvalidAttribute(property.Source, property.AttributeName, attribute.Name));
+                    childContent.AddDiagnostic(ComponentDiagnosticFactory.Create_ChildContentHasInvalidAttribute(property.Source, property.AttributeName, attribute.Name));
                 }
                 else if (child is TagHelperHtmlAttributeIntermediateNode a)
                 {
                     // This is an HTML attribute on a child content.
-                    childContent.Diagnostics.Add(ComponentDiagnosticFactory.Create_ChildContentHasInvalidAttribute(a.Source, a.AttributeName, attribute.Name));
+                    childContent.AddDiagnostic(ComponentDiagnosticFactory.Create_ChildContentHasInvalidAttribute(a.Source, a.AttributeName, attribute.Name));
                 }
                 else if (child is TagHelperDirectiveAttributeIntermediateNode directiveAttribute)
                 {
                     // We don't support directive attributes inside child content, this is possible if you try to do something like put '@ref' on a child content.
-                    childContent.Diagnostics.Add(ComponentDiagnosticFactory.Create_ChildContentHasInvalidAttribute(directiveAttribute.Source, directiveAttribute.OriginalAttributeName, attribute.Name));
+                    childContent.AddDiagnostic(ComponentDiagnosticFactory.Create_ChildContentHasInvalidAttribute(directiveAttribute.Source, directiveAttribute.OriginalAttributeName, attribute.Name));
                 }
                 else
                 {
@@ -497,7 +703,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             // Each 'tag helper property' belongs to a specific tag helper. We want to handle
             // the cases for components, but leave others alone. This allows our other passes
             // to handle those cases.
-            if (!node.TagHelper.IsComponentTagHelper)
+            if (node.TagHelper.Kind != TagHelperKind.Component)
             {
                 _children.Add(node);
                 return;
@@ -526,7 +732,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                 }
 
                 // The parameter name is invalid.
-                _component.Diagnostics.Add(ComponentDiagnosticFactory.Create_ChildContentHasInvalidParameterOnComponent(node.Source, node.AttributeName, _component.TagName));
+                _component.AddDiagnostic(ComponentDiagnosticFactory.Create_ChildContentHasInvalidParameterOnComponent(node.Source, node.AttributeName, _component.TagName));
                 return;
             }
 
@@ -579,12 +785,10 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                 AttributeName = node.AttributeName,
                 Source = node.Source,
             };
+
             _children.Add(attribute);
 
-            for (var i = 0; i < node.Diagnostics.Count; i++)
-            {
-                attribute.Diagnostics.Add(node.Diagnostics[i]);
-            }
+            attribute.AddDiagnosticsFromNode(node);
 
             switch (node.AttributeStructure)
             {
@@ -624,10 +828,8 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
                         value.Children.Add(html.Children[i]);
                     }
 
-                    for (var i = 0; i < html.Diagnostics.Count; i++)
-                    {
-                        value.Diagnostics.Add(html.Diagnostics[i]);
-                    }
+
+                    value.AddDiagnosticsFromNode(html);
 
                     return value;
                 }
@@ -642,7 +844,7 @@ internal class ComponentLoweringPass : ComponentIntermediateNodePassBase, IRazor
             // Each 'tag helper property' belongs to a specific tag helper. We want to handle
             // the cases for components, but leave others alone. This allows our other passes
             // to handle those cases.
-            _children.Add(node.TagHelper.IsComponentTagHelper ? (IntermediateNode)new ComponentAttributeIntermediateNode(node) : node);
+            _children.Add(node.TagHelper.Kind == TagHelperKind.Component ? new ComponentAttributeIntermediateNode(node) : node);
         }
 
         public override void VisitTagHelperDirectiveAttribute(TagHelperDirectiveAttributeIntermediateNode node)

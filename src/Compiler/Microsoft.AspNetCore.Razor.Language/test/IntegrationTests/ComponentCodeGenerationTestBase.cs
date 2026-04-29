@@ -519,7 +519,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().Text));
+        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Items1=items1 Items2=items2 Items3=items3>
@@ -597,7 +597,7 @@ public class Tag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().Text));
+        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=item1 Items2=items2>
@@ -740,7 +740,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().Text));
+        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -817,7 +817,7 @@ public class Tag : ITag
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
 
-        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetCSharpDocument().Text));
+        AdditionalSyntaxTrees.Add(Parse(generated.CodeDocument.GetRequiredCSharpDocument().Text));
         var useGenerated = CompileToCSharp("UseTestComponent.cshtml", cshtmlContent: @"
 @using Test
 <TestComponent Item1=@item1 Items2=@items Item3=@item1>
@@ -9339,6 +9339,214 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsage()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="string" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsageWithInference()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent MyItem="1" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentMultipleTypeParamUsage()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @typeparam TItem2
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+
+                [Parameter]
+                public TItem2 MyItem2 { get; set; }
+            }
+
+            <TestComponent TItem2="int" TItem="string" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeParamUsageWithImplicitExpression()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="@string" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeParamUsageWithImplicitExpression2()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="@(string)" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsageWhitespace()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="  string  " />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11552")]
+    public void GenericComponentTypeUsageWithGenericType()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TItem
+            @code {
+                [Parameter]
+                public TItem MyItem { get; set; }
+            }
+
+            <TestComponent TItem="TestComponent<string>" />
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11718")]
+    public void GenericInference_DynamicallyAccessedMembers_01()
+    {
+        var generated = CompileToCSharp("""
+            @using Microsoft.AspNetCore.Components.Forms
+
+            <InputRadioGroup @bind-Value="value1">
+                <InputRadio Value="@("false")" />
+                <InputRadio Value="@("true")" />
+            </InputRadioGroup>
+
+            @code {
+                private string value1 = "true";
+            }
+            """);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+
+        Assert.Contains("DynamicallyAccessedMembers", generated.Code);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11718")]
+    public void GenericInference_DynamicallyAccessedMembers_02()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+            using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
+            using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
+            namespace Test;
+            public class MyComponent<T1,
+                [Attr, DAM(DAMT.PublicMethods | DAMT.PublicFields)] T2,
+                [DAM(DAMT.None)] [x: DAM(DAMT.All)] T3>
+                : ComponentBase
+            {
+                [Parameter] public required T1 P1 { get; set; }
+                [Parameter] public required T2 P2 { get; set; }
+                [Parameter] public required T3 P3 { get; set; }
+            }
+            class Attr : Attribute;
+            """));
+
+        var expectedDiagnostics = new[]
+        {
+            // (9,23): warning CS0658: 'x' is not a recognized attribute location. Valid attribute locations for this declaration are 'typevar'. All attributes in this block will be ignored.
+            //     [DAM(DAMT.None)] [x: DAM(DAMT.All)] T3>
+            Diagnostic(ErrorCode.WRN_InvalidAttributeLocation, "x").WithArguments("x", "typevar").WithLocation(9, 23)
+        };
+
+        var generated = CompileToCSharp("""
+            <MyComponent P1="s" P2="2" P3="s" />
+            @code {
+                private string s = "x";
+            }
+            """, expectedDiagnostics);
+
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, expectedDiagnostics);
+
+        Assert.Contains("DynamicallyAccessedMembers", generated.Code);
+    }
+
     #endregion
 
     #region Key
@@ -9842,6 +10050,51 @@ namespace Test
             }
             """, nullableEnable: true);
         CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/12043")]
+    public void Component_WithRef_NamespaceConflict()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Y
+            {
+                public class MyComponent : ComponentBase;
+            }
+
+            namespace X.Y
+            {
+                public static class E
+                {
+                    public static int M() => 123;
+                }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            @using global::Y
+            @using global::X.Y
+            @namespace X
+
+            @E.M()
+            <MyComponent @ref="comp" />
+
+            @code {
+                private MyComponent comp;
+            }
+            """);
+
+        var expectedDiagnostics = DesignTime
+            ? new[]
+            {
+                // x:\dir\subdir\Test\TestComponent.cshtml(9,25): warning CS0414: The field 'TestComponent.comp' is assigned but its value is never used
+                //     private MyComponent comp;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "comp").WithArguments("X.TestComponent.comp"),
+            }
+            : [];
+
+        CompileToAssembly(generated, expectedDiagnostics);
     }
 
     #endregion
@@ -10813,6 +11066,35 @@ namespace New.Test
                 void M2(global::TestComponent t) { }
             }
             """));
+        var generated = CompileToCSharp("""
+            <h1>Generated</h1>
+            <Component1 />
+            <Shared.Component2 />
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void NamespaceWithSurrogatePair()
+    {
+        DefaultRootNamespace = "test𝔸namespace";
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            
+            using Microsoft.AspNetCore.Components;
+            namespace test_namespace
+            {
+                public class Component1 : ComponentBase { }
+                namespace Shared
+                {
+                    public class Component2 : ComponentBase { }
+                }
+            }
+            """));
+
         var generated = CompileToCSharp("""
             <h1>Generated</h1>
             <Component1 />
@@ -11868,6 +12150,56 @@ Time: @DateTime.Now
     #region RenderMode
 
     [IntegrationTestFact]
+    public void RenderMode_Directive_WithTypeParam()
+    {
+        var generated = CompileToCSharp("""
+                @typeparam T
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
+    public void RenderMode_Directive_WithTypeParam_Razor9()
+    {
+        var generated = CompileToCSharp("""
+                @typeparam T
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                """,
+                configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_9_0 },
+                expectedCSharpDiagnostics:
+                    // (17,19): error CS0305: Using the generic type 'TestComponent<T>' requires 1 type arguments
+                    //     [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
+                    Diagnostic(ErrorCode.ERR_BadArity, "TestComponent").WithArguments("Test.TestComponent<T>", "type", "1").WithLocation(17, 19));
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+            // (13,19): error CS0305: Using the generic type 'TestComponent<T>' requires 1 type arguments
+            //     [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
+            Diagnostic(ErrorCode.ERR_BadArity, "TestComponent").WithArguments("Test.TestComponent<T>", "type", "1").WithLocation(13, 19));
+    }
+
+    [IntegrationTestFact]
+    public void RenderMode_Directive_WithTypeParam_First()
+    {
+        var generated = CompileToCSharp("""
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+                @typeparam T
+                """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact]
     public void RenderMode_Directive_FullyQualified()
     {
         var generated = CompileToCSharp("""
@@ -12679,6 +13011,67 @@ Time: @DateTime.Now
             @inject float Value5
 
             """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11273")]
+    public void SectionDirective_NotAllowed()
+    {
+        // Verify that @section is not recognized in components and produces appropriate code-gen
+        // Act
+        var generated = CompileToCSharp("""
+            @{ var section = "Section"; }
+            @section One { <p>Content</p> }
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/11273")]
+    public void SectionDirective_NotAllowed_VariableNotDefined()
+    {
+        // Verify that @section is not recognized in components when the variable is not defined
+        // Act
+        var generated = CompileToCSharp("""
+            @section One { <p>Content</p> }
+            """);
+                                        
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated,
+            DesignTime
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,7): error CS0103: The name 'section' does not exist in the current context
+                ? [Diagnostic(ErrorCode.ERR_NameNotInContext, "section").WithArguments("section").WithLocation(1, 7)]
+                // x:\dir\subdir\Test\TestComponent.cshtml(1,2): error CS0103: The name 'section' does not exist in the current context
+                : [Diagnostic(ErrorCode.ERR_NameNotInContext, "section").WithArguments("section").WithLocation(1, 2)]);
+    }                                    
+
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/12663")]
+    public void ComponentAttribute_WithDoubleAtEscape()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public string Value { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"<MyComponent Value=""@@currentCount"" />");
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

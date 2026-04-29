@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
@@ -77,8 +77,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
     internal virtual string DefaultFileName { get; }
 
-    internal virtual bool DesignTime { get; }
-
     internal virtual bool DeclarationOnly { get; }
 
     /// <summary>
@@ -122,8 +120,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             });
 
             b.Features.Add(new TestImportProjectFeature(ImportItems.ToImmutable()));
-
-            b.Features.Add(new DefaultTypeNameFeature());
 
             b.Features.Add(new CompilationTagHelperFeature());
             b.Features.Add(new DefaultMetadataReferenceFeature()
@@ -177,11 +173,6 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
     protected CompileToCSharpResult CompileToCSharp(string cshtmlRelativePath, string cshtmlContent, bool throwOnFailure = true, RazorFileKind? fileKind = null)
     {
-        if (DeclarationOnly && DesignTime)
-        {
-            throw new InvalidOperationException($"{nameof(DeclarationOnly)} cannot be used with {nameof(DesignTime)}.");
-        }
-
         if (DeclarationOnly && UseTwoPhaseCompilation)
         {
             throw new InvalidOperationException($"{nameof(DeclarationOnly)} cannot be used with {nameof(UseTwoPhaseCompilation)}.");
@@ -198,9 +189,9 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 // Result of generating declarations
                 codeDocument = projectEngine.ProcessDeclarationOnly(item);
-                Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
+                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
 
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, path: item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
@@ -211,8 +202,8 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
             };
 
             // Result of doing 'temp' compilation
@@ -226,23 +217,23 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
             foreach (var item in AdditionalRazorItems)
             {
                 // Result of generating definition
-                codeDocument = DesignTime ? projectEngine.ProcessDesignTime(item) : projectEngine.Process(item);
-                Assert.Empty(codeDocument.GetCSharpDocument().Diagnostics);
+                codeDocument = projectEngine.Process(item);
+                Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
 
                 // Replace the 'declaration' syntax tree
-                var syntaxTree = Parse(codeDocument.GetCSharpDocument().Text, path: item.FilePath);
+                var syntaxTree = Parse(codeDocument.GetRequiredCSharpDocument().Text, path: item.FilePath);
                 AdditionalSyntaxTrees.RemoveAll(st => st.FilePath == item.FilePath);
                 AdditionalSyntaxTrees.Add(syntaxTree);
             }
 
             // Result of real code generation for the document under test
-            codeDocument = DesignTime ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
+            codeDocument = projectEngine.Process(projectItem);
             return new CompileToCSharpResult
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
             };
         }
         else
@@ -255,13 +246,13 @@ public class RazorToolingIntegrationTestBase : ToolingTestBase
 
             var codeDocument = DeclarationOnly
                 ? projectEngine.ProcessDeclarationOnly(projectItem)
-                : DesignTime ? projectEngine.ProcessDesignTime(projectItem) : projectEngine.Process(projectItem);
+                : projectEngine.Process(projectItem);
             return new CompileToCSharpResult
             {
                 BaseCompilation = BaseCompilation.AddSyntaxTrees(AdditionalSyntaxTrees),
                 CodeDocument = codeDocument,
-                Code = codeDocument.GetCSharpDocument().Text.ToString(),
-                Diagnostics = codeDocument.GetCSharpDocument().Diagnostics,
+                Code = codeDocument.GetRequiredCSharpDocument().Text.ToString(),
+                Diagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics,
             };
         }
     }

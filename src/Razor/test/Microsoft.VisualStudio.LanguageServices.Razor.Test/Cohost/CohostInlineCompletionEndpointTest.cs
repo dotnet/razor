@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -12,9 +12,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Razor.Settings;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,7 +23,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact(Skip = "Cannot edit source generated documents")]
+    [Fact]
     public Task Constructor()
         => VerifyInlineCompletionAsync(
             input: """
@@ -48,7 +46,7 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
                 }
                 """);
 
-    [Fact(Skip = "Cannot edit source generated documents")]
+    [Fact]
     public Task Constructor_SmallIndent()
         => VerifyInlineCompletionAsync(
             input: """
@@ -81,19 +79,14 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
 
     private async Task VerifyInlineCompletionAsync(TestCode input, string? output = null, int tabSize = 4)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, createSeparateRemoteAndLocalWorkspaces: true);
+        var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetLinePosition(input.Position);
 
-        var clientSettingsManager = new ClientSettingsManager([]);
-        var endpoint = new CohostInlineCompletionEndpoint(RemoteServiceInvoker, clientSettingsManager);
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().ClientSpaceSettings with { IndentSize = tabSize });
+        var endpoint = new CohostInlineCompletionEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientSettingsManager);
 
-        var options = new RazorFormattingOptions() with
-        {
-            TabSize = tabSize
-        };
-
-        var list = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, options.ToLspFormattingOptions(), DisposalToken);
+        var list = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, ClientSettingsManager.GetClientSettings().ToRazorFormattingOptions().ToLspFormattingOptions(), DisposalToken);
 
         if (output is null)
         {
@@ -115,7 +108,7 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
         AssertEx.EqualOrDiff(output, inputText.ToString());
     }
 
-    private protected override TestComposition ConfigureRoslynDevenvComposition(TestComposition composition)
+    private protected override TestComposition ConfigureLocalComposition(TestComposition composition)
     {
         return composition.AddParts(typeof(TestSnippetInfoService));
     }

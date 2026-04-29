@@ -8,20 +8,30 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
 {
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
+    protected override RazorCodeDocument ExecuteCore(RazorCodeDocument codeDocument, CancellationToken cancellationToken)
     {
-        var syntaxTree = codeDocument.GetPreTagHelperSyntaxTree();
-        var context = codeDocument.GetTagHelperContext();
-        if (syntaxTree is null || context is not { TagHelpers.Length: > 0 })
+        if (!codeDocument.TryGetSyntaxTree(out var syntaxTree))
         {
-            // No descriptors, no-op.
-            return;
+            return codeDocument.WithReferencedTagHelpers([]);
+        }
+
+        if (!codeDocument.TryGetTagHelperContext(out var context) ||
+            context.TagHelpers is [])
+        {
+            // No tag helpers to rewrite. The rewritten tree is the same as the canonical tree.
+            // Tooling in the workspaces layer always expects GetRequiredTagHelperRewrittenSyntaxTree()
+            // to return a non-null value after the full pipeline has run.
+            return codeDocument
+                .WithReferencedTagHelpers([])
+                .WithTagHelperRewrittenSyntaxTree(syntaxTree);
         }
 
         var binder = context.GetBinder();
-        var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, binder, out var usedHelpers);
+        using var usedHelpers = new TagHelperCollection.Builder();
+        var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, binder, usedHelpers, cancellationToken);
 
-        codeDocument.SetReferencedTagHelpers(usedHelpers);
-        codeDocument.SetSyntaxTree(rewrittenSyntaxTree);
+        return codeDocument
+            .WithReferencedTagHelpers(usedHelpers.ToCollection())
+            .WithTagHelperRewrittenSyntaxTree(rewrittenSyntaxTree);
     }
 }

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <Tree Root="SyntaxNode">
   <PredefinedNode Name="RazorSyntaxNode" Base="SyntaxNode" />
@@ -36,7 +36,8 @@
   <Node Name="RazorMetaCodeSyntax" Base="RazorSyntaxNode">
     <Kind Name="RazorMetaCode" />
     <Field Name="MetaCode" Type="SyntaxList&lt;SyntaxToken&gt;" />
-    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" IsOptional="true" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
   <Node Name="GenericBlockSyntax" Base="RazorBlockSyntax">
     <Kind Name="GenericBlock" />
@@ -45,7 +46,8 @@
   <Node Name="UnclassifiedTextLiteralSyntax" Base="RazorSyntaxNode">
     <Kind Name="UnclassifiedTextLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
-    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" IsOptional="true" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
 
   <!-- Markup -->
@@ -58,16 +60,19 @@
     <Kind Name="MarkupTransition" />
     <Field Name="TransitionTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
     <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
   <Node Name="MarkupTextLiteralSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupTextLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
     <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
   <Node Name="MarkupEphemeralTextLiteralSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupEphemeralTextLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
     <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
   <Node Name="MarkupCommentBlockSyntax" Base="RazorBlockSyntax">
     <Kind Name="MarkupCommentBlock" />
@@ -104,97 +109,148 @@
     <Field Name="Prefix" Type="MarkupTextLiteralSyntax" Optional="true" />
     <Field Name="Value" Type="RazorBlockSyntax" />
   </Node>
-  <Node Name="MarkupElementSyntax" Base="MarkupSyntaxNode">
+  <AbstractNode Name="BaseMarkupStartTagSyntax" Base="MarkupSyntaxNode">
+    <Field Name="OpenAngle" Type="SyntaxToken">
+      <Kind Name="OpenAngle" />
+    </Field>
+    <Field Name="Bang" Type="SyntaxToken" Optional="true">
+      <Kind Name="Bang" />
+    </Field>
+    <Field Name="Name" Type="SyntaxToken">
+      <Kind Name="Text" />
+    </Field>
+    <Field Name="Attributes" Type="SyntaxList&lt;RazorSyntaxNode&gt;" />
+    <Field Name="ForwardSlash" Type="SyntaxToken" Optional="true">
+      <Kind Name="ForwardSlash" />
+    </Field>
+    <Field Name="CloseAngle" Type="SyntaxToken">
+      <Kind Name="CloseAngle" />
+    </Field>
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
+  </AbstractNode>
+  <AbstractNode Name="BaseMarkupEndTagSyntax" Base="MarkupSyntaxNode">
+    <Field Name="OpenAngle" Type="SyntaxToken">
+      <Kind Name="OpenAngle" />
+    </Field>
+    <Field Name="ForwardSlash" Type="SyntaxToken">
+      <Kind Name="ForwardSlash" />
+    </Field>
+    <Field Name="Bang" Type="SyntaxToken" Optional="true">
+      <Kind Name="Bang" />
+    </Field>
+    <Field Name="Name" Type="SyntaxToken">
+      <Kind Name="Text" />
+    </Field>
+    <Field Name="MiscAttributeContent" Type="MarkupMiscAttributeContentSyntax" Optional="true" />
+    <Field Name="CloseAngle" Type="SyntaxToken">
+      <Kind Name="CloseAngle" />
+    </Field>
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
+  </AbstractNode>
+  <AbstractNode Name="BaseMarkupElementSyntax" Base="MarkupSyntaxNode">
+    <Field Name="StartTag" Type="BaseMarkupStartTagSyntax" Optional="true" />
+    <Field Name="EndTag" Type="BaseMarkupEndTagSyntax" Optional="true" />
+  </AbstractNode>
+  <Node Name="MarkupElementSyntax" Base="BaseMarkupElementSyntax">
     <Kind Name="MarkupElement" />
-    <Field Name="StartTag" Type="MarkupStartTagSyntax" Optional="true" />
+    <Field Name="MarkupStartTag" Type="MarkupStartTagSyntax" Optional="true" />
     <Field Name="Body" Type="SyntaxList&lt;RazorSyntaxNode&gt;" />
-    <Field Name="EndTag" Type="MarkupEndTagSyntax" Optional="true" />
+    <Field Name="MarkupEndTag" Type="MarkupEndTagSyntax" Optional="true" />
   </Node>
-  <Node Name="MarkupStartTagSyntax" Base="MarkupSyntaxNode">
+  <Node Name="MarkupStartTagSyntax" Base="BaseMarkupStartTagSyntax">
     <Kind Name="MarkupStartTag" />
-    <Field Name="OpenAngle" Type="SyntaxToken">
+    <Field Name="OpenAngle" Type="SyntaxToken" Override="true">
       <Kind Name="OpenAngle" />
     </Field>
-    <Field Name="Bang" Type="SyntaxToken" Optional="true">
+    <Field Name="Bang" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="Bang" />
     </Field>
-    <Field Name="Name" Type="SyntaxToken">
+    <Field Name="Name" Type="SyntaxToken" Override="true">
       <Kind Name="Text" />
     </Field>
-    <Field Name="Attributes" Type="SyntaxList&lt;RazorSyntaxNode&gt;" />
-    <Field Name="ForwardSlash" Type="SyntaxToken" Optional="true">
+    <Field Name="Attributes" Type="SyntaxList&lt;RazorSyntaxNode&gt;" Override="true" />
+    <Field Name="ForwardSlash" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="ForwardSlash" />
     </Field>
-    <Field Name="CloseAngle" Type="SyntaxToken">
+    <Field Name="CloseAngle" Type="SyntaxToken" Override="true">
       <Kind Name="CloseAngle" />
     </Field>
-    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="IsMarkupTransition" Type="bool" Optional="true" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" Override="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" Override="true" />
   </Node>
-  <Node Name="MarkupEndTagSyntax" Base="MarkupSyntaxNode">
+  <Node Name="MarkupEndTagSyntax" Base="BaseMarkupEndTagSyntax">
     <Kind Name="MarkupEndTag" />
-    <Field Name="OpenAngle" Type="SyntaxToken">
+    <Field Name="OpenAngle" Type="SyntaxToken" Override="true">
       <Kind Name="OpenAngle" />
     </Field>
-    <Field Name="ForwardSlash" Type="SyntaxToken">
+    <Field Name="ForwardSlash" Type="SyntaxToken" Override="true">
       <Kind Name="ForwardSlash" />
     </Field>
-    <Field Name="Bang" Type="SyntaxToken" Optional="true">
+    <Field Name="Bang" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="Bang" />
     </Field>
-    <Field Name="Name" Type="SyntaxToken">
+    <Field Name="Name" Type="SyntaxToken" Override="true">
       <Kind Name="Text" />
     </Field>
-    <Field Name="MiscAttributeContent" Type="MarkupMiscAttributeContentSyntax" Optional="true" />
-    <Field Name="CloseAngle" Type="SyntaxToken">
+    <Field Name="MiscAttributeContent" Type="MarkupMiscAttributeContentSyntax" Optional="true" Override="true" />
+    <Field Name="CloseAngle" Type="SyntaxToken" Override="true">
       <Kind Name="CloseAngle" />
     </Field>
-    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="IsMarkupTransition" Type="bool" Optional="true" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" Override="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" Override="true" />
   </Node>
-  <Node Name="MarkupTagHelperElementSyntax" Base="MarkupSyntaxNode">
+  <Node Name="MarkupTagHelperElementSyntax" Base="BaseMarkupElementSyntax">
     <Kind Name="MarkupTagHelperElement" />
-    <Field Name="StartTag" Type="MarkupTagHelperStartTagSyntax" />
+    <Field Name="TagHelperStartTag" Type="MarkupTagHelperStartTagSyntax" Optional="true" />
     <Field Name="Body" Type="SyntaxList&lt;RazorSyntaxNode&gt;" Optional="true" />
-    <Field Name="EndTag" Type="MarkupTagHelperEndTagSyntax" Optional="true" />
+    <Field Name="TagHelperEndTag" Type="MarkupTagHelperEndTagSyntax" Optional="true" />
+    <Field Name="TagHelperInfo" Type="TagHelperInfo" />
   </Node>
-  <Node Name="MarkupTagHelperStartTagSyntax" Base="MarkupSyntaxNode">
+  <Node Name="MarkupTagHelperStartTagSyntax" Base="BaseMarkupStartTagSyntax">
     <Kind Name="MarkupTagHelperStartTag" />
-    <Field Name="OpenAngle" Type="SyntaxToken">
+    <Field Name="OpenAngle" Type="SyntaxToken" Override="true">
       <Kind Name="OpenAngle" />
     </Field>
-    <Field Name="Bang" Type="SyntaxToken" Optional="true">
+    <Field Name="Bang" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="Bang" />
     </Field>
-    <Field Name="Name" Type="SyntaxToken">
+    <Field Name="Name" Type="SyntaxToken" Override="true">
       <Kind Name="Text" />
     </Field>
-    <Field Name="Attributes" Type="SyntaxList&lt;RazorSyntaxNode&gt;" />
-    <Field Name="ForwardSlash" Type="SyntaxToken" Optional="true">
+    <Field Name="Attributes" Type="SyntaxList&lt;RazorSyntaxNode&gt;" Override="true" />
+    <Field Name="ForwardSlash" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="ForwardSlash" />
     </Field>
-    <Field Name="CloseAngle" Type="SyntaxToken">
+    <Field Name="CloseAngle" Type="SyntaxToken" Override="true">
       <Kind Name="CloseAngle" />
     </Field>
-    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" Override="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" Override="true" />
   </Node>
-  <Node Name="MarkupTagHelperEndTagSyntax" Base="MarkupSyntaxNode">
+  <Node Name="MarkupTagHelperEndTagSyntax" Base="BaseMarkupEndTagSyntax">
     <Kind Name="MarkupTagHelperEndTag" />
-    <Field Name="OpenAngle" Type="SyntaxToken">
+    <Field Name="OpenAngle" Type="SyntaxToken" Override="true">
       <Kind Name="OpenAngle" />
     </Field>
-    <Field Name="ForwardSlash" Type="SyntaxToken">
+    <Field Name="ForwardSlash" Type="SyntaxToken" Override="true">
       <Kind Name="ForwardSlash" />
     </Field>
-    <Field Name="Bang" Type="SyntaxToken" Optional="true">
+    <Field Name="Bang" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="Bang" />
     </Field>
-    <Field Name="Name" Type="SyntaxToken">
+    <Field Name="Name" Type="SyntaxToken" Override="true">
       <Kind Name="Text" />
     </Field>
-    <Field Name="MiscAttributeContent" Type="MarkupMiscAttributeContentSyntax" Optional="true" />
-    <Field Name="CloseAngle" Type="SyntaxToken">
+    <Field Name="MiscAttributeContent" Type="MarkupMiscAttributeContentSyntax" Optional="true" Override="true" />
+    <Field Name="CloseAngle" Type="SyntaxToken" Override="true">
       <Kind Name="CloseAngle" />
     </Field>
-    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" Override="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" Override="true" />
   </Node>
   <Node Name="MarkupTagHelperAttributeSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupTagHelperAttribute" />
@@ -207,11 +263,13 @@
     <Field Name="ValuePrefix" Type="MarkupTextLiteralSyntax" Optional="true" />
     <Field Name="Value" Type="MarkupTagHelperAttributeValueSyntax" />
     <Field Name="ValueSuffix" Type="MarkupTextLiteralSyntax" Optional="true" />
+    <Field Name="TagHelperAttributeInfo" Type="TagHelperAttributeInfo" />
   </Node>
   <Node Name="MarkupMinimizedTagHelperAttributeSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupMinimizedTagHelperAttribute" />
     <Field Name="NamePrefix" Type="MarkupTextLiteralSyntax" Optional="true" />
     <Field Name="Name" Type="MarkupTextLiteralSyntax" />
+    <Field Name="TagHelperAttributeInfo" Type="TagHelperAttributeInfo" />
   </Node>
   <Node Name="MarkupTagHelperAttributeValueSyntax" Base="RazorBlockSyntax">
     <Kind Name="MarkupTagHelperAttributeValue" />
@@ -231,6 +289,7 @@
     <Field Name="ValuePrefix" Type="MarkupTextLiteralSyntax" Optional="true" />
     <Field Name="Value" Type="MarkupTagHelperAttributeValueSyntax" />
     <Field Name="ValueSuffix" Type="MarkupTextLiteralSyntax" Optional="true" />
+    <Field Name="TagHelperAttributeInfo" Type="TagHelperAttributeInfo" />
   </Node>
   <Node Name="MarkupMinimizedTagHelperDirectiveAttributeSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupMinimizedTagHelperDirectiveAttribute" />
@@ -239,6 +298,7 @@
     <Field Name="Name" Type="MarkupTextLiteralSyntax" />
     <Field Name="Colon" Type="RazorMetaCodeSyntax" Optional="true" />
     <Field Name="ParameterName" Type="MarkupTextLiteralSyntax" Optional="true" />
+    <Field Name="TagHelperAttributeInfo" Type="TagHelperAttributeInfo" />
   </Node>
 
   <!-- CSharp -->
@@ -253,21 +313,25 @@
       <Kind Name="Transition" />
     </Field>
     <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
   <Node Name="CSharpStatementLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpStatementLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
     <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
   <Node Name="CSharpExpressionLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpExpressionLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
     <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
   <Node Name="CSharpEphemeralTextLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpEphemeralTextLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
     <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
+    <Field Name="EditHandler" Type="SpanEditHandler" Optional="true" />
   </Node>
   <Node Name="CSharpTemplateBlockSyntax" Base="RazorBlockSyntax">
     <Kind Name="CSharpTemplateBlock" />
@@ -320,7 +384,9 @@
     <Kind Name="CSharpImplicitExpressionBody" />
     <Field Name="CSharpCode" Type="CSharpCodeBlockSyntax" />
   </Node>
-  <Node Name="RazorDirectiveSyntax" Base="CSharpRazorBlockSyntax">
+  <AbstractNode Name="BaseRazorDirectiveSyntax" Base="CSharpRazorBlockSyntax">
+  </AbstractNode>
+  <Node Name="RazorDirectiveSyntax" Base="BaseRazorDirectiveSyntax">
     <Kind Name="RazorDirective" />
     <Field Name="Transition" Type="CSharpTransitionSyntax" Override="true">
       <Kind Name="CSharpTransition" />
@@ -328,6 +394,17 @@
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <Kind Name="RazorDirectiveBody" />
     </Field>
+    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" />
+  </Node>
+  <Node Name="RazorUsingDirectiveSyntax" Base="BaseRazorDirectiveSyntax">
+    <Kind Name="RazorUsingDirective" />
+    <Field Name="Transition" Type="CSharpTransitionSyntax" Override="true">
+      <Kind Name="CSharpTransition" />
+    </Field>
+    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
+      <Kind Name="RazorDirectiveBody" />
+    </Field>
+    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" />
   </Node>
   <Node Name="RazorDirectiveBodySyntax" Base="CSharpSyntaxNode">
     <Kind Name="RazorDirectiveBody" />

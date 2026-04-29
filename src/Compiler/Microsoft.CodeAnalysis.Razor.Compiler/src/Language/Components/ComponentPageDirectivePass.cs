@@ -3,24 +3,18 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
+internal sealed class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
 {
-    protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
+    protected override void ExecuteCore(
+        RazorCodeDocument codeDocument,
+        DocumentIntermediateNode documentNode,
+        CancellationToken cancellationToken)
     {
-        if (codeDocument == null)
-        {
-            throw new ArgumentNullException(nameof(codeDocument));
-        }
-
-        if (documentNode == null)
-        {
-            throw new ArgumentNullException(nameof(documentNode));
-        }
-
         var @namespace = documentNode.FindPrimaryNamespace();
         var @class = documentNode.FindPrimaryClass();
         if (@namespace == null || @class == null)
@@ -29,18 +23,17 @@ internal class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDire
         }
 
         var directives = documentNode.FindDirectiveReferences(ComponentPageDirective.Directive);
-        if (directives.Count == 0)
+        if (directives.Length == 0)
         {
             return;
         }
 
         // We don't allow @page directives in imports
-        for (var i = 0; i < directives.Count; i++)
+        foreach (var directive in directives)
         {
-            var directive = directives[i];
-            if (codeDocument.FileKind.IsComponentImport() || directive.Node.IsImported())
+            if (codeDocument.FileKind.IsComponentImport() || directive.Node.IsImported)
             {
-                directive.Node.Diagnostics.Add(ComponentDiagnosticFactory.CreatePageDirective_CannotBeImported(directive.Node.Source.GetValueOrDefault()));
+                directive.Node.AddDiagnostic(ComponentDiagnosticFactory.CreatePageDirective_CannotBeImported(directive.Node.Source.GetValueOrDefault()));
             }
         }
 
@@ -54,19 +47,19 @@ internal class ComponentPageDirectivePass : IntermediateNodePassBase, IRazorDire
             }
         }
 
-        for (var i = 0; i < directives.Count; i++)
+        foreach (var directive in directives)
         {
-            var pageDirective = (DirectiveIntermediateNode)directives[i].Node;
+            var pageDirective = directive.Node;
 
             // The parser also adds errors for invalid syntax, we just need to not crash.
             var routeToken = pageDirective.Tokens.First();
 
             if (routeToken is not { Content: ['"', '/', .., '"'] })
             {
-                pageDirective.Diagnostics.Add(ComponentDiagnosticFactory.CreatePageDirective_MustSpecifyRoute(pageDirective.Source));
+                pageDirective.AddDiagnostic(ComponentDiagnosticFactory.CreatePageDirective_MustSpecifyRoute(pageDirective.Source));
             }
 
-            if (!codeDocument.CodeGenerationOptions.DesignTime || pageDirective.Diagnostics.Count == 0)
+            if (!codeDocument.CodeGenerationOptions.DesignTime || !pageDirective.HasDiagnostics)
             {
                 @namespace.Children.Insert(index++, new RouteAttributeExtensionNode(routeToken.Content) { Source = routeToken.Source });
             }

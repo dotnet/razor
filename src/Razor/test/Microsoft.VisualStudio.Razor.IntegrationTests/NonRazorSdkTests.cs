@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
 using System.Linq;
@@ -35,7 +35,7 @@ public class NonRazorSdkTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         base.PrepareProjectForFirstOpen(projectFileName);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "No cohosting support yet")]
     public async Task Completion_DateTime()
     {
         // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that

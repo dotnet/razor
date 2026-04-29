@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
@@ -215,7 +215,7 @@ public class StringTextSnapshot : ITextSnapshot2
             {
                 _content = _content[..^2];
             }
-            else if(_content.Length > 0 && SyntaxFacts.IsNewLine(_content[^1]))
+            else if (_content.Length > 0 && SyntaxFacts.IsNewLine(_content[^1]))
             {
                 _content = _content[..^1];
             }

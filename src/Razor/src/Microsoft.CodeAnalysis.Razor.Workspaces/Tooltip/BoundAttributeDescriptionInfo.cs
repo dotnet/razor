@@ -1,5 +1,5 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using Microsoft.AspNetCore.Razor;
@@ -9,25 +9,18 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
 internal record BoundAttributeDescriptionInfo(string ReturnTypeName, string TypeName, string PropertyName, string? Documentation = null)
 {
-    public static BoundAttributeDescriptionInfo From(BoundAttributeParameterDescriptor parameterAttribute, string parentTagHelperTypeName)
+    public static BoundAttributeDescriptionInfo From(BoundAttributeParameterDescriptor parameter)
     {
-        if (parameterAttribute is null)
-        {
-            throw new ArgumentNullException(nameof(parameterAttribute));
-        }
+        ArgHelper.ThrowIfNull(parameter);
 
-        if (parentTagHelperTypeName is null)
-        {
-            throw new ArgumentNullException(nameof(parentTagHelperTypeName));
-        }
-
-        var propertyName = parameterAttribute.GetPropertyName();
+        var parentTagHelperTypeName = parameter.Parent.Parent.TypeName;
+        var propertyName = parameter.PropertyName;
 
         return new BoundAttributeDescriptionInfo(
-            parameterAttribute.TypeName,
+            parameter.TypeName,
             parentTagHelperTypeName,
             propertyName,
-            parameterAttribute.Documentation);
+            parameter.Documentation);
     }
 
     public static BoundAttributeDescriptionInfo From(BoundAttributeDescriptor boundAttribute, bool isIndexer)
@@ -40,15 +33,15 @@ internal record BoundAttributeDescriptionInfo(string ReturnTypeName, string Type
             throw new ArgumentNullException(nameof(boundAttribute));
         }
 
-        var returnTypeName = isIndexer ? boundAttribute.IndexerTypeName.AssumeNotNull() : boundAttribute.TypeName;
-        var propertyName = boundAttribute.GetPropertyName();
+        var returnTypeName = isIndexer ? boundAttribute.IndexerTypeName : boundAttribute.TypeName;
+        var propertyName = boundAttribute.PropertyName;
 
         // The BoundAttributeDescriptor does not directly have the TagHelperTypeName information available.
         // Because of this we need to resolve it from other parts of it.
         parentTagHelperTypeName ??= ResolveTagHelperTypeName(propertyName, boundAttribute.DisplayName);
 
         return new BoundAttributeDescriptionInfo(
-            returnTypeName,
+            returnTypeName.AssumeNotNull(),
             parentTagHelperTypeName,
             propertyName,
             boundAttribute.Documentation);

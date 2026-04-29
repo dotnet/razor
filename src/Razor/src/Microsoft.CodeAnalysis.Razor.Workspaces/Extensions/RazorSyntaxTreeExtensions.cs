@@ -1,9 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -12,31 +12,51 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal static class RazorSyntaxTreeExtensions
 {
     public static ImmutableArray<RazorDirectiveSyntax> GetSectionDirectives(this RazorSyntaxTree syntaxTree)
-        => GetDirectives(syntaxTree, static d => d.DirectiveDescriptor?.Directive == SectionDirective.Directive.Directive);
+        => GetDirectives<RazorDirectiveSyntax>(syntaxTree, static d => d.IsSectionDirective());
 
     public static ImmutableArray<RazorDirectiveSyntax> GetCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
-        => GetDirectives(syntaxTree, static d => d.DirectiveDescriptor?.Kind == DirectiveKind.CodeBlock);
+        => GetDirectives<RazorDirectiveSyntax>(syntaxTree, static d => d.IsCodeBlockDirective());
 
-    public static ImmutableArray<RazorDirectiveSyntax> GetUsingDirectives(this RazorSyntaxTree syntaxTree)
-        => GetDirectives(syntaxTree, static d => d.IsUsingDirective(out var _));
+    public static ImmutableArray<RazorUsingDirectiveSyntax> GetUsingDirectives(this RazorSyntaxTree syntaxTree)
+        => GetDirectives<RazorUsingDirectiveSyntax>(syntaxTree);
 
-    private static ImmutableArray<RazorDirectiveSyntax> GetDirectives(RazorSyntaxTree syntaxTree, Func<RazorDirectiveSyntax, bool> predicate)
+    public static ImmutableArray<TDirective> GetDirectives<TDirective>(
+        this RazorSyntaxTree syntaxTree, Func<TDirective, bool>? predicate = null)
+        where TDirective : BaseRazorDirectiveSyntax
     {
-        using var builder = new PooledArrayBuilder<RazorDirectiveSyntax>();
-
-        foreach (var node in syntaxTree.Root.DescendantNodes(ShouldDescendIntoChildren))
-        {
-            if (node is RazorDirectiveSyntax directive && predicate(directive))
-            {
-                builder.Add(directive);
-            }
-        }
+        using var builder = new PooledArrayBuilder<TDirective>();
+        builder.AddRange(EnumerateDirectives(syntaxTree, predicate));
 
         return builder.ToImmutable();
+    }
 
-        static bool ShouldDescendIntoChildren(SyntaxNode node)
+    public static IEnumerable<RazorDirectiveSyntax> EnumerateSectionDirectives(this RazorSyntaxTree syntaxTree)
+        => EnumerateDirectives<RazorDirectiveSyntax>(syntaxTree, static d => d.IsSectionDirective());
+
+    public static IEnumerable<RazorDirectiveSyntax> EnumerateCodeBlockDirectives(this RazorSyntaxTree syntaxTree)
+        => EnumerateDirectives<RazorDirectiveSyntax>(syntaxTree, static d => d.IsCodeBlockDirective());
+
+    public static IEnumerable<RazorUsingDirectiveSyntax> EnumerateUsingDirectives(this RazorSyntaxTree syntaxTree)
+        => EnumerateDirectives<RazorUsingDirectiveSyntax>(syntaxTree);
+
+    public static IEnumerable<RazorDirectiveSyntax> EnumerateAddTagHelperDirectives(this RazorSyntaxTree syntaxTree)
+        => EnumerateDirectives<RazorDirectiveSyntax>(syntaxTree, static d => d.IsAddTagHelperDirective());
+
+    public static IEnumerable<TDirective> EnumerateDirectives<TDirective>(
+        this RazorSyntaxTree syntaxTree, Func<TDirective, bool>? predicate = null)
+        where TDirective : BaseRazorDirectiveSyntax
+    {
+        foreach (var node in syntaxTree.Root.DescendantNodes(MayContainDirectives))
         {
-            return node is RazorDocumentSyntax or MarkupBlockSyntax or CSharpCodeBlockSyntax;
+            if (node is TDirective directive && (predicate == null || predicate(directive)))
+            {
+                yield return directive;
+            }
         }
+    }
+
+    public static bool MayContainDirectives(this SyntaxNode node)
+    {
+        return node is RazorDocumentSyntax or MarkupBlockSyntax or CSharpCodeBlockSyntax;
     }
 }

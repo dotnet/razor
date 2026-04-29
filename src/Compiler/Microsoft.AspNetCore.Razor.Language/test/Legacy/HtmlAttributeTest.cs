@@ -269,7 +269,7 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
     [Fact]
     public void ConditionalAttributesAreEnabledForDataAttributesWithExperimentalFlag()
     {
-        ParseDocumentTest(RazorLanguageVersion.Experimental, "@{<span data-foo='@foo'></span>}", directives: null, designTime: false);
+        ParseDocumentTest(RazorLanguageVersion.Experimental, "@{<span data-foo='@foo'></span>}", directives: default, designTime: false);
     }
 
     [Fact]
@@ -344,6 +344,12 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
         ParseDocumentTest("""<p @* comment *@ class="@c" />""");
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12261")]
+    public void AttributeAfterComment()
+    {
+        ParseDocumentTest("""<p class="first" @* comment *@ data-value="second" />""");
+    }
+
     [Fact]
     public void EscapedAttributeName_WithValue()
     {
@@ -378,5 +384,29 @@ public class HtmlAttributeTest() : ParserTestBase(layer: TestProject.Layer.Compi
     public void ComponentFileKind_ParsesDirectiveAttributesWithParameterAsMarkup()
     {
         ParseDocumentTest("<span @class:param='@foo'></span>", RazorFileKind.Component);
+    }
+
+    [Fact]
+    public void EscapedAttributeValue_InHtmlElement()
+    {
+        ParseDocumentTest("""<p class="@@test">Content</p>""");
+    }
+
+    [Fact]
+    public void EscapedAttributeValue_InComponent()
+    {
+        ParseDocumentTest("""<Weather Value="@@currentCount" />""", RazorFileKind.Component);
+    }
+
+    [Fact]
+    public void EscapedAttributeValue_MultipleInComponent()
+    {
+        ParseDocumentTest("""<Weather Value="@@count" Title="@@title" />""", RazorFileKind.Component);
+    }
+
+    [Fact]
+    public void EscapedAttributeValue_MixedWithCSharp()
+    {
+        ParseDocumentTest("""<Weather Value="@@currentCount @someVar" />""", RazorFileKind.Component);
     }
 }

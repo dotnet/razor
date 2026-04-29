@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -111,7 +112,7 @@ public abstract class IntegrationTestBase
         return syntaxTree;
     }
 
-    protected RazorProjectItem AddProjectItemFromText(string text, string filePath = "_ViewImports.cshtml", [CallerMemberName]string testName = "")
+    protected RazorProjectItem AddProjectItemFromText(string text, string filePath = "_ViewImports.cshtml", [CallerMemberName] string testName = "")
     {
         var projectItem = CreateProjectItemFromText(text, filePath, GetTestFileName(testName));
         FileSystem.Add(projectItem);
@@ -168,6 +169,7 @@ public abstract class IntegrationTestBase
         {
             throw new XunitException($"The resource {sourceFileName} was not found.");
         }
+
         var fileContent = testFile.ReadAllText();
 
         var workingDirectory = Path.GetDirectoryName(fileName);
@@ -197,7 +199,7 @@ public abstract class IntegrationTestBase
         return projectItem;
     }
 
-    protected CompiledCSharpCode CompileToCSharp(string text, string path = "test.cshtml", bool? designTime = null, string? cssScope = null, [CallerMemberName]string testName = "")
+    protected CompiledCSharpCode CompileToCSharp(string text, string path = "test.cshtml", bool? designTime = null, string? cssScope = null, [CallerMemberName] string testName = "")
     {
         var projectItem = CreateProjectItemFromText(text, path, GetTestFileName(testName), cssScope);
         return CompileToCSharp(projectItem, designTime);
@@ -228,7 +230,7 @@ public abstract class IntegrationTestBase
 
     protected CompiledAssembly CompileToAssembly(CompiledCSharpCode code, bool throwOnFailure = true, bool ignoreRazorDiagnostics = false)
     {
-        var csharpDocument = code.CodeDocument.GetCSharpDocument();
+        var csharpDocument = code.CodeDocument.GetRequiredCSharpDocument();
         if (!ignoreRazorDiagnostics && csharpDocument.Diagnostics.Any())
         {
             var diagnosticsLog = string.Join(Environment.NewLine, csharpDocument.Diagnostics.Select(d => d.ToString()).ToArray());
@@ -322,7 +324,6 @@ public abstract class IntegrationTestBase
                 });
             }
 
-            b.Features.Add(new DefaultTypeNameFeature());
             b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
 
             b.ConfigureParserOptions(builder =>
@@ -339,7 +340,7 @@ public abstract class IntegrationTestBase
         });
     }
 
-    protected void AssertDocumentNodeMatchesBaseline(DocumentIntermediateNode document, [CallerMemberName]string testName = "")
+    protected void AssertDocumentNodeMatchesBaseline(DocumentIntermediateNode document, [CallerMemberName] string testName = "")
     {
         var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".ir.txt");
 
@@ -460,7 +461,7 @@ public abstract class IntegrationTestBase
 
         Assert.Equal(baseline, actualBaseline);
 
-        var syntaxTree = codeDocument.GetSyntaxTree();
+        var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();
         var visitor = new CodeSpanVisitor();
         visitor.Visit(syntaxTree.Root);
 
@@ -478,7 +479,7 @@ public abstract class IntegrationTestBase
             {
                 // For now we don't verify whitespace inside of a directive. We know that directives cheat
                 // with how they bound whitespace/C#/markup to make completion work.
-                if (span.FirstAncestorOrSelf<RazorDirectiveSyntax>() != null)
+                if (span.FirstAncestorOrSelf<BaseRazorDirectiveSyntax>() != null)
                 {
                     continue;
                 }
@@ -493,7 +494,8 @@ public abstract class IntegrationTestBase
             }
 
             // See https://github.com/dotnet/razor/issues/10062
-            if (expectedSpan.Contains("<TModel>") || span.FirstAncestorOrSelf<RazorDirectiveSyntax>()?.DirectiveDescriptor?.Directive == "model")
+            if (expectedSpan.Contains("<TModel>") ||
+                span.FirstAncestorOrSelf<RazorDirectiveSyntax>()?.IsDirective(ModelDirective.Directive) is true)
             {
                 // Inject directives in MVC replace the TModel with a user defined model type, so we aren't able to find
                 // the matching text in the generated document
@@ -501,7 +503,7 @@ public abstract class IntegrationTestBase
             }
 
             var found = false;
-            foreach (var mapping in csharpDocument.SourceMappings)
+            foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
             {
                 if (mapping.OriginalSpan == sourceSpan)
                 {
@@ -515,6 +517,11 @@ public abstract class IntegrationTestBase
                     }
 
                     found = true;
+                    break;
+                }
+                else if (mapping.OriginalSpan.CompareByStartThenLength(sourceSpan) > 0)
+                {
+                    // This span (and all following) are after the area we're interested in
                     break;
                 }
             }
@@ -548,71 +555,27 @@ public abstract class IntegrationTestBase
         }
     }
 
-    protected void AssertHtmlSourceMappingsMatchBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
-    {
-        var htmlDocument = codeDocument.GetHtmlDocument();
-        Assert.NotNull(htmlDocument);
-
-        var baselineFileName = Path.ChangeExtension(GetTestFileName(testName), ".html.mappings.txt");
-        var serializedMappings = SourceMappingsSerializer.Serialize(htmlDocument, codeDocument.Source);
-
-        if (GenerateBaselines.ShouldGenerate)
-        {
-            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
-            File.WriteAllText(baselineFullPath, serializedMappings, _baselineEncoding);
-            return;
-        }
-
-        var testFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
-        if (!testFile.Exists())
-        {
-            throw new XunitException($"The resource {baselineFileName} was not found.");
-        }
-
-        var baseline = testFile.ReadAllText();
-
-        AssertEx.AssertEqualToleratingWhitespaceDifferences(baseline, serializedMappings);
-
-        var charBuffer = new char[codeDocument.Source.Text.Length];
-        codeDocument.Source.Text.CopyTo(0, charBuffer, 0, codeDocument.Source.Text.Length);
-        var sourceContent = new string(charBuffer);
-
-        var problems = new List<string>();
-        foreach (var mapping in htmlDocument.SourceMappings)
-        {
-            var actualSpan = htmlDocument.Text.ToString(mapping.GeneratedSpan.AsTextSpan());
-            var expectedSpan = sourceContent.Substring(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
-
-            if (expectedSpan != actualSpan)
-            {
-                problems.Add(
-                    $"Found the span {mapping.OriginalSpan} in the output mappings but it contains " +
-                    $"'{EscapeWhitespace(actualSpan)}' instead of '{EscapeWhitespace(expectedSpan)}'.");
-            }
-        }
-
-        if (problems.Count > 0)
-        {
-            throw new XunitException(string.Join(Environment.NewLine, problems));
-        }
-    }
-
-    protected void AssertLinePragmas(RazorCodeDocument codeDocument, bool designTime)
+    protected void AssertLinePragmas(RazorCodeDocument codeDocument)
     {
         var csharpDocument = codeDocument.GetCSharpDocument();
         Assert.NotNull(csharpDocument);
         var linePragmas = csharpDocument.LinePragmas;
-        designTime = false;
-        if (designTime)
+
+        var syntaxTree = codeDocument.GetTagHelperRewrittenSyntaxTree() ?? codeDocument.GetRequiredSyntaxTree();
+        var sourceContent = syntaxTree.Source.Text.ToString();
+        var classifiedSpans = syntaxTree.GetClassifiedSpans();
+        foreach (var classifiedSpan in classifiedSpans)
         {
-            var sourceMappings = csharpDocument.SourceMappings;
-            foreach (var sourceMapping in sourceMappings)
+            var content = sourceContent.Substring(classifiedSpan.Span.AbsoluteIndex, classifiedSpan.Span.Length);
+            if (!string.IsNullOrWhiteSpace(content) &&
+                classifiedSpan.BlockKind != BlockKindInternal.Directive &&
+                classifiedSpan.SpanKind == SpanKindInternal.Code)
             {
                 var foundMatchingPragma = false;
                 foreach (var linePragma in linePragmas)
                 {
-                    if (sourceMapping.OriginalSpan.LineIndex >= linePragma.StartLineIndex &&
-                        sourceMapping.OriginalSpan.LineIndex <= linePragma.EndLineIndex)
+                    if (classifiedSpan.Span.LineIndex >= linePragma.StartLineIndex &&
+                        classifiedSpan.Span.LineIndex <= linePragma.EndLineIndex)
                     {
                         // Found a match.
                         foundMatchingPragma = true;
@@ -620,35 +583,7 @@ public abstract class IntegrationTestBase
                     }
                 }
 
-                Assert.True(foundMatchingPragma, $"No line pragma found for code at line {sourceMapping.OriginalSpan.LineIndex + 1}.");
-            }
-        }
-        else
-        {
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            var sourceContent = syntaxTree.Source.Text.ToString();
-            var classifiedSpans = syntaxTree.GetClassifiedSpans();
-            foreach (var classifiedSpan in classifiedSpans)
-            {
-                var content = sourceContent.Substring(classifiedSpan.Span.AbsoluteIndex, classifiedSpan.Span.Length);
-                if (!string.IsNullOrWhiteSpace(content) &&
-                    classifiedSpan.BlockKind != BlockKindInternal.Directive &&
-                    classifiedSpan.SpanKind == SpanKindInternal.Code)
-                {
-                    var foundMatchingPragma = false;
-                    foreach (var linePragma in linePragmas)
-                    {
-                        if (classifiedSpan.Span.LineIndex >= linePragma.StartLineIndex &&
-                            classifiedSpan.Span.LineIndex <= linePragma.EndLineIndex)
-                        {
-                            // Found a match.
-                            foundMatchingPragma = true;
-                            break;
-                        }
-                    }
-
-                    Assert.True(foundMatchingPragma, $"No line pragma found for code '{content}' at line {classifiedSpan.Span.LineIndex + 1}.");
-                }
+                Assert.True(foundMatchingPragma, $"No line pragma found for code '{content}' at line {classifiedSpan.Span.LineIndex + 1}.");
             }
         }
     }
@@ -737,6 +672,7 @@ public abstract class IntegrationTestBase
             {
                 CodeSpans.Add(node);
             }
+
             return base.VisitCSharpStatementLiteral(node);
         }
 
@@ -746,6 +682,7 @@ public abstract class IntegrationTestBase
             {
                 CodeSpans.Add(node);
             }
+
             return base.VisitCSharpExpressionLiteral(node);
         }
 
@@ -759,6 +696,18 @@ public abstract class IntegrationTestBase
             }
 
             return base.VisitCSharpStatement(node);
+        }
+
+        public override Syntax.SyntaxNode VisitRazorUsingDirective(RazorUsingDirectiveSyntax node)
+        {
+            if (node.FirstAncestorOrSelf<MarkupTagHelperAttributeValueSyntax>() != null)
+            {
+                // We don't support Razor directives inside tag helper attribute values.
+                // If it exists, we don't want to track its code spans for source mappings.
+                return node;
+            }
+
+            return base.VisitRazorUsingDirective(node);
         }
 
         public override Syntax.SyntaxNode VisitRazorDirective(RazorDirectiveSyntax node)

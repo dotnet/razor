@@ -1,39 +1,23 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the MIT license. See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal sealed class CSharpFormatter(IDocumentMappingService documentMappingService)
+internal sealed class CSharpFormatter
 {
     private const string MarkerId = "RazorMarker";
-
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
-
-    public async Task<ImmutableArray<TextChange>> FormatAsync(HostWorkspaceServices hostWorkspaceServices, Document csharpDocument, FormattingContext context, LinePositionSpan spanToFormat, CancellationToken cancellationToken)
-    {
-        if (!_documentMappingService.TryMapToGeneratedDocumentRange(context.CodeDocument.GetCSharpDocument(), spanToFormat, out var projectedSpan))
-        {
-            return [];
-        }
-
-        var edits = await GetFormattingEditsAsync(hostWorkspaceServices, csharpDocument, projectedSpan, context.Options.ToIndentationOptions(), cancellationToken).ConfigureAwait(false);
-        var mappedEdits = MapEditsToHostDocument(context.CodeDocument, edits);
-        return mappedEdits;
-    }
 
     public static async Task<IReadOnlyDictionary<int, int>> GetCSharpIndentationAsync(
         FormattingContext context,
@@ -49,25 +33,11 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         return indentations;
     }
 
-    private ImmutableArray<TextChange> MapEditsToHostDocument(RazorCodeDocument codeDocument, ImmutableArray<TextChange> csharpEdits)
-    {
-        var actualEdits = _documentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), csharpEdits);
-
-        return actualEdits.ToImmutableArray();
-    }
-
-    private static async Task<ImmutableArray<TextChange>> GetFormattingEditsAsync(HostWorkspaceServices hostWorkspaceServices, Document csharpDocument, LinePositionSpan projectedSpan, RazorIndentationOptions indentationOptions, CancellationToken cancellationToken)
-    {
-        var root = await csharpDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var csharpSourceText = await csharpDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var spanToFormat = csharpSourceText.GetTextSpan(projectedSpan);
-        Assumes.NotNull(root);
-
-        var changes = RazorCSharpFormattingInteractionService.GetFormattedTextChanges(hostWorkspaceServices, root, spanToFormat, indentationOptions, cancellationToken);
-        return changes.ToImmutableArray();
-    }
-
-    private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(FormattingContext context, ImmutableArray<int> projectedDocumentLocations, HostWorkspaceServices hostWorkspaceServices, CancellationToken cancellationToken)
+    private static async Task<Dictionary<int, int>> GetCSharpIndentationCoreAsync(
+        FormattingContext context,
+        ImmutableArray<int> projectedDocumentLocations,
+        HostWorkspaceServices hostWorkspaceServices,
+        CancellationToken cancellationToken)
     {
         // No point calling the C# formatting if we won't be interested in any of its work anyway
         if (projectedDocumentLocations.Length == 0)
@@ -75,7 +45,7 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
             return [];
         }
 
-        var (indentationMap, syntaxTree) = InitializeIndentationData(context, projectedDocumentLocations, cancellationToken);
+        var (indentationMap, syntaxTree) = await InitializeIndentationDataAsync(context, projectedDocumentLocations, cancellationToken).ConfigureAwait(false);
 
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -83,7 +53,7 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var formattedRoot = RazorCSharpFormattingInteractionService.Format(hostWorkspaceServices, root, context.Options.ToIndentationOptions(), cancellationToken);
+        var formattedRoot = RazorCSharpFormattingInteractionService.Format(hostWorkspaceServices, root, context.Options.ToIndentationOptions(), context.Options.CSharpSyntaxFormattingOptions, cancellationToken);
         var formattedText = formattedRoot.GetText();
 
         var desiredIndentationMap = new Dictionary<int, int>();
@@ -273,7 +243,7 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
         }
     }
 
-    private static (Dictionary<int, IndentationMapData>, SyntaxTree) InitializeIndentationData(
+    private static async Task<(Dictionary<int, IndentationMapData>, SyntaxTree)> InitializeIndentationDataAsync(
         FormattingContext context,
         IEnumerable<int> projectedDocumentLocations,
         CancellationToken cancellationToken)
@@ -287,8 +257,8 @@ internal sealed class CSharpFormatter(IDocumentMappingService documentMappingSer
 
         using var changes = new PooledArrayBuilder<TextChange>();
 
-        var syntaxTree = context.CodeDocument.GetOrParseCSharpSyntaxTree(cancellationToken);
-        var root = syntaxTree.GetRoot(cancellationToken);
+        var syntaxTree = await context.CurrentSnapshot.GetCSharpSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         var previousMarkerOffset = 0;
         foreach (var projectedDocumentIndex in projectedDocumentLocations)

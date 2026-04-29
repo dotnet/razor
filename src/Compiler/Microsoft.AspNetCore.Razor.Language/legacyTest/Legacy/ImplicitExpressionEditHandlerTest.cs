@@ -451,12 +451,13 @@ public class ImplicitExpressionEditHandlerTest
         {
             builder.Add(token);
         }
-        var node = SyntaxFactory.MarkupTextLiteral(builder.ToList(), SpanChunkGenerator.Null).CreateRed(parent: null, position: start.AbsoluteIndex);
+        var node = SyntaxFactory.MarkupTextLiteral(builder.ToList(), SpanChunkGenerator.Null, editHandler: null)
+            .CreateRed(parent: null, position: start.AbsoluteIndex);
 
         return (Syntax.MarkupTextLiteralSyntax)node;
     }
 
-    private static IReadOnlyList<Syntax.SyntaxToken> GetTokens(SourceLocation start, string content)
+    private static Syntax.SyntaxTokenList GetTokens(SourceLocation start, string content)
     {
         var parent = GetSyntaxNode(start, content);
         return parent.LiteralTokens;
