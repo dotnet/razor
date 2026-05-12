@@ -21,31 +21,31 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (39:0,39 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (39:0,39 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (39:0,39 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 HtmlContent - (170:4,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (170:4,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (170:4,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 MarkupElement - (172:5,0 [14] x:\dir\subdir\Test\TestComponent.cshtml) - h1
                     HtmlContent - (176:5,4 [5] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (176:5,4 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Item1
+                        IntermediateToken - (176:5,4 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Item1
                 HtmlContent - (186:5,14 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (186:5,14 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (186:5,14 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 CSharpCode - (189:6,1 [38] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (189:6,1 [38] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - foreach (var item2 in Items2)\n{\n    
+                    IntermediateToken - (189:6,1 [38] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - foreach (var item2 in Items2)\n{\n    
                 MarkupElement - (227:8,4 [40] x:\dir\subdir\Test\TestComponent.cshtml) - p
                     HtmlContent - (230:8,7 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (230:8,7 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                        IntermediateToken - (230:8,7 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
                     CSharpExpression - (237:9,5 [19] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (237:9,5 [19] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildContent(item2)
+                        IntermediateToken - (237:9,5 [19] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildContent(item2)
                     HtmlContent - (256:9,24 [7] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (256:9,24 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Html - ;\n    
+                        IntermediateToken - (256:9,24 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Html - ;\n    
                 CSharpCode - (267:10,8 [3] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (267:10,8 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n}
+                    IntermediateToken - (267:10,8 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n}
                 HtmlContent - (270:11,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (270:11,1 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (270:11,1 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
                 MarkupElement - (274:13,0 [12] x:\dir\subdir\Test\TestComponent.cshtml) - p
                     HtmlContent - (277:13,3 [5] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (277:13,3 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Item3
+                        IntermediateToken - (277:13,3 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Item3
                 HtmlContent - (286:13,12 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (286:13,12 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (286:13,12 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (297:15,7 [236] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (297:15,7 [236] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TItem1 Item1 { get; set; }\n    [Parameter] public List<TItem2> Items2 { get; set; }\n    [Parameter] public TItem3 Item3 { get; set; }\n    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }\n
+                IntermediateToken - (297:15,7 [236] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TItem1 Item1 { get; set; }\n    [Parameter] public List<TItem2> Items2 { get; set; }\n    [Parameter] public TItem3 Item3 { get; set; }\n    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }\n

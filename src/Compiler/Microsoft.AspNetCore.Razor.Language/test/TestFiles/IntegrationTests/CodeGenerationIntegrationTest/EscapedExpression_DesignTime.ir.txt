@@ -36,7 +36,7 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (31:0,31 [4] EscapedExpression.cshtml)
-                    LazyIntermediateToken - (31:0,31 [4] EscapedExpression.cshtml) - Html - \n\n
+                    IntermediateToken - (31:0,31 [4] EscapedExpression.cshtml) - Html - \n\n
                 TagHelper - (35:2,0 [35] EscapedExpression.cshtml) - input - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - InputTagHelper
@@ -45,7 +45,7 @@
                             IntermediateToken - (48:2,13 [18] EscapedExpression.cshtml) - CSharp - new string("1, 2")
                     DefaultTagHelperExecute - 
                 HtmlContent - (70:2,35 [2] EscapedExpression.cshtml)
-                    LazyIntermediateToken - (70:2,35 [2] EscapedExpression.cshtml) - Html - \n
+                    IntermediateToken - (70:2,35 [2] EscapedExpression.cshtml) - Html - \n
                 TagHelper - (72:3,0 [34] EscapedExpression.cshtml) - input - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - InputTagHelper
@@ -53,7 +53,7 @@
                         IntermediateToken - (84:3,12 [18] EscapedExpression.cshtml) - CSharp - new string("1, 2")
                     DefaultTagHelperExecute - 
                 HtmlContent - (106:3,34 [2] EscapedExpression.cshtml)
-                    LazyIntermediateToken - (106:3,34 [2] EscapedExpression.cshtml) - Html - \n
+                    IntermediateToken - (106:3,34 [2] EscapedExpression.cshtml) - Html - \n
                 TagHelper - (108:4,0 [40] EscapedExpression.cshtml) - input - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - InputTagHelper
@@ -61,7 +61,7 @@
                         IntermediateToken - (120:4,12 [24] EscapedExpression.cshtml) - CSharp - "0" + new @String("1 2")
                     DefaultTagHelperExecute - 
                 HtmlContent - (148:4,40 [2] EscapedExpression.cshtml)
-                    LazyIntermediateToken - (148:4,40 [2] EscapedExpression.cshtml) - Html - \n
+                    IntermediateToken - (148:4,40 [2] EscapedExpression.cshtml) - Html - \n
             Inject - 
             Inject - 
             Inject - 

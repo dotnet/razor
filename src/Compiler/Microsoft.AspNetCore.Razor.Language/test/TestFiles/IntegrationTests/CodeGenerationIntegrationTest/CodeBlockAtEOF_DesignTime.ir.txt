@@ -33,7 +33,7 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 CSharpCode - (2:0,2 [0] CodeBlockAtEOF.cshtml)
-                    LazyIntermediateToken - (2:0,2 [0] CodeBlockAtEOF.cshtml) - CSharp - 
+                    IntermediateToken - (2:0,2 [0] CodeBlockAtEOF.cshtml) - CSharp - 
             Inject - 
             Inject - 
             Inject - 

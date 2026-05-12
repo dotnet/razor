@@ -17,27 +17,27 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (8:0,8 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (8:0,8 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (8:0,8 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 HtmlContent - (29:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (29:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (29:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 HtmlContent - (208:9,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (208:9,1 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (208:9,1 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
                 Component - (212:11,0 [137] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     ComponentChildContent - (248:12,4 [83] x:\dir\subdir\Test\TestComponent.cshtml) - Template - context
                         HtmlContent - (258:12,14 [10] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (258:12,14 [10] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n        
+                            IntermediateToken - (258:12,14 [10] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n        
                         CSharpExpression - (269:13,9 [20] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (269:13,9 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.I1.MyClassId
+                            IntermediateToken - (269:13,9 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.I1.MyClassId
                         HtmlContent - (289:13,29 [3] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (289:13,29 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \-
+                            IntermediateToken - (289:13,29 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \-
                         CSharpExpression - (293:13,33 [21] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (293:13,33 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.I2.MyStructId
+                            IntermediateToken - (293:13,33 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.I2.MyStructId
                         HtmlContent - (314:13,54 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (314:13,54 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                            IntermediateToken - (314:13,54 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
                     ComponentAttribute - (239:11,27 [1] x:\dir\subdir\Test\TestComponent.cshtml) - InferParam - InferParam - AttributeStructure.DoubleQuotes
                         IntermediateToken - (239:11,27 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1
             CSharpCode - (38:3,7 [169] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (38:3,7 [169] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TParam InferParam { get; set; }\n\n    [Parameter]\n    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }\n
+                IntermediateToken - (38:3,7 [169] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TParam InferParam { get; set; }\n\n    [Parameter]\n    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0

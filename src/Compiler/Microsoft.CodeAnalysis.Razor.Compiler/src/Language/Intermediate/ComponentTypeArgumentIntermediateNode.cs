@@ -28,12 +28,7 @@ public sealed class ComponentTypeArgumentIntermediateNode(
             [CSharpIntermediateToken t] => t,
             [CSharpExpressionIntermediateNode { Children: [CSharpIntermediateToken t] }] => t,
             // Handle the case where the value was lowered as HTML content (from the unresolved tag helper pipeline).
-            [HtmlContentIntermediateNode { Children: [HtmlIntermediateToken t] }] => t.IsLazy
-                ? IntermediateNodeFactory.CSharpToken(
-                    arg: t,
-                    contentFactory: static token => token.Content,
-                    source: t.Source)
-                : new CSharpIntermediateToken(t.Content, t.Source),
+            [HtmlContentIntermediateNode { Children: [HtmlIntermediateToken t] }] => new CSharpIntermediateToken(t.Content, t.Source),
             _ => Assumed.Unreachable<CSharpIntermediateToken>()
         };
 

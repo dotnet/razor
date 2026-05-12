@@ -8,12 +8,12 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (26:1,0 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (26:1,0 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                    IntermediateToken - (26:1,0 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
                 MarkupElement - (32:2,4 [48] x:\dir\subdir\Test\TestComponent.cshtml) - elem
                     HtmlAttribute - (37:2,9 [10] x:\dir\subdir\Test\TestComponent.cshtml) -  attr= - 
                         CSharpExpressionAttributeValue - (43:2,15 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
-                            LazyIntermediateToken - (44:2,16 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Foo
+                            IntermediateToken - (44:2,16 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Foo
                     MarkupBlock -  - \n        <child></child>\n    
                 MarkupBlock -  - \n\n\n
             CSharpCode - (95:6,11 [29] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (95:6,11 [29] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n        int Foo = 18;\n    
+                IntermediateToken - (95:6,11 [29] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n        int Foo = 18;\n    

@@ -17,8 +17,8 @@
                 Component - (0:0,0 [38] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                     ComponentAttribute -  - @Bind-Placeholder -  - AttributeStructure.DoubleQuotes
                         CSharpExpression - (32:0,32 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (33:0,33 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - s
+                            IntermediateToken - (33:0,33 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - s
                 HtmlContent - (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (38:0,38 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (49:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (49:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string s = "abc";\n
+                IntermediateToken - (49:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string s = "abc";\n

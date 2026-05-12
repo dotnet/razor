@@ -19,7 +19,7 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (29:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (29:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (29:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             ClassDeclaration -  - private sealed - __PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
                 DesignTimeDirective - 
                 CSharpCode - 

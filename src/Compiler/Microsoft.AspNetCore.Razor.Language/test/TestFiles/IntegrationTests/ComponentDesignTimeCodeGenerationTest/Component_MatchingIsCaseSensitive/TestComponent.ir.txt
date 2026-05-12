@@ -16,10 +16,10 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [15] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                 HtmlContent - (15:0,15 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (15:0,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (15:0,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 MarkupElement - (17:1,0 [15] x:\dir\subdir\Test\TestComponent.cshtml) - mycomponent
                 HtmlContent - (32:1,15 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (32:1,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (32:1,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 Component - (34:2,0 [51] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                     ComponentAttribute - (60:2,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - intproperty - IntProperty - AttributeStructure.SingleQuotes
                         IntermediateToken - (60:2,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1

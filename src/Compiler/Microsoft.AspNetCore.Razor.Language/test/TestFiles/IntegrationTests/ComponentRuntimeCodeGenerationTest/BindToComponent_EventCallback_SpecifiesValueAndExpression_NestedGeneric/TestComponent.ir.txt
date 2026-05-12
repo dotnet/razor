@@ -20,7 +20,7 @@
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - () => ParentValue
             CSharpCode - (54:1,7 [89] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (54:1,7 [89] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public IEnumerable<DateTime> ParentValue { get; set; } = new [] { DateTime.Now };\n
+                IntermediateToken - (54:1,7 [89] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public IEnumerable<DateTime> ParentValue { get; set; } = new [] { DateTime.Now };\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

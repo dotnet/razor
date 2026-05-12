@@ -16,10 +16,10 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [56] x:\dir\subdir\Test\TestComponent.cshtml) - ComponentWithNullableRenderFragment
                     ComponentAttribute - (45:0,45 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Header - Header - AttributeStructure.DoubleQuotes
-                        LazyIntermediateToken - (46:0,46 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Header
+                        IntermediateToken - (46:0,46 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Header
                 HtmlContent - (56:0,56 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (56:0,56 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (56:0,56 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 HtmlContent - (125:3,1 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (125:3,1 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (125:3,1 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (65:1,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (65:1,7 [59] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n	[Parameter] public RenderFragment Header { get; set; }\n
+                IntermediateToken - (65:1,7 [59] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n	[Parameter] public RenderFragment Header { get; set; }\n

@@ -17,11 +17,11 @@
                 Component - (0:0,0 [111] x:\dir\subdir\Test\TestComponent.cshtml) - ComponentWithEditorRequiredChildContent
                     ComponentChildContent -  - ChildContent - context
                         HtmlContent - (41:0,41 [6] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (41:0,41 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                            IntermediateToken - (41:0,41 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
                         MarkupElement - (47:1,4 [20] x:\dir\subdir\Test\TestComponent.cshtml) - h1
                             HtmlContent - (51:1,8 [11] x:\dir\subdir\Test\TestComponent.cshtml)
-                                LazyIntermediateToken - (51:1,8 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello World
+                                IntermediateToken - (51:1,8 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello World
                         HtmlContent - (67:1,24 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (67:1,24 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                            IntermediateToken - (67:1,24 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 HtmlContent - (111:2,42 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (111:2,42 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (111:2,42 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n

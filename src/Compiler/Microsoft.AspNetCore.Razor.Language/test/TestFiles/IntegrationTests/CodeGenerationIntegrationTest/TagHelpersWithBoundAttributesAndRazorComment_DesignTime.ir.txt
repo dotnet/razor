@@ -36,19 +36,19 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (29:0,29 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml)
-                    LazyIntermediateToken - (29:0,29 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - \n
+                    IntermediateToken - (29:0,29 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - \n
                 TagHelper - (31:1,0 [70] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - input - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - InputTagHelper
                     DefaultTagHelperProperty - (45:1,14 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - value - string InputTagHelper.FooProp - HtmlAttributeValueStyle.DoubleQuotes
                         HtmlContent - (45:1,14 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml)
-                            LazyIntermediateToken - (45:1,14 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - Hello
+                            IntermediateToken - (45:1,14 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - Hello
                     DefaultTagHelperProperty - (92:1,61 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - bound - string InputTagHelper.BoundProp - HtmlAttributeValueStyle.DoubleQuotes
                         HtmlContent - (92:1,61 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml)
-                            LazyIntermediateToken - (92:1,61 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - World
+                            IntermediateToken - (92:1,61 [5] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - World
                     DefaultTagHelperExecute - 
                 HtmlContent - (101:1,70 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml)
-                    LazyIntermediateToken - (101:1,70 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - \n
+                    IntermediateToken - (101:1,70 [2] TagHelpersWithBoundAttributesAndRazorComment.cshtml) - Html - \n
             Inject - 
             Inject - 
             Inject - 

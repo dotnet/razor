@@ -295,9 +295,9 @@ public class IntermediateNodeWriter :
         {
             _writer.Write(typeName[..^"IntermediateNode".Length]);
         }
-        else if (node is IntermediateToken token)
+        else if (node is IntermediateToken)
         {
-            _writer.Write(token.IsLazy ? "LazyIntermediateToken" : "IntermediateToken");
+            _writer.Write("IntermediateToken");
         }
         else
         {

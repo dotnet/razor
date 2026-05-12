@@ -11,11 +11,11 @@
                     MarkupElement - (9:1,2 [123] x:\dir\subdir\Test\TestComponent.cshtml) - a
                         HtmlAttribute - (11:1,4 [17] x:\dir\subdir\Test\TestComponent.cshtml) -  href=" - "
                             HtmlAttributeValue - (18:1,11 [9] x:\dir\subdir\Test\TestComponent.cshtml) - 
-                                LazyIntermediateToken - (18:1,11 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - /cool-url
+                                IntermediateToken - (18:1,11 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - /cool-url
                         HtmlAttribute - (28:1,21 [9] x:\dir\subdir\Test\TestComponent.cshtml) -  style=" - "
                         HtmlAttribute - (37:1,30 [9] x:\dir\subdir\Test\TestComponent.cshtml) -  disabled - 
                         HtmlAttribute - (46:1,39 [24] x:\dir\subdir\Test\TestComponent.cshtml) -  href=" - "
                             HtmlAttributeValue - (53:1,46 [16] x:\dir\subdir\Test\TestComponent.cshtml) - 
-                                LazyIntermediateToken - (53:1,46 [16] x:\dir\subdir\Test\TestComponent.cshtml) - Html - /even-cooler-url
+                                IntermediateToken - (53:1,46 [16] x:\dir\subdir\Test\TestComponent.cshtml) - Html - /even-cooler-url
                         HtmlContent - (71:1,64 [57] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (71:1,64 [57] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Learn the ten cool tricks your compiler author will hate!
+                            IntermediateToken - (71:1,64 [57] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Learn the ten cool tricks your compiler author will hate!

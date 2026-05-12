@@ -9,10 +9,10 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 Component - (0:0,0 [73] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                     ComponentAttribute - (57:0,57 [12] x:\dir\subdir\Test\TestComponent.cshtml) - MessageExpression - MessageExpression - AttributeStructure.DoubleQuotes
-                        LazyIntermediateToken - (59:0,59 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - (s) => {}
+                        IntermediateToken - (59:0,59 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - (s) => {}
                     ComponentAttribute - (28:0,28 [8] x:\dir\subdir\Test\TestComponent.cshtml) - Message - Message - AttributeStructure.DoubleQuotes
                         CSharpExpression - 
-                            LazyIntermediateToken - (29:0,29 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - message
+                            IntermediateToken - (29:0,29 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - message
                     ComponentAttribute - (28:0,28 [8] x:\dir\subdir\Test\TestComponent.cshtml) - MessageChanged - MessageChanged - AttributeStructure.DoubleQuotes
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
@@ -22,4 +22,4 @@
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - () => message
             CSharpCode - (87:1,12 [30] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (87:1,12 [30] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string message = "hi";\n
+                IntermediateToken - (87:1,12 [30] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string message = "hi";\n

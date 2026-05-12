@@ -11,7 +11,7 @@
                     HtmlAttribute - (18:0,18 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myvalue=" - "
                         CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
-                            LazyIntermediateToken - (19:0,19 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
+                            IntermediateToken - (19:0,19 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
                     HtmlAttribute - (18:0,18 [12] x:\dir\subdir\Test\TestComponent.cshtml) - anotherevent=" - "
                         CSharpExpressionAttributeValue -  - 
@@ -21,4 +21,4 @@
                             IntermediateToken -  - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
             CSharpCode - (76:1,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (76:1,7 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n
+                IntermediateToken - (76:1,7 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n

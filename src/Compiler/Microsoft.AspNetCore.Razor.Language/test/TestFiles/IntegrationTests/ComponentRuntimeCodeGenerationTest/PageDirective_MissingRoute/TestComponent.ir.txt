@@ -9,4 +9,4 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MalformedDirective - (0:0,0 [5] x:\dir\subdir\Test\TestComponent.cshtml) - page
                     CSharpCode - (5:0,5 [0] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (5:0,5 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 
+                        IntermediateToken - (5:0,5 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 

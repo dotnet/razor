@@ -8,9 +8,9 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [26] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (2:0,2 [26] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  var section = "Section"; 
+                    IntermediateToken - (2:0,2 [26] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  var section = "Section"; 
                 CSharpExpression - (32:1,1 [7] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (32:1,1 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - section
+                    IntermediateToken - (32:1,1 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - section
                 HtmlContent - (39:1,8 [7] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (39:1,8 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  One { 
+                    IntermediateToken - (39:1,8 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  One { 
                 MarkupBlock -  - <p>Content</p> }

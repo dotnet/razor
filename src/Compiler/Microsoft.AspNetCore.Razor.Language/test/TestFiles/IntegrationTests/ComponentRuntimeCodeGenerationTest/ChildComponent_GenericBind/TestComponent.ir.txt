@@ -17,4 +17,4 @@
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - __value => Value = __value
             CSharpCode - (53:1,7 [21] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (53:1,7 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string Value;\n
+                IntermediateToken - (53:1,7 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string Value;\n

@@ -10,7 +10,7 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (44:1,0 [149] x:\dir\subdir\Test\TestComponent.cshtml) - button
                     HtmlContent - (176:1,132 [8] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (176:1,132 [8] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Click Me
+                        IntermediateToken - (176:1,132 [8] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Click Me
                     HtmlAttribute - (62:1,18 [17] x:\dir\subdir\Test\TestComponent.cshtml) - onclick=" - "
                         CSharpExpressionAttributeValue -  - 
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, 
@@ -26,4 +26,4 @@
                         CSharpExpression - 
                             IntermediateToken - (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - false
             CSharpCode - (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    bool Foo { get; set; }\n
+                IntermediateToken - (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    bool Foo { get; set; }\n

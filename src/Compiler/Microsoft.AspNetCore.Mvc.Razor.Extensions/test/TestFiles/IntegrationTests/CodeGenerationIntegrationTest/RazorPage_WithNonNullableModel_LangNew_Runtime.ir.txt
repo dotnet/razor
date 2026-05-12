@@ -15,20 +15,20 @@
         ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_test - global::Microsoft.AspNetCore.Mvc.RazorPages.Page - 
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (47:3,0 [6] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                    LazyIntermediateToken - (47:3,0 [2] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n
-                    LazyIntermediateToken - (49:4,0 [3] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - <h1
-                    LazyIntermediateToken - (52:4,3 [1] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - >
+                    IntermediateToken - (47:3,0 [2] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n
+                    IntermediateToken - (49:4,0 [3] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - <h1
+                    IntermediateToken - (52:4,3 [1] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - >
                 CSharpExpression - (54:4,5 [10] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                    LazyIntermediateToken - (54:4,5 [10] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - Model.Name
+                    IntermediateToken - (54:4,5 [10] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - Model.Name
                 HtmlContent - (64:4,15 [13] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                    LazyIntermediateToken - (64:4,15 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - </h1>
-                    LazyIntermediateToken - (69:4,20 [4] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n\n
-                    LazyIntermediateToken - (73:6,0 [3] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - <h2
-                    LazyIntermediateToken - (76:6,3 [1] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - >
+                    IntermediateToken - (64:4,15 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - </h1>
+                    IntermediateToken - (69:4,20 [4] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - \n\n
+                    IntermediateToken - (73:6,0 [3] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - <h2
+                    IntermediateToken - (76:6,3 [1] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - >
                 CSharpExpression - (78:6,5 [14] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                    LazyIntermediateToken - (78:6,5 [14] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - Model?.Address
+                    IntermediateToken - (78:6,5 [14] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - CSharp - Model?.Address
                 HtmlContent - (92:6,19 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml)
-                    LazyIntermediateToken - (92:6,19 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - </h2>
+                    IntermediateToken - (92:6,19 [5] TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml) - Html - </h2>
             Inject - 
             Inject - 
             Inject - 

@@ -25,9 +25,9 @@
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - () => ParentValue
                 HtmlContent - (45:0,45 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (45:0,45 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (45:0,45 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (54:1,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (54:1,7 [65] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public DateTime ParentValue { get; set; } = DateTime.Now;\n
+                IntermediateToken - (54:1,7 [65] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public DateTime ParentValue { get; set; } = DateTime.Now;\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

@@ -20,4 +20,4 @@
                         CSharpExpression - (60:0,60 [11] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (60:0,60 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
             CSharpCode - (84:1,7 [107] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (84:1,7 [107] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n    public EventCallback<int> UpdateValue { get; set; }\n
+                IntermediateToken - (84:1,7 [107] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n    public EventCallback<int> UpdateValue { get; set; }\n

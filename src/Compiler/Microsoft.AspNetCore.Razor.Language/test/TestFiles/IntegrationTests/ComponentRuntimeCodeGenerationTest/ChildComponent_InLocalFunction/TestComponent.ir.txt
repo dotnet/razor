@@ -9,9 +9,9 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (54:1,2 [42] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (54:1,2 [42] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void RenderChildComponent()\n    {\n
+                    IntermediateToken - (54:1,2 [42] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void RenderChildComponent()\n    {\n
                 Component - (104:4,8 [15] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                 CSharpCode - (121:5,0 [7] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (121:5,0 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -     }\n
+                    IntermediateToken - (121:5,0 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -     }\n
                 CSharpCode - (135:8,2 [25] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (135:8,2 [25] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  RenderChildComponent(); 
+                    IntermediateToken - (135:8,2 [25] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  RenderChildComponent(); 

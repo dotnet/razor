@@ -12,7 +12,7 @@
                     MarkupElement - (53:2,2 [95] x:\dir\subdir\Test\TestComponent.cshtml) - input
                         HtmlAttribute -  - type=" - "
                             HtmlAttributeValue - (66:2,15 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
-                                LazyIntermediateToken - (66:2,15 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - text
+                                IntermediateToken - (66:2,15 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - text
                         HtmlAttribute - (130:2,79 [8] x:\dir\subdir\Test\TestComponent.cshtml) - oninput=" - "
                             CSharpExpressionAttributeValue -  - 
                                 IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.ChangeEventArgs>(this, 
@@ -21,7 +21,7 @@
                         HtmlAttribute - (85:2,34 [5] x:\dir\subdir\Test\TestComponent.cshtml) - value=" - "
                             CSharpExpressionAttributeValue -  - 
                                 IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
-                                LazyIntermediateToken - (86:2,35 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - text
+                                IntermediateToken - (86:2,35 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - text
                                 IntermediateToken -  - CSharp - )
                         HtmlAttribute - (85:2,34 [5] x:\dir\subdir\Test\TestComponent.cshtml) - oninput=" - "
                             CSharpExpressionAttributeValue -  - 
@@ -31,4 +31,4 @@
                                 IntermediateToken -  - CSharp - text
                                 IntermediateToken -  - CSharp - )
             CSharpCode - (170:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (170:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string text = "hi";\n
+                IntermediateToken - (170:4,12 [35] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string text = "hi";\n

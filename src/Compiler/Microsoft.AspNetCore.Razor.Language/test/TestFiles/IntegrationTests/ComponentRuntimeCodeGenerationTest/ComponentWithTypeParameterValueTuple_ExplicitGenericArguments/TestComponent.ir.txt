@@ -15,4 +15,4 @@
                     ComponentTypeArgument - (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml) - TValue
                         IntermediateToken - (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - decimal
             CSharpCode - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public List<(TDomain Domain, TValue Value)> Data { get; set; }\n
+                IntermediateToken - (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public List<(TDomain Domain, TValue Value)> Data { get; set; }\n

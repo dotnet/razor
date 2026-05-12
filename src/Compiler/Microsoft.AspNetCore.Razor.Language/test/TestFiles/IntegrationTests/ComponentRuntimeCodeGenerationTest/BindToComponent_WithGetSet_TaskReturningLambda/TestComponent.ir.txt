@@ -18,4 +18,4 @@
                         CSharpExpression - (60:0,60 [60] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (60:0,60 [60] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - value => { ParentValue = value; return Task.CompletedTask; }
             CSharpCode - (133:1,7 [50] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (133:1,7 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n
+                IntermediateToken - (133:1,7 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n

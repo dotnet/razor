@@ -11,22 +11,22 @@
                 MarkupElement - (44:1,0 [70] x:\dir\subdir\Test\TestComponent.cshtml) - form
                     HtmlAttribute -  - method=" - "
                         HtmlAttributeValue - (58:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
-                            LazyIntermediateToken - (58:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                            IntermediateToken - (58:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
                     HtmlAttribute -  - onsubmit=" - "
                         HtmlAttributeValue -  - 
                             IntermediateToken -  - Html - 
                     FormName - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml)
                         HtmlContent - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml) - Html - named-form-handler
+                            IntermediateToken - (87:1,43 [18] x:\dir\subdir\Test\TestComponent.cshtml) - Html - named-form-handler
                 HtmlContent - (114:1,70 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (114:1,70 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (114:1,70 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 MarkupElement - (116:2,0 [75] x:\dir\subdir\Test\TestComponent.cshtml) - form
                     HtmlAttribute -  - method=" - "
                         HtmlAttributeValue - (130:2,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - 
-                            LazyIntermediateToken - (130:2,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
+                            IntermediateToken - (130:2,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - post
                     HtmlAttribute -  - onsubmit=" - "
                         HtmlAttributeValue -  - 
                             IntermediateToken -  - Html - 
                     FormName - (159:2,43 [23] x:\dir\subdir\Test\TestComponent.cshtml)
                         CSharpExpression - (161:2,45 [20] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (161:2,45 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "named-form-handler"
+                            IntermediateToken - (161:2,45 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "named-form-handler"

@@ -15,6 +15,6 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [67] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (2:0,2 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  var validationMessage = @Html.ValidationMessage("test", "", new { 
+                    IntermediateToken - (2:0,2 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  var validationMessage = @Html.ValidationMessage("test", "", new { 
                 CSharpCode - (70:0,70 [39] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (70:0,70 [39] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - @class = "invalid-feedback" }, "div"); 
+                    IntermediateToken - (70:0,70 [39] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - @class = "invalid-feedback" }, "div"); 

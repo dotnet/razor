@@ -36,7 +36,7 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (31:0,31 [4] IncompleteTagHelper.cshtml)
-                    LazyIntermediateToken - (31:0,31 [4] IncompleteTagHelper.cshtml) - Html - \n\n
+                    IntermediateToken - (31:0,31 [4] IncompleteTagHelper.cshtml) - Html - \n\n
                 TagHelper - (35:2,0 [10] IncompleteTagHelper.cshtml) - p - TagMode.StartTagAndEndTag
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - TestNamespace.PTagHelper

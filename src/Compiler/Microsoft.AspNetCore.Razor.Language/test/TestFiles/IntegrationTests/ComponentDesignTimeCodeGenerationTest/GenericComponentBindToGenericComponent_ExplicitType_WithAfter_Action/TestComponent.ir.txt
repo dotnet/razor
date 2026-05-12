@@ -29,6 +29,6 @@
                     ComponentAttribute - (97:1,78 [6] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         IntermediateToken - (97:1,78 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Update
                 HtmlContent - (107:1,88 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (107:1,88 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (107:1,88 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (116:2,7 [79] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (116:2,7 [79] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public TParam ParentValue { get; set; }\n\n    public void Update() { }\n
+                IntermediateToken - (116:2,7 [79] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public TParam ParentValue { get; set; }\n\n    public void Update() { }\n

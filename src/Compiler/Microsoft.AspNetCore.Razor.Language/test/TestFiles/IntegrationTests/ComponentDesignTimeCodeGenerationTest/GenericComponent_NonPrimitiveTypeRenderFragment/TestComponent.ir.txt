@@ -17,7 +17,7 @@
                 Component - (0:0,0 [70] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
                     ComponentChildContent -  - ChildContent - context
                         CSharpExpression - (38:0,38 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (38:0,38 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.ToString()
+                            IntermediateToken - (38:0,38 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.ToString()
                     ComponentAttribute - (19:0,19 [16] x:\dir\subdir\Test\TestComponent.cshtml) - Item - Item - AttributeStructure.DoubleQuotes
                         IntermediateToken - (19:0,19 [16] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new CustomType()
     NamespaceDeclaration -  - __Blazor.Test.TestComponent

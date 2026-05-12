@@ -15,4 +15,4 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpExpression - (2:0,2 [8] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (2:0,2 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "text"\n
+                    IntermediateToken - (2:0,2 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "text"\n

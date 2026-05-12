@@ -16,4 +16,4 @@
                                 IntermediateToken - (70:2,19 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - OnClick
                                 IntermediateToken -  - CSharp - )
             CSharpCode - (96:4,7 [31] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (96:4,7 [31] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void OnClick() {\n    }\n
+                IntermediateToken - (96:4,7 [31] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void OnClick() {\n    }\n

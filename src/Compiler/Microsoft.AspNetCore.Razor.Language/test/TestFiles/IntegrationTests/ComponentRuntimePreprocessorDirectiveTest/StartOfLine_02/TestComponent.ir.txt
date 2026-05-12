@@ -8,6 +8,6 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [23] x:\dir\subdir\Test\TestComponent.razor)
-                    LazyIntermediateToken - (2:0,2 [23] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n/* test */ #if true\n
+                    IntermediateToken - (2:0,2 [23] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n/* test */ #if true\n
                 CSharpCode - (30:3,2 [21] x:\dir\subdir\Test\TestComponent.razor)
-                    LazyIntermediateToken - (30:3,2 [21] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n/* test */ #endif\n
+                    IntermediateToken - (30:3,2 [21] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n/* test */ #endif\n

@@ -15,4 +15,4 @@
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - __value => person.Name = __value
             CSharpCode - (56:3,1 [37] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (56:3,1 [37] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    Person person = new Person();\n
+                IntermediateToken - (56:3,1 [37] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    Person person = new Person();\n

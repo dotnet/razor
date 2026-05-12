@@ -16,10 +16,10 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (0:0,0 [18] x:\dir\subdir\Test\TestComponent.cshtml) - h1
                     HtmlContent - (4:0,4 [9] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (4:0,4 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Generated
+                        IntermediateToken - (4:0,4 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Generated
                 HtmlContent - (18:0,18 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (18:0,18 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (18:0,18 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 Component - (20:1,0 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Component1
                 HtmlContent - (34:1,14 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (34:1,14 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (34:1,14 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 Component - (36:2,0 [21] x:\dir\subdir\Test\TestComponent.cshtml) - Shared.Component2

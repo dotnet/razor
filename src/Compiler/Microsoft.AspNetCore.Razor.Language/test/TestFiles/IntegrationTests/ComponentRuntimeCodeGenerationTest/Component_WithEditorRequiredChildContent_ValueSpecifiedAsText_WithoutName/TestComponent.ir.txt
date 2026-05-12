@@ -10,4 +10,4 @@
                 Component - (0:0,0 [100] x:\dir\subdir\Test\TestComponent.cshtml) - ComponentWithEditorRequiredChildContent
                     ComponentChildContent -  - ChildContent - context
                         HtmlContent - (41:0,41 [17] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (41:0,41 [17] x:\dir\subdir\Test\TestComponent.cshtml) - Html - This is some text
+                            IntermediateToken - (41:0,41 [17] x:\dir\subdir\Test\TestComponent.cshtml) - Html - This is some text

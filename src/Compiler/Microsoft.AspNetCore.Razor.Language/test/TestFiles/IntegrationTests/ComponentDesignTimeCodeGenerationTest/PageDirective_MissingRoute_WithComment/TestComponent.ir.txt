@@ -16,4 +16,4 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MalformedDirective - (0:0,0 [19] x:\dir\subdir\Test\TestComponent.cshtml) - page
                 HtmlContent - (19:0,19 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (19:0,19 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (19:0,19 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n

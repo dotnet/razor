@@ -15,9 +15,9 @@
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (259:8,1 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (259:8,1 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (259:8,1 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 Component - (261:9,0 [55] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     RenderMode - (289:9,28 [23] x:\dir\subdir\Test\TestComponent.cshtml)
-                        LazyIntermediateToken - (291:9,30 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Container.RenderMode
+                        IntermediateToken - (291:9,30 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Container.RenderMode
             CSharpCode - (8:1,1 [250] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (8:1,1 [250] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public class RenderModeContainer\n    {\n        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;\n    }\n\n    RenderModeContainer? Container => null;\n
+                IntermediateToken - (8:1,1 [250] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public class RenderModeContainer\n    {\n        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;\n    }\n\n    RenderModeContainer? Container => null;\n

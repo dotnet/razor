@@ -10,10 +10,10 @@
                 Component - (0:0,0 [31] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     ComponentAttribute -  - Value -  - AttributeStructure.DoubleQuotes
                         HtmlContent - (22:0,22 [5] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (22:0,22 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello
+                            IntermediateToken - (22:0,22 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello
                 HtmlContent - (31:0,31 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (31:0,31 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (31:0,31 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
                 CSharpExpression - (36:2,1 [0] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (36:2,1 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 
+                    IntermediateToken - (36:2,1 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 
             CSharpCode - (47:4,7 [50] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (47:4,7 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public int Param { get; set; }\n
+                IntermediateToken - (47:4,7 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public int Param { get; set; }\n

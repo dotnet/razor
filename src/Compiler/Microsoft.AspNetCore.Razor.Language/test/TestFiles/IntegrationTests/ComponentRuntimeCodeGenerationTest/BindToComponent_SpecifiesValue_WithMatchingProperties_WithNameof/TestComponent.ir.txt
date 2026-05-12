@@ -15,4 +15,4 @@
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - __value => ParentValue = __value
             CSharpCode - (50:1,7 [105] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (50:1,7 [105] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n\n    public string nameof(string s) => string.Empty;\n
+                IntermediateToken - (50:1,7 [105] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n\n    public string nameof(string s) => string.Empty;\n

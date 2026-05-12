@@ -18,7 +18,7 @@
             FieldDeclaration -  - private - global::TestNamespace.CatchAllTagHelper - __TestNamespace_CatchAllTagHelper
             MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
                 HtmlContent - (33:1,0 [2] DuplicateTargetTagHelper.cshtml)
-                    LazyIntermediateToken - (33:1,0 [2] DuplicateTargetTagHelper.cshtml) - Html - \n
+                    IntermediateToken - (33:1,0 [2] DuplicateTargetTagHelper.cshtml) - Html - \n
                 TagHelper - (35:2,0 [40] DuplicateTargetTagHelper.cshtml) - input - TagMode.SelfClosing
                     DefaultTagHelperBody - 
                     DefaultTagHelperCreate -  - TestNamespace.InputTagHelper

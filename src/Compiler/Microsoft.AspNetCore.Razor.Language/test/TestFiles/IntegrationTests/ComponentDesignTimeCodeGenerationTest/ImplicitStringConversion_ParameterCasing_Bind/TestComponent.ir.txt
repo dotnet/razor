@@ -24,6 +24,6 @@
                             IntermediateToken -  - CSharp - __value => s = __value
                             IntermediateToken -  - CSharp - , s)
                 HtmlContent - (37:0,37 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (37:0,37 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                    IntermediateToken - (37:0,37 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
             CSharpCode - (48:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (48:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string s = "abc";\n
+                IntermediateToken - (48:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string s = "abc";\n

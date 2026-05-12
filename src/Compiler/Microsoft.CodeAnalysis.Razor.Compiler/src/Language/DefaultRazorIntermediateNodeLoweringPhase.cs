@@ -742,9 +742,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 };
 
                 unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
-                    arg: node,
-                    contentFactory: static node => node.Value?.GetContent() ?? string.Empty,
-                    source: BuildSourceSpanFromNode(node.Value)));
+                    node.Value?.GetContent() ?? string.Empty,
+                    BuildSourceSpanFromNode(node.Value)));
 
                 _builder.Add(unresolvedNode);
                 return;
@@ -757,9 +756,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             });
 
             _builder.Add(IntermediateNodeFactory.HtmlToken(
-                arg: node,
-                contentFactory: static node => node.Value?.GetContent() ?? string.Empty,
-                source: BuildSourceSpanFromNode(node.Value)));
+                node.Value?.GetContent() ?? string.Empty,
+                BuildSourceSpanFromNode(node.Value)));
 
             _builder.Pop();
         }
@@ -789,9 +787,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
 
             _builder.Add(IntermediateNodeFactory.CSharpToken(
-                arg: node,
-                contentFactory: static node => node.GetContent(),
-                source: BuildSourceSpanFromNode(node)));
+                node.GetContent(),
+                BuildSourceSpanFromNode(node)));
 
             base.VisitCSharpExpressionLiteral(node);
         }
@@ -891,9 +888,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         protected void Combine(HtmlContentIntermediateNode node, SyntaxNode item)
         {
             node.Children.Add(IntermediateNodeFactory.HtmlToken(
-                arg: item,
-                contentFactory: static item => item.GetContent(),
-                source: BuildSourceSpanFromNode(item)));
+                item.GetContent(),
+                BuildSourceSpanFromNode(item)));
 
             if (node.Source is SourceSpan source)
             {
@@ -1359,9 +1355,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                     Source = rewrittenSource,
                 };
                 unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
-                    arg: (MarkupTextLiteralSyntax)rewritten,
-                    contentFactory: static node => node.GetContent() ?? string.Empty,
-                    source: rewrittenSource));
+                    rewritten.GetContent() ?? string.Empty,
+                    rewrittenSource));
                 _builder.Add(unresolvedNode);
 
                 if (!allLiteral)
@@ -1398,8 +1393,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 var fallbackSource = BuildSourceSpanFromNode(fallbackLiteral);
                 var fallback = new HtmlContentIntermediateNode() { Source = fallbackSource };
                 fallback.Children.Add(IntermediateNodeFactory.HtmlToken(
-                    arg: fallbackLiteral,
-                    contentFactory: static node => node.GetContent(),
+                    fallbackLiteral.GetContent(),
                     fallbackSource));
 
                 _builder.Add(new UnresolvedAttributeIntermediateNode()
@@ -1494,9 +1488,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 }
 
                 _builder.Add(IntermediateNodeFactory.CSharpToken(
-                    arg: node,
-                    contentFactory: static node => node.GetContent(),
-                    source: BuildSourceSpanFromNode(node)));
+                    node.GetContent(),
+                    BuildSourceSpanFromNode(node)));
 
                 if (!isAttributeValue)
                 {
@@ -1596,8 +1589,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             _builder.Push(contentNode);
 
             _builder.Add(IntermediateNodeFactory.HtmlToken(
-                arg: node,
-                contentFactory: static node => node.GetContent(),
+                node.GetContent(),
                 source));
 
             _builder.Pop();
@@ -1827,9 +1819,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                     Source = rewrittenSource,
                 };
                 unresolvedNode.Children.Add(IntermediateNodeFactory.HtmlToken(
-                    arg: (MarkupTextLiteralSyntax)rewritten,
-                    contentFactory: static node => node.GetContent() ?? string.Empty,
-                    source: rewrittenSource));
+                    rewritten.GetContent() ?? string.Empty,
+                    rewrittenSource));
                 _builder.Add(unresolvedNode);
             }
             else
@@ -1911,15 +1902,13 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                     };
 
                 childNode.Children.Add(IntermediateNodeFactory.HtmlToken(
-                    arg: node,
-                    contentFactory: static node => node.GetContent() ?? string.Empty,
-                    source: attrValueSource));
+                    node.GetContent() ?? string.Empty,
+                    attrValueSource));
 
                 _builder.Add(childNode);
                 return;
             }
 
-            var context = node.EditHandler;
             if (node.ChunkGenerator == SpanChunkGenerator.Null)
             {
                 return;
@@ -1959,8 +1948,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 Children =
                 {
                     IntermediateNodeFactory.HtmlToken(
-                        arg: node,
-                        contentFactory: static node => node.GetContent(),
+                        node.GetContent(),
                         source)
                 }
             });
@@ -2061,9 +2049,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 }
 
                 _builder.Add(IntermediateNodeFactory.CSharpToken(
-                    arg: node,
-                    contentFactory: static node => node.GetContent(),
-                    source: BuildSourceSpanFromNode(node)));
+                    node.GetContent(),
+                    BuildSourceSpanFromNode(node)));
 
                 if (!isAttributeValue)
                 {
@@ -2167,9 +2154,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             }
 
             _builder.Add(IntermediateNodeFactory.CSharpToken(
-                arg: node,
-                contentFactory: static node => node.GetContent(),
-                source: BuildSourceSpanFromNode(node)));
+                node.GetContent(),
+                BuildSourceSpanFromNode(node)));
         }
 
         public override void VisitCSharpStatement(CSharpStatementSyntax node)

@@ -28,6 +28,6 @@
                     ComponentAttribute - (62:0,62 [11] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         IntermediateToken - (62:0,62 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
                 HtmlContent - (77:0,77 [2] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (77:0,77 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    IntermediateToken - (77:0,77 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (86:1,7 [102] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (86:1,7 [102] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n    public EventCallback UpdateValue { get; set; }\n
+                IntermediateToken - (86:1,7 [102] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n    public EventCallback UpdateValue { get; set; }\n

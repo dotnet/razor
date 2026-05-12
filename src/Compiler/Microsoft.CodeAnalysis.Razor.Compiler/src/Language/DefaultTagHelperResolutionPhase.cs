@@ -947,14 +947,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     }
 
     /// <summary>
-    /// Converts an <see cref="HtmlIntermediateToken"/> to a <see cref="CSharpIntermediateToken"/>,
-    /// preserving lazy content when present.
+    /// Converts an <see cref="HtmlIntermediateToken"/> to a <see cref="CSharpIntermediateToken"/>.
     /// </summary>
     private static CSharpIntermediateToken ToCSharpToken(HtmlIntermediateToken htmlToken)
     {
-        return htmlToken.IsLazy
-            ? IntermediateNodeFactory.CSharpToken(htmlToken, static t => t.Content, htmlToken.Source)
-            : new CSharpIntermediateToken(htmlToken.Content, htmlToken.Source);
+        return new CSharpIntermediateToken(htmlToken.Content, htmlToken.Source);
     }
 
     /// <summary>
