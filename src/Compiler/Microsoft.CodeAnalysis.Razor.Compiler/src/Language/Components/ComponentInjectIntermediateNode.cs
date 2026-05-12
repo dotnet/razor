@@ -26,7 +26,7 @@ internal class ComponentInjectIntermediateNode : ExtensionIntermediateNode
         TypeSpan = typeSpan;
         MemberSpan = memberSpan;
         IsMalformed = isMalformed;
-     }
+    }
 
     public string TypeName { get; }
 

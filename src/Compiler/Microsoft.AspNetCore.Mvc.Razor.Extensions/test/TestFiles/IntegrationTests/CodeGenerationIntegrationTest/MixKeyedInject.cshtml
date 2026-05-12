@@ -1,0 +1,9 @@
+﻿@model MyModel
+@keyedinject MyApp MyPropertyName "KeyOne"
+@inject MyApp MyPropertyName
+@inject MyService<TModel> ServiceOne
+@keyedinject MyService<TModel> ServiceOne "KeyOne"
+@keyedinject MyService<TModel> ServiceOne "KeyTwo"
+@keyedinject MyApp MyPropertyName2 "SomeKey"
+@inject MyApp MyPropertyName2
+@keyedinject MyApp MyPropertyName3 "KeyThree"

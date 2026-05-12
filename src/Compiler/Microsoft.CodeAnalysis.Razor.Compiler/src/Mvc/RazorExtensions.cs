@@ -16,6 +16,7 @@ public static class RazorExtensions
         ArgHelper.ThrowIfNull(builder);
 
         InjectDirective.Register(builder, considerNullabilityEnforcement: true);
+        KeyedInjectDirective.Register(builder, considerNullabilityEnforcement: true);
         ModelDirective.Register(builder);
         PageDirective.Register(builder);
 

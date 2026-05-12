@@ -1,0 +1,35 @@
+Source Location: (7:0,7 [7] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithKey.cshtml)
+|MyModel|
+Generated Location: (1751:23,0 [7] )
+|MyModel|
+
+Source Location: (168:4,13 [9] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithKey.cshtml)
+|MyService|
+Generated Location: (3517:60,0 [9] )
+|MyService|
+
+Source Location: (186:4,31 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithKey.cshtml)
+|Html2|
+Generated Location: (3718:68,0 [5] )
+|Html2|
+
+Source Location: (120:3,13 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithKey.cshtml)
+|MyApp|
+Generated Location: (4063:79,0 [5] )
+|MyApp|
+
+Source Location: (126:3,19 [15] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithKey.cshtml)
+|MyPropertyName2|
+Generated Location: (4251:87,0 [15] )
+|MyPropertyName2|
+
+Source Location: (29:1,13 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithKey.cshtml)
+|MyApp|
+Generated Location: (4605:98,0 [5] )
+|MyApp|
+
+Source Location: (35:1,19 [14] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InjectWithKey.cshtml)
+|MyPropertyName|
+Generated Location: (4793:106,0 [14] )
+|MyPropertyName|
+
