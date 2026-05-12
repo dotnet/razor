@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -29,6 +30,12 @@ internal sealed class ComponentLayoutDirectivePass : IntermediateNodePassBase, I
 
         var token = directives[0].Node.Tokens.FirstOrDefault();
         if (token == null)
+        {
+            return;
+        }
+
+        // If the layout is explicitly set to null, don't generate a layout attribute
+        if (string.Equals(token.Content, "null", StringComparison.Ordinal))
         {
             return;
         }

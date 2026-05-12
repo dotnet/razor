@@ -2373,6 +2373,20 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [IntegrationTestFact, WorkItem("https://github.com/dotnet/razor/issues/8340")]
+    public void LayoutDirective_Null()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @layout null
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [IntegrationTestFact]
     public void Component_AddContent_Multiline()
     {
