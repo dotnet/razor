@@ -1,7 +1,7 @@
 ﻿steps:
   - task: NuGetAuthenticate@1
     inputs:
-      nuGetServiceConnections: devdiv/dotnet-core-internal-tooling, devdiv/engineering
+      nuGetServiceConnections: devdiv/dotnet-core-internal-tooling, devdiv-engineering-feed-r-wif
       forceReinstallCredentialProvider: true
 
   # Needed for SBOM tool
