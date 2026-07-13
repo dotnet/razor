@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="System.Text.Json" PrivateAssets="all" />
 
   </ItemGroup>
 

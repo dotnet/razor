@@ -47,6 +47,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.WebTools.Languages.Css" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.WebTools.Languages.Css.Editor" Version="$(MicrosoftWebToolsLanguagesHtmlPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="System.IO.Packaging" Version="$(SystemIOPackagingVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" PrivateAssets="all" />
 
     <!--
       Pinning packages to avoid misaligned reference CI failures.

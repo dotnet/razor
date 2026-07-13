@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="DiffPlex" />
+    <PackageReference Include="System.Text.Json" />
 
     <PackageReference Include="xunit.assert" PrivateAssets="all" />
     <PackageVersion Include="xunit.assert" Version="$(XunitAssertVersion)" />
