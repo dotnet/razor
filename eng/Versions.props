@@ -184,7 +184,7 @@
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <SystemDiagnosticsDiagnosticSourceVersion>6.0.0</SystemDiagnosticsDiagnosticSourceVersion>
     <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
-    <SystemTextEncodingsWebVersion>6.0.0</SystemTextEncodingsWebVersion>
+    <SystemTextEncodingsWebVersion>8.0.0</SystemTextEncodingsWebVersion>
     <SystemIOPackagingVersion>6.0.1</SystemIOPackagingVersion>
     <SystemTextJsonVersion>8.0.5</SystemTextJsonVersion>
     <XunitAssertVersion>$(XunitVersion)</XunitAssertVersion>
