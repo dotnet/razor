@@ -15,6 +15,8 @@
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisensePackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguagePackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="$(MicrosoftWindowsCsWin32PackageVersion)" PrivateAssets="all" ExcludeAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
 
     <!-- These packages included to force coherent versions for MEF loading -->
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolPackageVersion)" />

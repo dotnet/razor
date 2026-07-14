@@ -13,6 +13,8 @@
     <!-- Manually upgrade to address CG alert. When the VS packages
          pull in the right version, this can be removed. -->
     <PackageReference Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistPackageVersion)" Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="$(MicrosoftWindowsCsWin32PackageVersion)" PrivateAssets="all" ExcludeAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
   </ItemGroup>
 
   <ItemGroup>

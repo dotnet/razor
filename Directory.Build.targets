@@ -46,4 +46,11 @@
       </AssemblyAttribute>
     </ItemGroup>
   </Target>
+
+  <!-- CsWin32 is only transitive here, and its current analyzer requires a newer Roslyn than this branch uses. -->
+  <Target Name="_RemoveCsWin32Analyzer" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'Microsoft.Windows.CsWin32'" />
+    </ItemGroup>
+  </Target>
 </Project>

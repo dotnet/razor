@@ -30,6 +30,8 @@
       Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.Remote.ServiceHub" Version="$(MicrosoftCodeAnalysisRemoteServiceHubPackageVersion)" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="$(MicrosoftWindowsCsWin32PackageVersion)" PrivateAssets="all" ExcludeAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcPackageVersion)" />
     <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsPackageVersion)" />
