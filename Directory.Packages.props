@@ -16,7 +16,7 @@
     <_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.11.0-beta1.24170.2</_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <_MicrosoftVisualStudioLanguageServicesPackageVersion>$(MicrosoftVisualStudioLanguageServicesPackageVersion)</_MicrosoftVisualStudioLanguageServicesPackageVersion>
     <_XunitPackageVersion>2.6.3</_XunitPackageVersion>
-    <_MicrosoftBuildPackageVersion>17.3.0-preview-22364-05</_MicrosoftBuildPackageVersion>
+    <_MicrosoftBuildPackageVersion>17.10.4</_MicrosoftBuildPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,10 +26,11 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="$(_BenchmarkDotNetPackageVersion)" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
     <PackageVersion Include="FluentAssertions" Version="6.7.0" />
-    <PackageVersion Include="MessagePack" Version="2.5.108" />
+    <PackageVersion Include="MessagePack" Version="2.5.301" />
     <PackageVersion Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="$(_MicrosoftBuildPackageVersion)" />
     <PackageVersion Include="Microsoft.Build.Locator" Version="1.4.1" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="$(_MicrosoftBuildPackageVersion)" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="$(_MicrosoftBuildPackageVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="1.1.2-beta1.24121.1" NoWarn="NU1608" />
     <!-- Temporarily force analyzers to match compiler version https://github.com/dotnet/razor-tooling/issues/6758 -->
@@ -95,7 +96,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Search" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" NoWarn="NU1701" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.10.32" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.11.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="$(_MicrosoftVisualStudioPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(_MicrosoftVisualStudioPackagesVersion)" NoWarn="NU1701" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="$(_MicrosoftVisualStudioPackagesVersion)" NoWarn="NU1701" />
@@ -119,14 +120,15 @@
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(_MicrosoftCodeAnalysisAnalyzersPackageVersion)" />
     <PackageVersion Include="StreamJsonRpc" Version="2.18.48" />
     <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
-    <PackageVersion Include="System.Formats.Asn1" Version="6.0.1" />
-    <PackageVersion Include="System.Resources.Extensions" Version="6.0.0" />
-    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
+    <PackageVersion Include="System.Formats.Asn1" Version="8.0.0" />
+    <PackageVersion Include="System.Resources.Extensions" Version="8.0.0" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="8.0.0" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
     <PackageVersion Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataPackageVersion)" />
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="6.0.1" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="8.0.3" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
-    <PackageVersion Include="System.Text.Json" Version="6.0.0" />
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageVersion Include="xunit" Version="$(_XunitPackageVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.5.25" />
@@ -136,5 +138,6 @@
 
     <!-- Microsoft.Internal.VisualStudio.Shell.Framework depends on a version of this that isn't present, so pinning to one that is -->
     <PackageVersion Include="Azure.Core" Version="1.37.0" />
+    <PackageVersion Include="System.IO.Packaging" Version="6.0.1" />
   </ItemGroup>
 </Project>

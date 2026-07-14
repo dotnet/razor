@@ -16,6 +16,8 @@
     <AnalysisMode>Default</AnalysisMode>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Compiler projects intentionally pin an older Roslyn, so security pins are added explicitly where needed. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);EnableGenerateDocumentationFile</NoWarn>
     <!-- Disable XLIFF tasks -->

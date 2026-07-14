@@ -11,6 +11,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Direct references to suppress NU1701 for transitive .NET Framework packages -->
+    <PackageReference Include="Microsoft.IO.Redist" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.GraphModel" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Search" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" NoWarn="NU1701" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.MvcShim\Microsoft.AspNetCore.Razor.Test.MvcShim.csproj" />

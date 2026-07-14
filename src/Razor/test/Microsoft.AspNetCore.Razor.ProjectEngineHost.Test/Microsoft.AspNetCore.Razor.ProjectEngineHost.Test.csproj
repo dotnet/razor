@@ -15,7 +15,10 @@
     <PackageReference Include="Microsoft.VisualStudio.GraphModel" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Search" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" NoWarn="NU1701" />
   </ItemGroup>
 
   <ItemGroup>
