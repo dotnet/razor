@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="44eb40611be3c94e8b5f2584367a4a129ceb8dfa" BarId="324781" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="razor" Sha="e7c6a4c120b0d1a50d5ff2323d74c88534f12dc8" BarId="324935" />
   <ProductDependencies>
     <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.5.0-2.26118.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
