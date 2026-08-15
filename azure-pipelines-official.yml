@@ -54,6 +54,18 @@ pr:
     include:
       - '*'
 
+schedules:
+  - cron: "0 8 23-29 * 0" # Fourth Sunday of each month at 8:00 UTC
+    displayName: "Monthly smoke test"
+    branches:
+      include:
+        - main
+        - release/*
+      exclude:
+        - ""
+    always: true # Run even if there have been no source code changes since the last successful scheduled run
+    batch: false # Do not run the pipeline if the previously scheduled run is in-progress
+
 resources:
   repositories:
   - repository: 1ESPipelineTemplates
@@ -456,3 +468,31 @@ extends:
               -TsaRepositoryName "Razor-Tooling"
               -TsaCodebaseName "Razor-Tooling"
               -TsaPublish $True
+
+      - stage: insert
+        trigger: manual
+        displayName: Insert to VS
+        jobs:
+        - job: insert
+          displayName: Insert to VS
+          pool:
+            name: NetCore1ESPool-Svc-Internal
+            demands: ImageOverride -equals windows.vs2022.amd64
+          steps:
+          - download: current
+            artifact: VSSetup
+          - powershell: |
+              $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
+              Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
+            displayName: Get Branch Name
+          - template: /eng/pipelines/insert.yml@self
+            parameters:
+              buildUserName: "dn-bot@microsoft.com"
+              buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+              componentUserName: "dn-bot@microsoft.com"
+              componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+              componentBuildProjectName: internal
+              sourceBranch: "$(ComponentBranchName)"
+              publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=/eng/config/PublishData.json&api-version=6.0"
+              publishDataAccessToken: "$(System.AccessToken)"
+              dropPath: '$(Pipeline.Workspace)\VSSetup'
