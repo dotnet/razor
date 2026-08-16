@@ -50,6 +50,12 @@ public static class TestProject
         return projectDirectory;
     }
 
+    public static string GetRepoRoot(bool useCurrentDirectory = false)
+    {
+        var baseDir = useCurrentDirectory ? Directory.GetCurrentDirectory() : AppContext.BaseDirectory;
+        return SearchUp(baseDir, "global.json");
+    }
+
     public static string GetProjectDirectory(Type type, Layer layer, bool useCurrentDirectory = false)
     {
         var baseDir = useCurrentDirectory ? Directory.GetCurrentDirectory() : AppContext.BaseDirectory;
