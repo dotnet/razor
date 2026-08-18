@@ -6,9 +6,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
 using Microsoft.AspNetCore.Razor.Threading;
@@ -60,7 +62,10 @@ internal static class CSharpTestLspServerHelpers
         var csharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
         var exportProvider = TestComposition.Roslyn.ExportProviderFactory.CreateExportProvider();
-        var metadataReferences = (await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken))
+        var nugetConfigFilePath = Path.Combine(TestProject.GetRepoRoot(), "NuGet.config");
+        var metadataReferences = (await ReferenceAssemblies.Default
+            .WithNuGetConfigFilePath(nugetConfigFilePath)
+            .ResolveAsync(language: LanguageNames.CSharp, cancellationToken))
             // ComponentBase here comes from our ComponentShim project, not the real ASP.NET libraries. It's enough for the generated C#
             // in tests to at least compile better.
             .Add(ReferenceUtil.AspNetLatestComponents);
