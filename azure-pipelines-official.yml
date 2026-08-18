@@ -17,7 +17,7 @@ variables:
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - name: _DevDivDropAccessToken
-    value: $(dn-bot-devdiv-drop-rw-code-rw)
+    value: ''
 
   - name: Razor.GitHubEmail
     value: dotnet-build-bot@microsoft.com
@@ -314,6 +314,18 @@ extends:
 
             - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)"
               displayName: Setting VisualStudio.DropName variable
+
+            - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+              - task: AzureCLI@2
+                displayName: Get DevDiv Drop Access Token
+                inputs:
+                  azureSubscription: 'dnceng-devdiv-drop-rw-code-rw-wif'
+                  scriptType: pscore
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    $token = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+                    Write-Host "##vso[task.setvariable variable=_DevDivDropAccessToken;issecret=true]$token"
+                condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
             # Publishes setup VSIXes to a drop.
             # Note: The insertion tool looks for the display name of this task in the logs.
