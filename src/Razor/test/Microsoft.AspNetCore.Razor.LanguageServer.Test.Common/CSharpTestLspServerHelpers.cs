@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -54,7 +55,10 @@ internal class CSharpTestLspServerHelpers
         var cSharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
         var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-        var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken);
+        var nugetConfigFilePath = Path.Combine(TestProject.GetRepoRoot(), "NuGet.config");
+        var metadataReferences = await ReferenceAssemblies.Default
+            .WithNuGetConfigFilePath(nugetConfigFilePath)
+            .ResolveAsync(language: LanguageNames.CSharp, cancellationToken);
         var workspace = CreateCSharpTestWorkspace(cSharpFiles, exportProvider, metadataReferences, razorSpanMappingService);
         var clientCapabilities = new VSInternalClientCapabilities
         {

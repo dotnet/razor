@@ -32,6 +32,8 @@ public static class TestProject
         return projectDirectory;
     }
 
+    public static string GetRepoRoot() => SearchUp(AppContext.BaseDirectory, "global.json");
+
     public static string GetProjectDirectory(Type type)
     {
         var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json");

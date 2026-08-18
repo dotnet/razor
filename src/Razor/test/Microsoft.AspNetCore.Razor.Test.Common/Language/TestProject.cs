@@ -10,6 +10,12 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class TestProject
 {
+    public static string GetRepoRoot(bool useCurrentDirectory = false)
+    {
+        var baseDir = useCurrentDirectory ? Directory.GetCurrentDirectory() : AppContext.BaseDirectory;
+        return SearchUp(baseDir, "global.json");
+    }
+
     public static string GetProjectDirectory(Type type, bool useCurrentDirectory = false)
     {
         var baseDir = useCurrentDirectory ? Directory.GetCurrentDirectory() : AppContext.BaseDirectory;
