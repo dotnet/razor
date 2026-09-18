@@ -1,8 +1,14 @@
 ﻿steps:
   - task: NuGetAuthenticate@1
     inputs:
-      nuGetServiceConnections: devdiv/dotnet-core-internal-tooling, devdiv/engineering
+      nuGetServiceConnections: devdiv/dotnet-core-internal-tooling
       forceReinstallCredentialProvider: true
+
+  - task: NuGetAuthenticate@1
+    displayName: Authenticate devdiv/Engineering feed (WIF)
+    inputs:
+      azureDevOpsServiceConnection: devdiv-engineering-feed-r-wif
+      feedUrl: https://devdiv.pkgs.visualstudio.com/_packaging/Engineering/nuget/v3/index.json
 
   # Needed for SBOM tool
   - task: UseDotNet@2
