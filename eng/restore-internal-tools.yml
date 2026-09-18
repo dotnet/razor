@@ -13,3 +13,4 @@
             /v:normal
     displayName: Restore internal tools
     condition: and(succeeded(), ne(variables['_skipRestoreInternalTools'], 'true'))
+
