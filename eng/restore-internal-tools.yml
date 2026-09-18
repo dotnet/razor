@@ -37,3 +37,4 @@
       restoreSolution: 'eng\common\internal\Tools.csproj'
       nugetConfigPath: 'eng\common\internal\NuGet.config'
       restoreDirectory: '$(Build.SourcesDirectory)\.packages'
+
