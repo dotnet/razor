@@ -1,0 +1,3 @@
+# Desktop generated-rule names depend on the original upstream file bytes.
+Microsoft.NET.Sdk.Razor.DesignTime.targets -text
+Rules/*.xaml -text

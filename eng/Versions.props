@@ -90,8 +90,6 @@
     Versions below this comment are not managed by automation and can be changed as needed.
   -->
   <PropertyGroup Label="Manual">
-    <!-- dotnet/runtime packages -->
-    <MicrosoftNETSdkRazorPackageVersion>6.0.0-alpha.1.21072.5</MicrosoftNETSdkRazorPackageVersion>
     <!--
       These are properties that control the versions of the various packages that are used in arcade. They control
       PackageReference versions directly in arcade.
@@ -99,5 +97,7 @@
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
     <XUnitVersion>2.6.3</XUnitVersion>
     <XUnitAnalyzersVersion>1.7.0</XUnitAnalyzersVersion>
+    <!-- Arcade's default test platform bundles a vulnerable Newtonsoft.Json assembly. -->
+    <MicrosoftTestPlatformVersion>17.3.3</MicrosoftTestPlatformVersion>
   </PropertyGroup>
 </Project>
