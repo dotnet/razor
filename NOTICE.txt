@@ -9930,3 +9930,13 @@ CopyrightAttributesNotFound DefaultArgumentAlreadyDefined DescriptionAttributesN
 
 ---------------------------------------------------------
 
+Razor design-time assets
+
+Copyright (c) .NET Foundation. All rights reserved.
+These six text assets are reproduced from dotnet/aspnetcore at commit
+20b6779cf3af2fed6a8fe64a0865cfab50b776bb:
+https://github.com/dotnet/aspnetcore/tree/20b6779cf3af2fed6a8fe64a0865cfab50b776bb/src/Razor/Microsoft.NET.Sdk.Razor/src/build/netstandard2.0
+
+Licensed under the Apache License, Version 2.0. The full license is included above.
+
+---------------------------------------------------------

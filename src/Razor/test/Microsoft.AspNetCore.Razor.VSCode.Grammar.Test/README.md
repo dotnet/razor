@@ -8,7 +8,9 @@
 yarn install
 ```
 
-**Note:** There are [known issues](https://github.com/nodejs/node-gyp/blob/master/macOS_Catalina.md) with MacOS Catalina for certain dependencies. Windows works well.
+Use Node.js 22 or newer and Yarn 1. The tests run in Node, without a browser DOM.
+
+The `resolutions` in `package.json` keep transitive lint and test dependencies on patched versions.
 
 ## Snapshot Tests
 

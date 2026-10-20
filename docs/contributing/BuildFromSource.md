@@ -21,7 +21,7 @@ Building Razor on Windows requires:
 * Windows 10, version 1803 or newer
 * At least 10 GB of disk space and a good internet connection (our build scripts download a lot of tools and dependencies)
 * Git. <https://git-scm.org>
-* NodeJS. LTS version of 10.14.2 or newer <https://nodejs.org>.
+* NodeJS. LTS version of 22 or newer <https://nodejs.org>.
 * Install yarn globally (`npm install -g yarn`)
 * Python (3.\*) ([available via the Microsoft store](https://www.microsoft.com/en-us/p/python-38/9mssztt1n39l?activetab=pivot:overviewtab) or from <https://www.python.org/downloads/>).
 
@@ -34,7 +34,7 @@ Building Razor on macOS or Linux requires:
 * At least 10 GB of disk space and a good internet connection (our build scripts download a lot of tools and dependencies)
 * curl <https://curl.haxx.se> or Wget <https://www.gnu.org/software/wget>
 * Git <https://git-scm.org>
-* NodeJS. LTS version of 10.14.2 or newer <https://nodejs.org>
+* NodeJS. LTS version of 22 or newer <https://nodejs.org>
 * Python (3.\*) <https://www.python.org/downloads/>
 
 **NOTE** some ISPs have been know to use web filtering software that has caused issues with git repository cloning, if you experience issues cloning this repo please review <https://help.github.com/en/github/authenticating-to-github/using-ssh-over-the-https-port>

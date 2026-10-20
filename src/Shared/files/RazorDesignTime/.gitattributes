@@ -1,0 +1,2 @@
+Microsoft.NET.Sdk.Razor.DesignTime.targets -text
+Rules/*.xaml -text

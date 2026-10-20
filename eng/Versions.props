@@ -107,7 +107,6 @@
     <MicrosoftBuildLocatorPackageVersion>1.2.6</MicrosoftBuildLocatorPackageVersion>
     <MicrosoftBuildPackageVersion>16.8.0</MicrosoftBuildPackageVersion>
     <MicrosoftDiaSymReaderVersion>2.0.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftNETSdkRazorPackageVersion>6.0.0-alpha.1.21072.5</MicrosoftNETSdkRazorPackageVersion>
     <!-- Packages from dotnet/roslyn -->
     <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>1.1.2-beta1.24121.1</MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>
@@ -148,7 +147,7 @@
     <MicrosoftWebToolsLanguagesSharedEditorPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesSharedEditorPackageVersion>
     <MicrosoftWebToolsSharedPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsSharedPackageVersion>
     <MoqPackageVersion>4.16.0</MoqPackageVersion>
-    <MessagePackPackageVersion>2.5.301</MessagePackPackageVersion>
+    <MessagePackPackageVersion>2.5.303</MessagePackPackageVersion>
     <NewtonsoftJsonPackageVersion>13.0.3</NewtonsoftJsonPackageVersion>
     <NerdbankStreamsPackageVersion>2.10.69</NerdbankStreamsPackageVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
@@ -173,7 +172,7 @@
     <FluentAssertionsVersion>6.7.0</FluentAssertionsVersion>
     <MicrosoftAspNetCoreAppVersion>8.0.0-rc.1.23421.29</MicrosoftAspNetCoreAppVersion>
     <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
-    <MicrosoftBuildTasksCoreVersion>17.8.29</MicrosoftBuildTasksCoreVersion>
+    <MicrosoftBuildTasksCoreVersion>17.8.43</MicrosoftBuildTasksCoreVersion>
     <MicrosoftBuildVersion>17.3.0-preview-22364-05</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>$(MicrosoftBuildVersion)</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildUtilitiesCoreVersion>$(MicrosoftBuildVersion)</MicrosoftBuildUtilitiesCoreVersion>

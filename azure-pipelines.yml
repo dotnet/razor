@@ -89,9 +89,9 @@ stages:
               demands: ImageOverride -equals windows.vs2022.amd64
           steps:
           - task: NodeTool@0
-            displayName: Install Node 10.x
+            displayName: Install Node 22.x
             inputs:
-              versionSpec: 10.x
+              versionSpec: 22.x
           - task: NuGetCommand@2
             displayName: 'Clear NuGet caches'
             condition: succeeded()
@@ -169,9 +169,9 @@ stages:
 
         steps:
         - task: NodeTool@0
-          displayName: Install Node 10.x
+          displayName: Install Node 22.x
           inputs:
-            versionSpec: 10.x
+            versionSpec: 22.x
 
         - powershell: npm install -g yarn
           displayName: Install yarn
@@ -323,9 +323,9 @@ stages:
 
         steps:
         - task: NodeTool@0
-          displayName: Install Node 10.x
+          displayName: Install Node 22.x
           inputs:
-            versionSpec: 10.x
+            versionSpec: 22.x
 
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
@@ -388,9 +388,9 @@ stages:
 
         steps:
         - task: NodeTool@0
-          displayName: Install Node 10.x
+          displayName: Install Node 22.x
           inputs:
-            versionSpec: 10.x
+            versionSpec: 22.x
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
             displayName: Setup Private Feeds Credentials
