@@ -1,0 +1,3 @@
+# Preserve the upstream bytes: generated fallback rule names depend on the XAML checksums.
+Microsoft.NET.Sdk.Razor.DesignTime.targets -text
+Rules/*.xaml -text
