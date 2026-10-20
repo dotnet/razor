@@ -1,0 +1,3 @@
+# Preserve upstream bytes: generated rule names depend on the XAML content hash.
+Microsoft.NET.Sdk.Razor.DesignTime.targets -text
+Rules/*.xaml -text
