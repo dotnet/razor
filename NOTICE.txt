@@ -17,6 +17,17 @@ required to debug changes to any libraries licensed under the GNU Lesser General
 
 ---------------------------------------------------------
 
+Microsoft.NET.Sdk.Razor 6.0.0-alpha.1.21072.5 design-time assets - Apache-2.0
+
+Copyright (c) .NET Foundation. All rights reserved.
+
+Only Microsoft.NET.Sdk.Razor.DesignTime.targets and the five XAML rules in
+src/Shared/files/RazorDesignTime are included. These files were built from
+https://github.com/dotnet/aspnetcore/tree/20b6779cf3af2fed6a8fe64a0865cfab50b776bb.
+The Apache License, Version 2.0 text is reproduced below.
+
+---------------------------------------------------------
+
 Castle.Core 4.3.1 - Apache-2.0
 
 
@@ -5703,4 +5714,3 @@ CopyrightTableDirectory BoundImportTableDirectory DelayImportTableDirectory
 CopyrightAttributesNotFound DefaultArgumentAlreadyDefined DescriptionAttributesNotFound
 
 ---------------------------------------------------------
-

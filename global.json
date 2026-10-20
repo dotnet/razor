@@ -1,12 +1,12 @@
 {
   "tools": {
-    "dotnet": "9.0.121",
+    "dotnet": "9.0.122",
     "runtimes": {
       "dotnet": [
         "2.1.30",
         "$(MicrosoftNETCoreBrowserDebugHostTransportPackageVersion)",
         "3.1.30",
-        "8.0.7"
+        "8.0.32"
       ]
     },
     "vs": {
@@ -17,7 +17,7 @@
     }
   },
   "sdk": {
-    "version": "9.0.121",
+    "version": "9.0.122",
     "allowPrerelease": false,
     "rollForward": "latestPatch"
   },
