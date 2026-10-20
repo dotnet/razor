@@ -14,13 +14,7 @@
     <BuildingTestAppsIndependently Condition="'$(MicrosoftNetCompilersToolsetPackageVersion)' == ''">true</BuildingTestAppsIndependently>
   </PropertyGroup>
 
-  <!-- Retarget tests to use the copy of the Sdk from aspnetcore -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk.Razor"
-      Version="$(MicrosoftNETSdkRazorPackageVersion)"
-      PrivateAssets="All"
-      IsImplicitlyDefined="true" />
-  </ItemGroup>
+  <!-- Use the repository's serviced SDK for Razor build tasks, while keeping each app's target framework. -->
 
   <Import Project="$(SolutionRoot)..\..\eng\Versions.props" />
 

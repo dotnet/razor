@@ -13,4 +13,10 @@
     <KnownFrameworkReference Remove="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <!-- Pin these explicitly because compiler projects disable transitive pinning to keep the older Roslyn. -->
+    <PackageReference Include="System.Net.Http" PrivateAssets="all" />
+    <PackageReference Include="System.Text.RegularExpressions" PrivateAssets="all" />
+  </ItemGroup>
+
 </Project>
