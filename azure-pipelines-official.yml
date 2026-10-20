@@ -15,7 +15,6 @@ variables:
 - name: RunIntegrationTests
   value: false
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-  - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - name: _DevDivDropAccessToken
     value: ''
 
