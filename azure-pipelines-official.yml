@@ -423,6 +423,7 @@ extends:
 
       - stage: insert
         dependsOn: publish_using_darc
+        trigger: manual
         displayName: Insert to VS
         jobs:
         - job: insert
